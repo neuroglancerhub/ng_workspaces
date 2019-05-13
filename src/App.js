@@ -17,7 +17,9 @@ function App() {
         <Navbar history={history}/>
         <Route path="/" exact component={Home} />
         {/* TODO: workout how the routes will be used to view alternative workspaces */}
-        <Route path="/about" exact component={About} />
+        <Route path="/neuroglancer" component={About} />
+        <Route path="/image_picker" component={About} />
+        <Route path="/about" component={About} />
       </div>
     </Router>
   );

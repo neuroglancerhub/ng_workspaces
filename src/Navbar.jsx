@@ -6,12 +6,16 @@ import { makeStyles } from "@material-ui/core/styles";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
+import InfoIcon from "@material-ui/icons/Info";
 
 const useStyles = makeStyles(theme => ({
   search: {
     fontFamily: theme.typography.fontFamily,
     width: "15em",
     marginLeft: "2em"
+  },
+  searchContainer: {
+    flexGrow: 1
   },
   title: {
     color: "#fff",
@@ -59,13 +63,18 @@ function Navbar(props) {
             neurohub
           </Typography>
         </Link>
-        <Select
-          className={classes.search}
-          styles={selectStyles}
-          onChange={handleChange}
-          placeholder="Select a workspace"
-          options={workspaceOptions}
-        />
+        <div className={classes.searchContainer}>
+          <Select
+            className={classes.search}
+            styles={selectStyles}
+            onChange={handleChange}
+            placeholder="Select a workspace"
+            options={workspaceOptions}
+          />
+        </div>
+        <Link to="/about" className={classes.title}>
+          <InfoIcon />
+        </Link>
       </Toolbar>
     </AppBar>
   );
