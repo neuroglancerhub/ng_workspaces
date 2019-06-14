@@ -1,0 +1,15 @@
+#root {
+  height: 100%;
+  display: flex;
+  flex-flow: column;
+}
+
+body {
+  margin: 0px;
+  height: 100vh;
+}
+
+.App {
+  flex: 1;
+  width: 100%;
+}

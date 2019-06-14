@@ -14,8 +14,8 @@ const ImagePicker = lazy(() => import('./ImagePicker'));
 function App() {
   return (
     <Router history={history}>
+      <Navbar history={history}/>
       <div className="App">
-        <Navbar history={history}/>
         <Suspense fallback={<div>Loading Homepage...</div>}>
           <Route path="/" exact component={Home} />
         </Suspense>
@@ -24,6 +24,7 @@ function App() {
           <Route path="/neuroglancer" component={Neuroglancer} />
           <Route path="/image_picker" component={ImagePicker} />
           <Route path="/about" component={About} />
+
         </Suspense>
       </div>
     </Router>

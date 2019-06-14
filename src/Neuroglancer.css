@@ -1,0 +1,9 @@
+.ng-container {
+  display: flex;
+  flex-flow: column;
+  height: 100%;
+}
+
+#neuroglancer-container {
+  height: 100%;
+}

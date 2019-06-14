@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@janelia-flyem/react-neuroglancer": "^1.1.2",
     "@material-ui/core": "^4.0.0-beta.2",
     "@material-ui/icons": "^4.0.0-beta.0",
     "react": "^16.8.6",
