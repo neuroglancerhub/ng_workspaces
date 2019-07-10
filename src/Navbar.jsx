@@ -7,6 +7,7 @@ import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import InfoIcon from "@material-ui/icons/Info";
+import { useTheme } from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
   search: {
@@ -23,28 +24,29 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-const selectStyles = {
-  placeholder: () => ({
-    color: "#fff"
-  }),
-  singleValue: provided => ({
-    ...provided,
-    color: "#fff"
-  }),
-  menu: provided => ({
-    ...provided,
-    color: "#333"
-  }),
-  control: provided => ({
-    ...provided,
-    background: "#3f51b5",
-    border: "1px solid #fff"
-  })
-};
-
 function Navbar(props) {
   const { history } = props;
   const classes = useStyles();
+  const theme = useTheme();
+
+  const selectStyles = {
+    placeholder: () => ({
+      color: "#fff"
+    }),
+    singleValue: provided => ({
+      ...provided,
+      color: "#fff"
+    }),
+    menu: provided => ({
+      ...provided,
+      color: "#333"
+    }),
+    control: provided => ({
+      ...provided,
+      background: theme.palette.primary.main,
+      border: "1px solid #fff"
+    })
+  };
 
   const workspaceOptions = ["neuroglancer", "image picker"].map(dataset => ({
     value: dataset.replace(/ /, "_"),
