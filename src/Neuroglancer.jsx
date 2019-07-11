@@ -1,11 +1,9 @@
 import React from "react";
-import NeuroGlancer from "@janelia-flyem/react-neuroglancer";
-import './Neuroglancer.css';
 
-function Neuroglancer() {
+function Neuroglancer(props) {
   return (
     <div className="ng-container">
-      <NeuroGlancer />
+      {props.children}
     </div>
   );
 }

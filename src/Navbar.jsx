@@ -2,11 +2,11 @@ import React from "react";
 import { Link } from "react-router-dom";
 import Select from "react-select";
 
-import { makeStyles } from "@material-ui/core/styles";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import InfoIcon from "@material-ui/icons/Info";
+import { makeStyles } from "@material-ui/core/styles";
 import { useTheme } from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
@@ -49,7 +49,7 @@ function Navbar(props) {
   };
 
   const workspaceOptions = ["neuroglancer", "image picker"].map(dataset => ({
-    value: dataset.replace(/ /, "_"),
+    value: `ws/${dataset.replace(/ /, "_")}`,
     label: dataset
   }));
 
