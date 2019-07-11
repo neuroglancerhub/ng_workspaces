@@ -12,7 +12,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 function ImagePicker(props) {
-  const { user, children } = props;
+  const { user, children, location } = props;
   const classes = useStyles();
 
   return (
@@ -21,7 +21,8 @@ function ImagePicker(props) {
       <div className={classes.window}>
         {children}
       </div>
-      <p>Other page content can go here</p>
+      <p>Looking at location: {location.pathname}</p>
+      <p>Other page content can go here - or use a Grid Layout to add a sidebar, etc.</p>
     </div>
   );
 }

@@ -1,5 +1,9 @@
 import React, { Suspense, lazy } from 'react';
 
+// TODO: probably need to do some defensive loading here to make sure that
+// browser can support neuroglancer. If it can't we need to render that message
+// instead of the component. -> maybe this should go in the neuroglancer component,
+// if possible.
 import NeuroGlancer from "@janelia-flyem/react-neuroglancer";
 
 import './Neuroglancer.css';
@@ -12,7 +16,7 @@ class WorkSpaces extends React.Component {
     // TODO: check the url to figure out which workspace component to render.
     // Render the selected workspace and pass it the neuroglancer component as
     // a child.
-    const { match } = this.props;
+    const { match, location } = this.props;
 
     let RenderedComponent = null;
 
@@ -36,7 +40,7 @@ class WorkSpaces extends React.Component {
 
     return (
       <Suspense fallback={<div>Loading...</div>}>
-        <RenderedComponent user={user} >
+        <RenderedComponent user={user} location={location} >
           <NeuroGlancer />
         </RenderedComponent>
       </Suspense>
