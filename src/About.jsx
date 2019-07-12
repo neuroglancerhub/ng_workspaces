@@ -4,7 +4,7 @@ import Typography from '@material-ui/core/Typography';
 function About() {
   return (
     <div className="homepage">
-      <Typography variant="h1" >
+      <Typography variant="h5" >
         About
       </Typography >
     </div>

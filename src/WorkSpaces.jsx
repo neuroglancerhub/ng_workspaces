@@ -2,6 +2,8 @@ import React, { Suspense, lazy } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 
+import { initViewer } from './actions/viewer';
+
 // TODO: probably need to do some defensive loading here to make sure that
 // browser can support neuroglancer. If it can't we need to render that message
 // instead of the component. -> maybe this should go in the neuroglancer component,
@@ -38,7 +40,7 @@ class WorkSpaces extends React.Component {
     return (
       <Suspense fallback={<div>Loading...</div>}>
         <RenderedComponent user={user} location={location} actions={actions}>
-          <NeuroGlancer viewerState={viewerState} />
+          <NeuroGlancer viewerState={viewerState.get('ngState')} />
         </RenderedComponent>
       </Suspense>
     );
@@ -56,7 +58,11 @@ const WorkSpacesState = state => ({
 });
 
 const WorkSpacesActions = dispatch => ({
-  actions: {}
+  actions: {
+    initViewer: (newState) => {
+      dispatch(initViewer(newState));
+    }
+  }
 });
 
 export default connect(
