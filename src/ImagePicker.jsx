@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from "@material-ui/core/styles";
-import { useTheme } from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
   window: {
@@ -17,7 +16,9 @@ function ImagePicker(props) {
 
   return (
     <div>
-      <p>ImagePicker - for user: {user.name}</p>
+      <h3>ImagePicker</h3>
+      {user.get('loggedIn') && <p>logged in as: {user.get('userInfo').username}</p>}
+      {!user.get('loggedIn') && <p>Not logged in.</p>}
       <div className={classes.window}>
         {children}
       </div>
@@ -29,6 +30,7 @@ function ImagePicker(props) {
 
 ImagePicker.propTypes = {
   user: PropTypes.object.isRequired,
+  actions: PropTypes.object.isRequired
 }
 
 export default ImagePicker;

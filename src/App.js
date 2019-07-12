@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import { Router, Route } from "react-router-dom";
+
 import Navbar from './Navbar';
 import { ThemeProvider } from '@material-ui/styles';
 import { createMuiTheme } from '@material-ui/core/styles';

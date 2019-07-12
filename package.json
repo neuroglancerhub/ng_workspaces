@@ -6,12 +6,16 @@
     "@janelia-flyem/react-neuroglancer": "^1.1.2",
     "@material-ui/core": "^4.0.0-beta.2",
     "@material-ui/icons": "^4.0.0-beta.0",
+    "immutable": "^4.0.0-rc.12",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
+    "react-redux": "^7.1.0",
     "react-router": "^5.0.0",
     "react-router-dom": "^5.0.0",
     "react-scripts": "3.0.1",
     "react-select": "^2.4.3",
+    "redux": "^4.0.4",
+    "redux-starter-kit": "^0.5.1",
     "typescript": "^3.4.5"
   },
   "scripts": {
@@ -36,6 +40,7 @@
     ]
   },
   "devDependencies": {
-    "prettier": "1.17.1"
+    "prettier": "1.17.1",
+    "redux-devtools": "^3.5.0"
   }
 }
