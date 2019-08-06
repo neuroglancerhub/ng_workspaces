@@ -1,3 +1,16 @@
+# Neuroglancer Workspaces
+
+## Development
+* Clone the repository
+#### `git clone git@github.com:neuroglancerhub/ng_workspaces.git`
+* install dependencies
+#### `npm install`
+* start the development server
+#### `npm start`
+
+
+------
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
