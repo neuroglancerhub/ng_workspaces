@@ -1,0 +1,19 @@
+.focused-proofreading-container {
+  display: flex;
+  flex-flow: column;
+  height: 100%;
+}
+
+.focused-proofreading-controls {
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  background-color: #B0D4AB;
+}
+
+.focused-proofreading-control-row {
+  display: flex;
+  flex-flow: row;
+  background-color: #B0D4AB;
+  align-items: center;
+}

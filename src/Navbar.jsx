@@ -48,7 +48,8 @@ function Navbar(props) {
     })
   };
 
-  const workspaceOptions = ["neuroglancer", "image picker"].map(dataset => ({
+
+    const workspaceOptions = ["neuroglancer", "image picker", "focused proofreading"].map(dataset => ({
     value: `ws/${dataset.replace(/ /, "_")}`,
     label: dataset
   }));

@@ -117,6 +117,7 @@ class ImagePicker extends React.Component {
 
 ImagePicker.propTypes = {
   user: PropTypes.object.isRequired,
+  location: PropTypes.object.isRequired,
   actions: PropTypes.object.isRequired
 };
 
