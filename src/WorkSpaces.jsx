@@ -2,7 +2,10 @@ import React, { Suspense, lazy } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 
-import { initViewer } from './actions/viewer';
+import { 
+  initViewer, setViewerGrayscaleSource, setViewerSegmentationSource,
+  setViewerNavigationPose, setViewerSegments, setViewerSegmentColors 
+} from './actions/viewer';
 
 // TODO: probably need to do some defensive loading here to make sure that
 // browser can support neuroglancer. If it can't we need to render that message
@@ -14,6 +17,8 @@ import "./Neuroglancer.css";
 
 const Neuroglancer = lazy(() => import("./Neuroglancer"));
 const ImagePicker = lazy(() => import("./ImagePicker"));
+const FocusedProofreading = lazy(() => import("./FocusedProofreading"));
+
 
 class WorkSpaces extends React.Component {
   render() {
@@ -30,6 +35,9 @@ class WorkSpaces extends React.Component {
         break;
       case "image_picker":
         RenderedComponent = ImagePicker;
+        break;
+      case "focused_proofreading":
+        RenderedComponent = FocusedProofreading;
         break;
       default:
         RenderedComponent = ImagePicker;
@@ -61,6 +69,21 @@ const WorkSpacesActions = dispatch => ({
   actions: {
     initViewer: (newState) => {
       dispatch(initViewer(newState));
+    },
+    setViewerGrayscaleSource: (newState) => {
+      dispatch(setViewerGrayscaleSource(newState));
+    },
+    setViewerSegmentationSource: (newState) => {
+      dispatch(setViewerSegmentationSource(newState));
+    },
+    setViewerNavigationPose: (newState) => {
+      dispatch(setViewerNavigationPose(newState));
+    },
+    setViewerSegments: (newState) => {
+      dispatch(setViewerSegments(newState));
+    },
+    setViewerSegmentColors: (newState) => {
+      dispatch(setViewerSegmentColors(newState));
     }
   }
 });
