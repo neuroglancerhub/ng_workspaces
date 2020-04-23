@@ -12,6 +12,7 @@ import React from 'react';
 
 export class AssignmentManager {
   onTaskLoaded = undefined;
+
   loading = false;
 
   init = (onTaskLoaded) => {
@@ -24,36 +25,36 @@ export class AssignmentManager {
 
   load = () => {
     this.loading = true;
-    // TODO: Add proper managerment of the current task and its JSON.
+    // TODO: Add proper management of the current task and its JSON.
   }
 
   next = () => {
     this.onTaskLoaded(this);
-    // TODO: Add proper managerment of the current task and its JSON.
+    // TODO: Add proper management of the current task and its JSON.
   }
 
   prev = () => {
     this.onTaskLoaded(this);
-    // TODO: Add proper managerment of the current task and its JSON.
+    // TODO: Add proper management of the current task and its JSON.
   }
 
   taskJson = () => {
-    // TODO: Add proper managerment of the current task and its JSON.
+    // TODO: Add proper management of the current task and its JSON.
     /* Old format:
-    return ({ 
-      'task type' : 'body merge',
-      'supervoxel ID 1' : 123456,
-      'supervoxel ID 2' : 234567,
-      'supervoxel point 1' : [1, 1, 1],
-      'supervoxel point 2' : [2, 2, 2],
+    return ({
+      'task type': 'body merge',
+      'supervoxel ID 1': 123456,
+      'supervoxel ID 2': 234567,
+      'supervoxel point 1': [1, 1, 1],
+      'supervoxel point 2': [2, 2, 2],
     });
     */
-    return ({ 
-      'task type' : 'focused merge',
-      'body point 1' : [12345, 23456, 34567],
-      'body point 2' : [12346, 23457, 34568],
-    });
-
+    const result = {
+      'task type': 'focused merge',
+      'body point 1': [12345, 23456, 34567],
+      'body point 2': [12346, 23457, 34568],
+    };
+    return (result);
   }
 }
 
@@ -71,8 +72,8 @@ export function AssignmentManagerDialog(props) {
     setOpen(!open);
     manager.loading = false;
     manager.onDialogClosed();
-    // TODO: Add proper managerment of the current task and its JSON.
-  }
+    // TODO: Add proper management of the current task and its JSON.
+  };
 
   const [source, setSource] = React.useState('assignmentManager');
 
@@ -87,11 +88,15 @@ export function AssignmentManagerDialog(props) {
       <DialogContent>
         <FormControl>
           <RadioGroup value={source} onChange={handleSourceChange}>
-            <FormControlLabel label="From assignment manager" 
-              control={<Radio />} value='assignmentManager' 
+            <FormControlLabel
+              label="From assignment manager"
+              control={<Radio />}
+              value="assignmentManager"
             />
-            <FormControlLabel label="From JSON" 
-              control={<Radio />} value='json' 
+            <FormControlLabel
+              label="From JSON"
+              control={<Radio />}
+              value="json"
             />
           </RadioGroup>
         </FormControl>
@@ -101,7 +106,7 @@ export function AssignmentManagerDialog(props) {
           Save
         </Button>
       </DialogActions>
-  </Dialog>
+    </Dialog>
   );
 }
 
