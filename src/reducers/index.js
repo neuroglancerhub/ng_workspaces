@@ -5,5 +5,5 @@ import viewer from './viewer';
 
 export default combineReducers({
   user,
-  viewer
+  viewer,
 });

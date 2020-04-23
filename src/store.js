@@ -1,10 +1,10 @@
-import { configureStore } from "redux-starter-kit";
-import rootReducer from "./reducers";
-import thunk from "redux-thunk";
+import { configureStore } from 'redux-starter-kit';
+import thunk from 'redux-thunk';
+import rootReducer from './reducers';
 
 const store = configureStore({
   reducer: rootReducer,
-  middleware: [thunk]
+  middleware: [thunk],
 });
 
 export default store;

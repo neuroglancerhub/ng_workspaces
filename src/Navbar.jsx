@@ -1,27 +1,28 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import Select from "react-select";
+import PropTypes from 'prop-types';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import Select from 'react-select';
 
-import AppBar from "@material-ui/core/AppBar";
-import Toolbar from "@material-ui/core/Toolbar";
-import Typography from "@material-ui/core/Typography";
-import InfoIcon from "@material-ui/icons/Info";
-import { makeStyles } from "@material-ui/core/styles";
+import AppBar from '@material-ui/core/AppBar';
+import Toolbar from '@material-ui/core/Toolbar';
+import Typography from '@material-ui/core/Typography';
+import InfoIcon from '@material-ui/icons/Info';
+import { makeStyles } from '@material-ui/core/styles';
 import { useTheme } from '@material-ui/styles';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   search: {
     fontFamily: theme.typography.fontFamily,
-    width: "15em",
-    marginLeft: "2em"
+    width: '15em',
+    marginLeft: '2em',
   },
   searchContainer: {
-    flexGrow: 1
+    flexGrow: 1,
   },
   title: {
-    color: "#fff",
-    textDecoration: "none"
-  }
+    color: '#fff',
+    textDecoration: 'none',
+  },
 }));
 
 function Navbar(props) {
@@ -31,27 +32,30 @@ function Navbar(props) {
 
   const selectStyles = {
     placeholder: () => ({
-      color: "#fff"
+      color: '#fff',
     }),
-    singleValue: provided => ({
+    singleValue: (provided) => ({
       ...provided,
-      color: "#fff"
+      color: '#fff',
     }),
-    menu: provided => ({
+    menu: (provided) => ({
       ...provided,
-      color: "#333"
+      color: '#333',
     }),
-    control: provided => ({
+    control: (provided) => ({
       ...provided,
       background: theme.palette.primary.main,
-      border: "1px solid #fff"
-    })
+      border: '1px solid #fff',
+    }),
   };
 
+  Navbar.propTypes = {
+    history: PropTypes.object.isRequired,
+  };
 
-    const workspaceOptions = ["neuroglancer", "image picker", "focused proofreading"].map(dataset => ({
-    value: `ws/${dataset.replace(/ /, "_")}`,
-    label: dataset
+  const workspaceOptions = ['neuroglancer', 'image picker', 'focused proofreading'].map((dataset) => ({
+    value: `ws/${dataset.replace(/ /, '_')}`,
+    label: dataset,
   }));
 
   function handleChange(selected) {
