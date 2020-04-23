@@ -10,12 +10,13 @@ import TextField from '@material-ui/core/TextField';
 export class DvidManager {
   // TODO: Switch to an enum: 0 = not initialized, 1 = initializing, 2 = initialized.
   initialized = 0;
+
   onInitCompleted = undefined;
 
   init = (onInitCompleted) => {
     if (this.initialized === 0) {
       this.onInitCompleted = onInitCompleted;
-      this.initialized = 1;  
+      this.initialized = 1;
     }
   }
 
@@ -25,16 +26,26 @@ export class DvidManager {
 
   grayscaleSourceURL = () => {
     // TODO: Get this value from the proper UI.
-    return ('');
+    const result = '';
+    return (result);
   }
 
   segmentationSourceURL = () => {
     // TODO: Get this value from the proper UI.
-    return ('');
+    const result = '';
+    return (result);
   }
 
   bodyIds = (bodyPoints) => {
     // TODO: Look up the body IDs using the body points.
+    // DVID API: segmentation, a labelmap:
+    // GET <api URL>/node/<UUID>/<data name>/label/<coord>[?queryopts]
+    const p0 = bodyPoints[0];
+    // eslint-disable-next-line no-unused-vars
+    const coord0 = `${p0[0]}_${p0[1]}_${p0[2]}`;
+    const p1 = bodyPoints[1];
+    // eslint-disable-next-line no-unused-vars
+    const coord1 = `${p1[0]}_${p1[1]}_${p1[2]}`;
     return ([12345678, 23456789]);
   }
 }
@@ -47,22 +58,22 @@ export function DvidManagerDialog(props) {
     // It does NOT work to use `setOpen(false)`.  Since React state changes from state hooks
     // are asynchronous, `open` may still be false at this point.  So we would not get another
     // state change, which we need to force one more rendering, to make Dialog disappear.
-    // Note that `open={manager.initialized === 1}`, below, is a necesary alternative to 
+    // Note that `open={manager.initialized === 1}`, below, is a necesary alternative to
     // `open={open}` for the same reason.  For more details, see:
     // https://linguinecode.com/post/why-react-setstate-usestate-does-not-update-immediately
     setOpen(!open);
     manager.initialized = 2;
     manager.onDialogClosed();
-  }
+  };
 
   // TODO: Add proper UI.
   return (
     <Dialog onClose={handleClose} open={manager.initialized === 1} disableEnforceFocus>
       <DialogTitle>Set Up DVID</DialogTitle>
       <DialogContent>
-        <TextField label='Credentials' fullWidth />
-        <TextField label='Server' fullWidth />
-        <TextField label='UUID' fullWidth />
+        <TextField label="Credentials" fullWidth />
+        <TextField label="Server" fullWidth />
+        <TextField label="UUID" fullWidth />
       </DialogContent>
       <DialogActions>
         <Button autoFocus onClick={handleClose} color="primary">
