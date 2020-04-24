@@ -61,6 +61,11 @@ const RESULT_CYCLES_NEXT = Object.freeze({
   [RESULTS.DONT_KNOW]: RESULTS.DONT_MERGE,
 });
 
+// Green
+const COLOR_PRIMARY_BODY = '#348E53';
+// Mustard yellow
+const COLOR_OTHER_BODY = '#908827';
+
 //
 // Functions that can be factored out of the React component (because they don't use hooks)
 
@@ -75,6 +80,19 @@ const taskDocString = (taskJson) => {
     return (`${'\xa0'}Task ${i}: [${taskJson['body point 1']}] + [${taskJson['body point 2']}]`);
   }
   return ('');
+};
+
+const bodyColors = (bodyPts, result) => {
+  if (result === RESULTS.MERGE) {
+    return ({
+      [bodyPts[0]]: COLOR_PRIMARY_BODY,
+      [bodyPts[1]]: COLOR_PRIMARY_BODY,
+    });
+  }
+  return ({
+    [bodyPts[0]]: COLOR_PRIMARY_BODY,
+    [bodyPts[1]]: COLOR_OTHER_BODY,
+  });
 };
 
 // eslint-disable-next-line no-unused-vars
@@ -106,6 +124,7 @@ function FocusedProofreading(props) {
   const [dvidMngr] = React.useState(new DvidManager());
 
   const [taskJson, setTaskJson] = React.useState(undefined);
+  const [bodyIds, setBodyIds] = React.useState([]);
   const [result, setResult] = React.useState(RESULTS.DONT_MERGE);
   const [completed, setCompleted] = React.useState(false);
   const [normalPose, setNormalPose] = React.useState({});
@@ -126,11 +145,10 @@ function FocusedProofreading(props) {
     setResult(restoredResult);
     setCompleted(restoredCompleted);
     const segments = dvidMngr.bodyIds(bodyPoints(json));
+    setBodyIds(segments);
     actions.setViewerSegments(segments);
-    // TODO: Add proper color selection for the two bodies in the task.
-    const colors = {};
-    actions.setViewerSegmentColors(colors);
-  }, [actions, assnMngr, dvidMngr]);
+    actions.setViewerSegmentColors(bodyColors(segments, result));
+  }, [actions, assnMngr, dvidMngr, result]);
 
   const noTask = (taskJson === undefined);
 
@@ -153,10 +171,7 @@ function FocusedProofreading(props) {
   };
 
   const handleResultChange = (newResult) => {
-    console.log(`* handleResultChange result '${newResult}' *`);
-    // TODO: Add proper color selection for the two bodies in the task.
-    const colors = {};
-    actions.setViewerSegmentColors(colors);
+    actions.setViewerSegmentColors(bodyColors(bodyIds, newResult));
   };
 
   const handleResultRadio = (event) => {
