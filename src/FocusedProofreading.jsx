@@ -32,6 +32,10 @@ const styles = {
 
 // TODO: Make a general mechanism for user-modifiable key bindings.
 const keyBindings = {
+  protocolNextTask: 'e',
+  protocolPrevTask: 'q',
+  protocolCompletedAndNextTask1: 'E',
+  protocolCompletedAndNextTask2: 'X',
   focusedProofreadingCycleResults: 'v',
   focusedProofreadingToggleBirdsEyeView: 'b',
 };
@@ -88,38 +92,6 @@ const restoreResults = (taskJson, dvidMngr) => {
 };
 
 //
-
-// TODO: Eliminate these fake viewer settings when real ones are implemented.
-const fakeInitViewer = (actions) => {
-  actions.initViewer({
-    layers: {
-      grayscale: {
-        type: 'image',
-        source:
-         'dvid://https://flyem.dvid.io/ab6e610d4fe140aba0e030645a1d7229/grayscalejpeg',
-      },
-      segmentation: {
-        type: 'segmentation',
-        source:
-          'dvid://https://flyem.dvid.io/d925633ed0974da78e2bb5cf38d01f4d/segmentation',
-        segments: ['208299761'],
-      },
-    },
-    perspectiveZoom: 20,
-    navigation: {
-      zoomFactor: 8,
-      pose: {
-        position: {
-          voxelSize: [8, 8, 8],
-          voxelCoordinates: [7338.26953125, 7072, 4246.69140625],
-        },
-      },
-    },
-    layout: 'xz',
-  });
-};
-
-//
 // The React component for focused proofreading.  Per the latest suggestions,
 // it is a functional component using hooks to manage state and side effects.
 // State shared with other components in the application is managed using
@@ -129,6 +101,8 @@ function FocusedProofreading(props) {
   const { actions, children } = props;
 
   const [assnMngr] = React.useState(new AssignmentManager());
+  const [assnMngrLoading, setAssnMngrLoading] = React.useState(false);
+
   const [dvidMngr] = React.useState(new DvidManager());
 
   const [taskJson, setTaskJson] = React.useState(undefined);
@@ -165,9 +139,9 @@ function FocusedProofreading(props) {
   }, [assnMngr, setupTask]);
 
   const handleLoadButton = () => {
-    assnMngr.load();
-    // TODO: Eliminate these fake viewer settings when real ones are implemented.
-    fakeInitViewer(actions);
+    setAssnMngrLoading(true);
+    const onLoadingDone = () => setAssnMngrLoading(false);
+    assnMngr.load(onLoadingDone);
   };
 
   const handleNextButton = () => {
@@ -199,12 +173,19 @@ function FocusedProofreading(props) {
 
   const handleKeyPress = (event) => {
     if (!noTask) {
-      if (event.key === keyBindings.focusedProofreadingCycleResults) {
+      if (event.key === keyBindings.protocolNextTask) {
+        handleNextButton();
+      } else if (event.key === keyBindings.protocolPrevTask) {
+        handlePrevButton();
+      } else if (event.key === keyBindings.focusedProofreadingCycleResults) {
         const newResult = RESULT_CYCLES_NEXT[result];
         setResult(newResult);
         handleResultChange(newResult);
       } else if (event.key === keyBindings.focusedProofreadingToggleBirdsEyeView) {
         // TODO: Add calculation of the camera pose for the bird's eye view.
+        // TODO: Rather than change the camera position (as in Neu3), changing "perspectiveZoom"
+        // in the view state (to a bigger number, for more zoomed out) probably makes more sense
+        // here.  That approach does not change what is in the grayscale views.
         const useBirdsEye = false;
         const pose = useBirdsEye ? birdsEyePose : normalPose;
         actions.setViewerNavigationPose(pose);
@@ -216,8 +197,13 @@ function FocusedProofreading(props) {
   const onMeshLoaded = (id, layer, mesh) => {
     // TODO: If `id` is one of the task's bodies, use the vertices of `mesh` to compute
     // the bird's eye view camera pose.
-    const normal = {};
-    const birdsEye = {};
+    const normal = {
+      position: {
+        voxelSize: [8, 8, 8],
+        voxelCoordinates: [7338.26953125, 7072, 4246.69140625],
+      },
+    };
+    const birdsEye = normal;
     setNormalPose(normal);
     setBirdsEyePose(birdsEye);
   };
@@ -276,7 +262,7 @@ function FocusedProofreading(props) {
             />
           </RadioGroup>
         </FormControl>
-        <AssignmentManagerDialog manager={assnMngr} />
+        <AssignmentManagerDialog manager={assnMngr} open={assnMngrLoading} />
         <DvidManagerDialog manager={dvidMngr} />
       </div>
       <div className="ng-container">
