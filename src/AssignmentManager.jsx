@@ -10,69 +10,78 @@ import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import React from 'react';
 
-export class AssignmentManager {
-  onTaskLoaded = undefined;
+// TODO: Add proper management of the current task and its JSON.
+const fakeAssignment = [
+  {
+    'task type': 'focused merge',
+    'body point 1': [10011, 20011, 30011],
+    'body point 2': [10012, 20012, 30012],
+  },
+  {
+    'task type': 'focused merge',
+    'body point 1': [10021, 20021, 30021],
+    'body point 2': [10022, 20022, 30022],
+  },
+  {
+    'task type': 'focused merge',
+    'body point 1': [10031, 20031, 30031],
+    'body point 2': [10032, 20032, 30032],
+  },
+];
+let fakeAssignmentIndex = 0;
 
-  loading = false;
+export class AssignmentManager {
+  onAssignmentLoaded = undefined;
+
+  onTaskLoaded = undefined;
 
   init = (onTaskLoaded) => {
     this.onTaskLoaded = onTaskLoaded;
   }
 
   onDialogClosed = () => {
-    this.onTaskLoaded();
+    this.onAssignmentLoaded();
+    this.onTaskLoaded(this);
   }
 
-  load = () => {
-    this.loading = true;
+  load = (onAssignmentLoaded) => {
+    this.onAssignmentLoaded = onAssignmentLoaded;
     // TODO: Add proper management of the current task and its JSON.
+    fakeAssignmentIndex = 0;
   }
 
   next = () => {
-    this.onTaskLoaded(this);
     // TODO: Add proper management of the current task and its JSON.
+    fakeAssignmentIndex += 1;
+    if (fakeAssignmentIndex === fakeAssignment.length) {
+      fakeAssignmentIndex = 0;
+    }
+
+    this.onTaskLoaded(this);
   }
 
   prev = () => {
-    this.onTaskLoaded(this);
     // TODO: Add proper management of the current task and its JSON.
+    fakeAssignmentIndex -= 1;
+    if (fakeAssignmentIndex === -1) {
+      fakeAssignmentIndex = fakeAssignment.length - 1;
+    }
+
+    this.onTaskLoaded(this);
   }
 
   taskJson = () => {
     // TODO: Add proper management of the current task and its JSON.
-    /* Old format:
-    return ({
-      'task type': 'body merge',
-      'supervoxel ID 1': 123456,
-      'supervoxel ID 2': 234567,
-      'supervoxel point 1': [1, 1, 1],
-      'supervoxel point 2': [2, 2, 2],
-    });
-    */
-    const result = {
-      'task type': 'focused merge',
-      'body point 1': [12345, 23456, 34567],
-      'body point 2': [12346, 23457, 34568],
-    };
+    const result = fakeAssignment[fakeAssignmentIndex];
     return (result);
   }
 }
 
 export function AssignmentManagerDialog(props) {
-  const { manager } = props;
-  const [open, setOpen] = React.useState(manager.loading);
+  const { manager, open } = props;
 
   const handleClose = () => {
-    // It does NOT work to use `setOpen(false)`.  Since React state changes from state hooks
-    // are asynchronous, `open` may still be false at this point.  So we would not get another
-    // state change, which we need to force one more rendering, to make Dialog disappear.
-    // Note that `open={manager.loading}`, below, is a necesary alternative to `open={open}`
-    // for the same reason.  For more details, see:
-    // https://linguinecode.com/post/why-react-setstate-usestate-does-not-update-immediately
-    setOpen(!open);
-    manager.loading = false;
     manager.onDialogClosed();
-    // TODO: Add proper management of the current task and its JSON.
   };
 
   const [source, setSource] = React.useState('assignmentManager');
@@ -83,7 +92,7 @@ export function AssignmentManagerDialog(props) {
 
   // TODO: Add proper UI.
   return (
-    <Dialog onClose={handleClose} open={manager.loading} disableEnforceFocus>
+    <Dialog onClose={handleClose} open={open} disableEnforceFocus>
       <DialogTitle>Load an Assignment</DialogTitle>
       <DialogContent>
         <FormControl>
@@ -112,4 +121,5 @@ export function AssignmentManagerDialog(props) {
 
 AssignmentManagerDialog.propTypes = {
   manager: PropTypes.object.isRequired,
+  open: PropTypes.bool.isRequired,
 };
