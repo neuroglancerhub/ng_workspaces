@@ -12,6 +12,7 @@ const viewerState = Immutable.Map({
         type: 'segmentation',
         source: '',
         segments: [0],
+        segmentColors: {},
       },
     },
     perspectiveZoom: 20,
@@ -50,9 +51,7 @@ export default function viewerReducer(state = viewerState, action) {
       return (state.setIn(['ngState', 'layers', 'segmentation', 'segments'], action.payload));
     }
     case C.SET_VIEWER_SEGMENT_COLORS: {
-      // TODO: Rebuild the display state JSON passed to Neuroglancer.
-      console.log('* viewerReducer should be updating segment colors *');
-      return state;
+      return (state.setIn(['ngState', 'layers', 'segmentation', 'segmentColors'], action.payload));
     }
     default: {
       return state;
