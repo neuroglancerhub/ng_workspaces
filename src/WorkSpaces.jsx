@@ -44,8 +44,6 @@ function WorkSpaces(props) {
       RenderedComponent = ImagePicker;
   }
 
-  // TODO: need to store our application state in redux, so that we can build
-  // the state object to pass into the NeuroGlancer component.
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <RenderedComponent user={user} location={location} actions={actions}>

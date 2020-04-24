@@ -26,13 +26,13 @@ export class DvidManager {
 
   grayscaleSourceURL = () => {
     // TODO: Get this value from the proper UI.
-    const result = '';
+    const result = 'dvid://https://flyem.dvid.io/ab6e610d4fe140aba0e030645a1d7229/grayscalejpeg';
     return (result);
   }
 
   segmentationSourceURL = () => {
     // TODO: Get this value from the proper UI.
-    const result = '';
+    const result = 'dvid://https://flyem.dvid.io/d925633ed0974da78e2bb5cf38d01f4d/segmentation';
     return (result);
   }
 
@@ -46,7 +46,15 @@ export class DvidManager {
     const p1 = bodyPoints[1];
     // eslint-disable-next-line no-unused-vars
     const coord1 = `${p1[0]}_${p1[1]}_${p1[2]}`;
-    return ([12345678, 23456789]);
+
+    const fakeAssignmentKey = `${coord0}_${coord1}`;
+    const fakeAssignmentBodies = {
+      '10011_20011_30011_10012_20012_30012': ['191933097', '208299761'],
+      '10021_20021_30021_10022_20022_30022': ['12885603', '178649151'],
+      '10031_20031_30031_10032_20032_30032': ['970337', '206403180'],
+    };
+    const result = fakeAssignmentBodies[fakeAssignmentKey];
+    return (result);
   }
 }
 
