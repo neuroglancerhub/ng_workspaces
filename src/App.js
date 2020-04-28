@@ -18,6 +18,7 @@ const history = createBrowserHistory();
 const Home = lazy(() => import('./Home'));
 const About = lazy(() => import('./About'));
 const WorkSpaces = lazy(() => import('./WorkSpaces'));
+const AuthTest = lazy(() => import('./AuthTest'));
 
 const theme = createMuiTheme({
   palette: {
@@ -108,6 +109,8 @@ function App() {
           .init({
             client_id: '833853795110-2eu65hnvthhcibk64ibftemb0i1tlu97.apps.googleusercontent.com',
             fetch_basic_profile: true,
+            // need this scope to access google cloud storage buckets
+            scope: 'https://www.googleapis.com/auth/devstorage.read_only',
             ux_mode: 'pop-up',
           })
           .then(onInit);
@@ -131,6 +134,7 @@ function App() {
           <Suspense fallback={<div>Loading...</div>}>
             <Route path="/ws/:ws" component={WorkSpaces} />
             <Route path="/about" component={About} />
+            <Route path="/auth_test" component={AuthTest} />
           </Suspense>
         </div>
         <Alerts />
