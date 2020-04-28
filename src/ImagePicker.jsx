@@ -34,13 +34,11 @@ class ImagePicker extends React.Component {
       layers: {
         grayscale: {
           type: 'image',
-          source:
-            'dvid://https://flyem.dvid.io/ab6e610d4fe140aba0e030645a1d7229/grayscalejpeg',
+          source: 'dvid://https://flyem.dvid.io/ab6e610d4fe140aba0e030645a1d7229/grayscalejpeg',
         },
         segmentation: {
           type: 'segmentation',
-          source:
-            'dvid://https://flyem.dvid.io/d925633ed0974da78e2bb5cf38d01f4d/segmentation',
+          source: 'dvid://https://flyem.dvid.io/d925633ed0974da78e2bb5cf38d01f4d/segmentation',
           segments: ['208299761'],
         },
       },
@@ -70,9 +68,15 @@ class ImagePicker extends React.Component {
 
   render() {
     const {
-      user, children, location, classes,
+      user,
+      children,
+      location,
+      classes,
     } = this.props;
     const { serverUrl, submitted } = this.state;
+
+    // TODO: if user not logged in, then display an alternative message about
+    // login requirements.
 
     if (!submitted) {
       return (
@@ -86,11 +90,7 @@ class ImagePicker extends React.Component {
               margin="normal"
             />
             <br />
-            <Button
-              color="primary"
-              variant="contained"
-              onClick={this.handleSubmit}
-            >
+            <Button color="primary" variant="contained" onClick={this.handleSubmit}>
               Submit
             </Button>
           </form>
@@ -117,10 +117,7 @@ class ImagePicker extends React.Component {
           Looking at location:
           {location.pathname}
         </p>
-        <p>
-          Other page content can go here - or use a Grid Layout to add a
-          sidebar, etc.
-        </p>
+        <p>Other page content can go here - or use a Grid Layout to add a sidebar, etc.</p>
       </div>
     );
   }
