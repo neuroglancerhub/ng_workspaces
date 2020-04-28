@@ -13,6 +13,8 @@ import {
   setViewerNavigationPose, setViewerSegments, setViewerSegmentColors,
 } from './actions/viewer';
 
+import { setSyncStateNeeded } from './reducers/viewer';
+
 import './Neuroglancer.css';
 
 const Neuroglancer = lazy(() => import('./Neuroglancer'));
@@ -43,6 +45,14 @@ function WorkSpaces(props) {
     default:
       RenderedComponent = ImagePicker;
   }
+
+  React.useEffect(() => {
+    // After rendering, any changes accumulated in the Redux state have been
+    // pushed to react-neuroglancer, and we are ready to synchronize the Redux
+    // state with the Neuroglancer component's state before the next changes,
+    // in case the user made any changes directly to the component's state.
+    setSyncStateNeeded(true);
+  });
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
