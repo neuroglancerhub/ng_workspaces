@@ -1,34 +1,53 @@
 import Immutable from 'immutable';
+import { getNeuroglancerViewerState } from '@janelia-flyem/react-neuroglancer';
+
 import C from './constants';
 
 const viewerState = Immutable.Map({
   ngState: {
-    layers: {
-      grayscale: {
+    // The "legacy" form of Neuroglancer view state 'layers' as a map, with layer names as keys.
+    // But when Neuroglancer returns its current state, it returns 'layers' as an array.
+    layers: [
+      {
+        name: 'grayscale',
         type: 'image',
         source: '',
       },
-      segmentation: {
+      {
+        name: 'segmentation',
         type: 'segmentation',
         source: '',
         segments: [0],
         segmentColors: {},
       },
-    },
-    perspectiveZoom: 20,
-    navigation: {
-      zoomFactor: 8,
-      pose: {
-        position: {
-          voxelSize: [8, 8, 8],
-          voxelCoordinates: [7338.26953125, 7072, 4246.69140625],
-        },
-      },
-    },
+    ],
+    position: [7560, 6735, 4505],
+    projectionScale: 2600,
     showSlices: false,
     layout: '4panel', // 'xz-3d',
   },
 });
+
+let syncStateNeeded = false;
+
+export const setSyncStateNeeded = (needed) => {
+  syncStateNeeded = needed;
+};
+
+const syncedState = (state) => {
+  if (syncStateNeeded) {
+    const ngState = getNeuroglancerViewerState();
+    syncStateNeeded = false;
+    return state.set('ngState', ngState);
+  }
+  return state;
+};
+
+const setInLayerArray = (state, layerName, propName, propValue) => {
+  const layers = state.getIn(['ngState', 'layers']);
+  const i = layers.findIndex((value) => (value.name === layerName));
+  return state.setIn(['ngState', 'layers', i, propName], propValue);
+};
 
 export default function viewerReducer(state = viewerState, action) {
   switch (action.type) {
@@ -39,19 +58,19 @@ export default function viewerReducer(state = viewerState, action) {
       return state.set('ngState', action.payload);
     }
     case C.SET_VIEWER_GRAYSCALE_SOURCE: {
-      return (state.setIn(['ngState', 'layers', 'grayscale', 'source'], action.payload));
+      return setInLayerArray(syncedState(state), 'grayscale', 'source', action.payload);
     }
     case C.SET_VIEWER_SEGMENTATION_SOURCE: {
-      return (state.setIn(['ngState', 'layers', 'segmentation', 'source'], action.payload));
+      return setInLayerArray(syncedState(state), 'segmentation', 'source', action.payload);
     }
     case C.SET_VIEWER_NAVIGATION_POSE: {
       return (state.setIn(['ngState', 'navigation', 'pose'], action.payload));
     }
     case C.SET_VIEWER_SEGMENTS: {
-      return (state.setIn(['ngState', 'layers', 'segmentation', 'segments'], action.payload));
+      return setInLayerArray(syncedState(state), 'segmentation', 'segments', action.payload);
     }
     case C.SET_VIEWER_SEGMENT_COLORS: {
-      return (state.setIn(['ngState', 'layers', 'segmentation', 'segmentColors'], action.payload));
+      return setInLayerArray(syncedState(state), 'segmentation', 'segmentColors', action.payload);
     }
     default: {
       return state;
