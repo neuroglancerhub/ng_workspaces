@@ -21,9 +21,23 @@ export function setViewerSegmentationSource(payload) {
   };
 }
 
-export function setViewerNavigationPose(payload) {
+export function setViewerCameraPosition(payload) {
   return {
-    type: C.SET_VIEWER_NAVIGATION_POSE,
+    type: C.SET_VIEWER_CAMERA_POSITION,
+    payload,
+  };
+}
+
+export function setViewerCameraProjectionScale(payload) {
+  return {
+    type: C.SET_VIEWER_CAMERA_PROJECTION_SCALE,
+    payload,
+  };
+}
+
+export function setViewerCameraProjectionOrientation(payload) {
+  return {
+    type: C.SET_VIEWER_CAMERA_PROJECTION_ORIENTATION,
     payload,
   };
 }
