@@ -74,11 +74,11 @@ const bodyPoints = (taskJson) => (
   [taskJson['body point 1'], taskJson['body point 2']]
 );
 
-const taskDocString = (taskJson) => {
+const taskDocString = (assnMngr, taskJson) => {
   if (taskJson) {
-    // TODO: Add a task counter.
-    const i = 1;
-    return (`${'\xa0'}Task ${i}: [${taskJson['body point 1']}] + [${taskJson['body point 2']}]`);
+    const indexStr = assnMngr.taskIndexString();
+    const taskStr = `${indexStr ? ' ' : ''}${indexStr}`;
+    return (`${'\xa0'}Task${taskStr}: [${taskJson['body point 1']}] + [${taskJson['body point 2']}]`);
   }
   return ('');
 };
@@ -159,7 +159,8 @@ const storeResults = (taskJson, result, dvidMngr) => {
 // eslint-disable-next-line no-unused-vars
 const restoreResults = (taskJson, dvidMngr) => {
   // TODO: Add actual restoring of the result for `taskJson` using `dvidMngr`.
-  const result = [RESULTS.DONT_MERGE, false];
+  const completed = !!taskJson.completed;
+  const result = [RESULTS.DONT_MERGE, completed];
   return (result);
 };
 
@@ -195,28 +196,32 @@ function FocusedProofreading(props) {
 
   const setupTask = React.useCallback(() => {
     const json = assnMngr.taskJson();
-    const [restoredResult, restoredCompleted] = restoreResults(json, dvidMngr);
     const bodyPts = bodyPoints(json);
-    const segments = dvidMngr.bodyIds(bodyPts);
-    const { position, projectionOrientation } = cameraPose(bodyPts);
-    cameraProjectionScale(segments, dvidMngr, (scale, scaleBirdsEye) => {
-      setTaskJson(json);
-      setResult(restoredResult);
-      setCompleted(restoredCompleted);
-      setBodyIds(segments);
-      setNormalScale(scale);
-      setBirdsEyeScale(scaleBirdsEye);
+    dvidMngr.bodyId(bodyPts[0], (bodyId0) => {
+      dvidMngr.bodyId(bodyPts[1], (bodyId1) => {
+        const segments = [bodyId0, bodyId1];
+        const [restoredResult, restoredCompleted] = restoreResults(json, dvidMngr);
+        const { position, projectionOrientation } = cameraPose(bodyPts);
+        cameraProjectionScale(segments, dvidMngr, (scale, scaleBirdsEye) => {
+          setTaskJson(json);
+          setResult(restoredResult);
+          setCompleted(restoredCompleted);
+          setBodyIds(segments);
+          setNormalScale(scale);
+          setBirdsEyeScale(scaleBirdsEye);
 
-      actions.setViewerSegments(segments);
-      actions.setViewerSegmentColors(bodyColors(segments, result));
-      actions.setViewerCameraPosition(position);
-      actions.setViewerCameraProjectionOrientation(projectionOrientation);
+          actions.setViewerSegments(segments);
+          actions.setViewerSegmentColors(bodyColors(segments, result));
+          actions.setViewerCameraPosition(position);
+          actions.setViewerCameraProjectionOrientation(projectionOrientation);
 
-      // TODO: Neuroglancer does something to the 'projectionScale' value,
-      // which seems end up being this emprically determined conversion factor.
-      // Replace it with a more principled solution.
-      const conversion = 125000000;
-      actions.setViewerCameraProjectionScale(scale / conversion);
+          // TODO: Neuroglancer does something to the 'projectionScale' value,
+          // which seems end up being this emprically determined conversion factor.
+          // Replace it with a more principled solution.
+          const conversion = 125000000;
+          actions.setViewerCameraProjectionScale(scale / conversion);
+        });
+      });
     });
   }, [actions, assnMngr, dvidMngr, result]);
 
@@ -228,8 +233,8 @@ function FocusedProofreading(props) {
 
   const handleLoadButton = () => {
     setAssnMngrLoading(true);
-    const onLoadingDone = () => setAssnMngrLoading(false);
-    assnMngr.load(onLoadingDone);
+    const onLoadInteractionDone = () => setAssnMngrLoading(false);
+    assnMngr.load(onLoadInteractionDone);
   };
 
   const resetForNewTask = () => {
@@ -258,6 +263,7 @@ function FocusedProofreading(props) {
 
   const handleCompletedCheckbox = (event) => {
     setCompleted(event.target.checked);
+    taskJson.completed = event.target.checked;
     if (event.target.checked) {
       storeResults(taskJson, result, dvidMngr);
     }
@@ -321,7 +327,7 @@ function FocusedProofreading(props) {
             </Button>
           </ButtonGroup>
           <Typography color="inherit">
-            {taskDocString(taskJson)}
+            {taskDocString(assnMngr, taskJson)}
           </Typography>
         </div>
         <FormControl component="fieldset" disabled={noTask}>

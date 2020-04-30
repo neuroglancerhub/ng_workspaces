@@ -38,27 +38,6 @@ export class DvidManager {
     return (result);
   }
 
-  bodyIds = (bodyPoints) => {
-    // TODO: Look up the body IDs using the body points.
-    // DVID API: segmentation, a labelmap:
-    // GET <api URL>/node/<UUID>/<data name>/label/<coord>[?queryopts]
-    const p0 = bodyPoints[0];
-    // eslint-disable-next-line no-unused-vars
-    const coord0 = `${p0[0]}_${p0[1]}_${p0[2]}`;
-    const p1 = bodyPoints[1];
-    // eslint-disable-next-line no-unused-vars
-    const coord1 = `${p1[0]}_${p1[1]}_${p1[2]}`;
-
-    const fakeAssignmentKey = `${coord0}_${coord1}`;
-    const fakeAssignmentBodies = {
-      '7300_7070_4440_7250_7075_4440': ['191933097', '208299761'],
-      '7500_7070_4140_7500_7070_4100': ['12885603', '178649151'],
-      '7400_7070_4160_7405_7080_4170': ['970337', '206403180'],
-    };
-    const result = fakeAssignmentBodies[fakeAssignmentKey];
-    return (result);
-  }
-
   segmentationAPIURL = () => {
     const parts = this.segmentationURL.split('/');
     return (`${parts[0]}//${parts[2]}/api/node/${parts[3]}/${parts[4]}`);
@@ -68,6 +47,12 @@ export class DvidManager {
     const url = `${this.segmentationAPIURL()}/sparsevol-size/${bodyId}`;
     fetch(url).then((response) => response.json()).then((data) => onCompletion(data));
   }
+
+  bodyId = (bodyPt, onCompletion) => {
+    const key = `${bodyPt[0]}_${bodyPt[1]}_${bodyPt[2]}`;
+    const url = `${this.segmentationAPIURL()}/label/${key}`;
+    fetch(url).then((response) => response.json()).then((data) => onCompletion(data.Label));
+  };
 }
 
 export function DvidManagerDialog(props) {

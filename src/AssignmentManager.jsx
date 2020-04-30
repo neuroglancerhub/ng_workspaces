@@ -10,112 +10,152 @@ import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import React from 'react';
 
-// TODO: Add proper management of the current task and its JSON.
-const fakeAssignment = [
-  {
-    'task type': 'focused merge',
-    'body point 1': [7300, 7070, 4440],
-    'body point 2': [7250, 7075, 4440],
-  },
-  {
-    'task type': 'focused merge',
-    'body point 1': [7500, 7070, 4140],
-    'body point 2': [7500, 7070, 4100],
-  },
-  {
-    'task type': 'focused merge',
-    'body point 1': [7400, 7070, 4160],
-    'body point 2': [7405, 7080, 4170],
-  },
-];
-let fakeAssignmentIndex = 0;
+const KEY_FOCUSED_PROOFREADING_ASSIGNMENT_TASK_LIST = 'task list';
 
 export class AssignmentManager {
-  onAssignmentLoaded = undefined;
+  onLoadInteractionDone = undefined;
 
   onTaskLoaded = undefined;
+
+  assignment = {};
+
+  assignmentIndex = 0;
+
+  // Public API
 
   init = (onTaskLoaded) => {
     this.onTaskLoaded = onTaskLoaded;
   }
 
-  onDialogClosed = () => {
-    this.onAssignmentLoaded();
-    this.onTaskLoaded(this);
-  }
-
-  load = (onAssignmentLoaded) => {
-    this.onAssignmentLoaded = onAssignmentLoaded;
-    // TODO: Add proper management of the current task and its JSON.
-    fakeAssignmentIndex = 0;
+  load = (onLoadInteractionDone) => {
+    this.onLoadInteractionDone = onLoadInteractionDone;
+    this.assignmentIndex = 0;
   }
 
   next = () => {
-    // TODO: Add proper management of the current task and its JSON.
-    fakeAssignmentIndex += 1;
-    if (fakeAssignmentIndex === fakeAssignment.length) {
-      fakeAssignmentIndex = 0;
+    this.assignmentIndex += 1;
+    if (this.assignmentIndex === this.taskList().length) {
+      this.assignmentIndex = 0;
     }
 
     this.onTaskLoaded(this);
   }
 
   prev = () => {
-    // TODO: Add proper management of the current task and its JSON.
-    fakeAssignmentIndex -= 1;
-    if (fakeAssignmentIndex === -1) {
-      fakeAssignmentIndex = fakeAssignment.length - 1;
+    this.assignmentIndex -= 1;
+    if (this.assignmentIndex === -1) {
+      this.assignmentIndex = this.taskList().length - 1;
     }
 
     this.onTaskLoaded(this);
   }
 
   taskJson = () => {
-    // TODO: Add proper management of the current task and its JSON.
-    const result = fakeAssignment[fakeAssignmentIndex];
+    const result = this.taskList()[this.assignmentIndex];
     return (result);
   }
+
+  taskIndexString = () => (
+    this.taskList().length > 1 ? (this.assignmentIndex + 1).toString() : ''
+  )
+
+  // Internal
+
+  loadJsonFile = (file) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (!reader.error) {
+        try {
+          this.assignment = JSON.parse(event.target.result);
+          this.initTaskList();
+          this.onTaskLoaded(this);
+        } catch (exc) {
+          // TODO: Add error processing.
+          console.log(`* Error loading assignment JSON: '${exc}' *`);
+        }
+      } else {
+        // TODO: Add error processing.
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  onDialogClosed = () => {
+    this.onLoadInteractionDone();
+  }
+
+  taskList = () => (
+    this.assignment[KEY_FOCUSED_PROOFREADING_ASSIGNMENT_TASK_LIST]
+  );
+
+  initTaskList = () => {
+    const l = this.assignment[KEY_FOCUSED_PROOFREADING_ASSIGNMENT_TASK_LIST].map((task) => (
+      { ...task, completed: false }
+    ));
+    this.assignment[KEY_FOCUSED_PROOFREADING_ASSIGNMENT_TASK_LIST] = l;
+  };
 }
 
 export function AssignmentManagerDialog(props) {
   const { manager, open } = props;
 
+  const [source, setSource] = React.useState('json');
+  const [jsonInputRef, setJsonjsonInputRef] = React.useState(null);
+
   const handleClose = () => {
+    if (source === 'json') {
+      jsonInputRef.click();
+    }
     manager.onDialogClosed();
   };
-
-  const [source, setSource] = React.useState('assignmentManager');
 
   const handleSourceChange = (event) => {
     setSource(event.target.value);
   };
 
+  const handleJsonInputChange = () => {
+    if (jsonInputRef.files.length === 1) {
+      const file = jsonInputRef.files[0];
+      manager.loadJsonFile(file);
+    }
+  };
+
   // TODO: Add proper UI.
   return (
-    <Dialog onClose={handleClose} open={open} disableEnforceFocus>
-      <DialogTitle>Load an Assignment</DialogTitle>
-      <DialogContent>
-        <FormControl>
-          <RadioGroup value={source} onChange={handleSourceChange}>
-            <FormControlLabel
-              label="From assignment manager"
-              control={<Radio />}
-              value="assignmentManager"
-            />
-            <FormControlLabel
-              label="From JSON"
-              control={<Radio />}
-              value="json"
-            />
-          </RadioGroup>
-        </FormControl>
-      </DialogContent>
-      <DialogActions>
-        <Button autoFocus onClick={handleClose} color="primary">
-          Save
-        </Button>
-      </DialogActions>
-    </Dialog>
+    <div>
+      <input
+        id="jsonInput"
+        type="file"
+        accept=".json"
+        ref={(ref) => { setJsonjsonInputRef(ref); }}
+        style={{ display: 'none' }}
+        onChange={handleJsonInputChange}
+      />
+      <Dialog onClose={handleClose} open={open} disableEnforceFocus>
+        <DialogTitle>Load an assignment</DialogTitle>
+        <DialogContent>
+          <FormControl>
+            <RadioGroup value={source} onChange={handleSourceChange}>
+              <FormControlLabel
+                label="From assignment['task list'] manager"
+                control={<Radio />}
+                value="assignmentManager"
+              />
+              <FormControlLabel
+                label="From JSON"
+                control={<Radio />}
+                value="json"
+              />
+            </RadioGroup>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button autoFocus onClick={handleClose} color="primary">
+            OK
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </div>
   );
 }
 
