@@ -1,0 +1,20 @@
+{
+  "file version": 2,
+  "task list": [
+    {
+      "task type": "focused merge",
+      "body point 1": [7300, 7070, 4440],
+      "body point 2": [7250, 7075, 4440]
+    },
+    {
+      "task type": "focused merge",
+      "body point 1": [7500, 7070, 4140],
+      "body point 2": [7500, 7070, 4100]
+    },
+    {
+      "task type": "focused merge",
+      "body point 1": [7400, 7070, 4160],
+      "body point 2": [7405, 7080, 4170]
+    }
+  ]
+}
