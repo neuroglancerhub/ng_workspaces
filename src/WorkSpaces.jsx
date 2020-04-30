@@ -10,7 +10,8 @@ import NeuroGlancer from '@janelia-flyem/react-neuroglancer';
 
 import {
   initViewer, setViewerGrayscaleSource, setViewerSegmentationSource,
-  setViewerNavigationPose, setViewerSegments, setViewerSegmentColors,
+  setViewerCameraPosition, setViewerCameraProjectionScale, setViewerCameraProjectionOrientation,
+  setViewerSegments, setViewerSegmentColors,
 } from './actions/viewer';
 
 import { setSyncStateNeeded } from './reducers/viewer';
@@ -87,14 +88,20 @@ const WorkSpacesActions = (dispatch) => ({
     setViewerSegmentationSource: (newState) => {
       dispatch(setViewerSegmentationSource(newState));
     },
-    setViewerNavigationPose: (newState) => {
-      dispatch(setViewerNavigationPose(newState));
-    },
     setViewerSegments: (newState) => {
       dispatch(setViewerSegments(newState));
     },
     setViewerSegmentColors: (newState) => {
       dispatch(setViewerSegmentColors(newState));
+    },
+    setViewerCameraPosition: (newState) => {
+      dispatch(setViewerCameraPosition(newState));
+    },
+    setViewerCameraProjectionScale: (newState) => {
+      dispatch(setViewerCameraProjectionScale(newState));
+    },
+    setViewerCameraProjectionOrientation: (newState) => {
+      dispatch(setViewerCameraProjectionOrientation(newState));
     },
   },
 });

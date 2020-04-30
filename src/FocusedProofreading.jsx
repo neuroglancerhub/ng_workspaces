@@ -9,6 +9,7 @@ import RadioGroup from '@material-ui/core/RadioGroup';
 import React from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
+import { vec2 } from 'gl-matrix';
 
 import { AssignmentManager, AssignmentManagerDialog } from './AssignmentManager';
 import { DvidManager, DvidManagerDialog } from './DvidManager';
@@ -37,7 +38,7 @@ const keyBindings = {
   protocolCompletedAndNextTask1: 'E',
   protocolCompletedAndNextTask2: 'X',
   focusedProofreadingCycleResults: 'v',
-  focusedProofreadingToggleBirdsEyeView: 'b',
+  focusedProofreadingToggleBirdsEyeView: 'g', // TODO 'b',
 };
 
 //
@@ -82,16 +83,69 @@ const taskDocString = (taskJson) => {
   return ('');
 };
 
-const bodyColors = (bodyPts, result) => {
+const bodyColors = (bodyIds, result) => {
   if (result === RESULTS.MERGE) {
     return ({
-      [bodyPts[0]]: COLOR_PRIMARY_BODY,
-      [bodyPts[1]]: COLOR_PRIMARY_BODY,
+      [bodyIds[0]]: COLOR_PRIMARY_BODY,
+      [bodyIds[1]]: COLOR_PRIMARY_BODY,
     });
   }
   return ({
-    [bodyPts[0]]: COLOR_PRIMARY_BODY,
-    [bodyPts[1]]: COLOR_OTHER_BODY,
+    [bodyIds[0]]: COLOR_PRIMARY_BODY,
+    [bodyIds[1]]: COLOR_OTHER_BODY,
+  });
+};
+
+const cameraPose = (bodyPts) => {
+  const position = [
+    (bodyPts[0][0] + bodyPts[1][0]) / 2,
+    (bodyPts[0][1] + bodyPts[1][1]) / 2,
+    (bodyPts[0][2] + bodyPts[1][2]) / 2,
+  ];
+
+  // The vector between the points, projected onto the X-Z plane (since Y is up)...
+  const betweenPts = vec2.fromValues(bodyPts[0][0] - bodyPts[1][0], bodyPts[0][2] - bodyPts[1][2]);
+  // ...should be perpendicular to the camera direction vector.
+  const cameraDir = vec2.create();
+  vec2.rotate(cameraDir, betweenPts, vec2.fromValues(0, 0), Math.PI / 2);
+  // So the camera rotation angle is the angle between that camera direction vector and
+  // the X axis.
+  const angle = vec2.angle(cameraDir, vec2.fromValues(0, 1));
+  // Convert that angle and the rotation axis (the Y axis) into a quaternion.
+  const c = Math.cos(angle / 2);
+  const s = Math.sin(angle / 2);
+  const projectionOrientation = [0, s, 0, c];
+
+  return ({ position, projectionOrientation });
+};
+
+const cameraProjectionScale = (bodyIds, dvidMngr, onCompletion) => {
+  dvidMngr.sparseVolSize(bodyIds[0], (data0) => {
+    dvidMngr.sparseVolSize(bodyIds[1], (data1) => {
+      // A first heuristic for the projection scale is the half the largest dimension
+      // of the smaller body's bounding box.
+      const minA = (data0.voxels < data1.voxels) ? data0.minvoxel : data1.minvoxel;
+      const maxA = (data0.voxels < data1.voxels) ? data0.maxvoxel : data1.maxvoxel;
+      const dimsA = [maxA[0] - minA[0], maxA[1] - minA[1], maxA[2] - minA[2]];
+      const scale = Math.max(dimsA[0], dimsA[1], dimsA[2]) / 2;
+
+      // For the bird's eye view scale, use the largest dimension of the bounding box
+      // for both bodies.
+      const minB = [
+        Math.min(data0.minvoxel[0], data1.minvoxel[0]),
+        Math.min(data0.minvoxel[1], data1.minvoxel[1]),
+        Math.min(data0.minvoxel[2], data1.minvoxel[2]),
+      ];
+      const maxB = [
+        Math.min(data0.maxvoxel[0], data1.maxvoxel[0]),
+        Math.min(data0.maxvoxel[1], data1.maxvoxel[1]),
+        Math.min(data0.maxvoxel[2], data1.maxvoxel[2]),
+      ];
+      const dimsB = [maxB[0] - minB[0], maxB[1] - minB[1], maxB[2] - minB[2]];
+      const scaleBirdsEye = Math.max(dimsB[0], dimsB[1], dimsB[2]);
+
+      onCompletion(scale, scaleBirdsEye);
+    });
   });
 };
 
@@ -127,8 +181,9 @@ function FocusedProofreading(props) {
   const [bodyIds, setBodyIds] = React.useState([]);
   const [result, setResult] = React.useState(RESULTS.DONT_MERGE);
   const [completed, setCompleted] = React.useState(false);
-  const [normalPose, setNormalPose] = React.useState({});
-  const [birdsEyePose, setBirdsEyePose] = React.useState({});
+  const [normalScale, setNormalScale] = React.useState(100);
+  const [birdsEyeScale, setBirdsEyeScale] = React.useState(100);
+  const [usingBirdsEye, setUsingBirdsEye] = React.useState(false);
 
   React.useEffect(() => {
     const onDvidInitialized = () => {
@@ -140,14 +195,29 @@ function FocusedProofreading(props) {
 
   const setupTask = React.useCallback(() => {
     const json = assnMngr.taskJson();
-    setTaskJson(json);
     const [restoredResult, restoredCompleted] = restoreResults(json, dvidMngr);
-    setResult(restoredResult);
-    setCompleted(restoredCompleted);
-    const segments = dvidMngr.bodyIds(bodyPoints(json));
-    setBodyIds(segments);
-    actions.setViewerSegments(segments);
-    actions.setViewerSegmentColors(bodyColors(segments, result));
+    const bodyPts = bodyPoints(json);
+    const segments = dvidMngr.bodyIds(bodyPts);
+    const { position, projectionOrientation } = cameraPose(bodyPts);
+    cameraProjectionScale(segments, dvidMngr, (scale, scaleBirdsEye) => {
+      setTaskJson(json);
+      setResult(restoredResult);
+      setCompleted(restoredCompleted);
+      setBodyIds(segments);
+      setNormalScale(scale);
+      setBirdsEyeScale(scaleBirdsEye);
+
+      actions.setViewerSegments(segments);
+      actions.setViewerSegmentColors(bodyColors(segments, result));
+      actions.setViewerCameraPosition(position);
+      actions.setViewerCameraProjectionOrientation(projectionOrientation);
+
+      // TODO: Neuroglancer does something to the 'projectionScale' value,
+      // which seems end up being this emprically determined conversion factor.
+      // Replace it with a more principled solution.
+      const conversion = 125000000;
+      actions.setViewerCameraProjectionScale(scale / conversion);
+    });
   }, [actions, assnMngr, dvidMngr, result]);
 
   const noTask = (taskJson === undefined);
@@ -162,12 +232,19 @@ function FocusedProofreading(props) {
     assnMngr.load(onLoadingDone);
   };
 
+  const resetForNewTask = () => {
+    setUsingBirdsEye(false);
+    actions.setViewerCameraProjectionScale(normalScale);
+  };
+
   const handleNextButton = () => {
     assnMngr.next();
+    resetForNewTask();
   };
 
   const handlePrevButton = () => {
     assnMngr.prev();
+    resetForNewTask();
   };
 
   const handleResultChange = (newResult) => {
@@ -197,13 +274,11 @@ function FocusedProofreading(props) {
         setResult(newResult);
         handleResultChange(newResult);
       } else if (event.key === keyBindings.focusedProofreadingToggleBirdsEyeView) {
-        // TODO: Add calculation of the camera pose for the bird's eye view.
-        // TODO: Rather than change the camera position (as in Neu3), changing "perspectiveZoom"
-        // in the view state (to a bigger number, for more zoomed out) probably makes more sense
-        // here.  That approach does not change what is in the grayscale views.
-        const useBirdsEye = false;
-        const pose = useBirdsEye ? birdsEyePose : normalPose;
-        actions.setViewerNavigationPose(pose);
+        // TODO: If !usingBirdsEye, save the current scale as normalScale, probably
+        // by calling getNeuroglancerViewerState().
+        setUsingBirdsEye(!usingBirdsEye);
+        const scale = !usingBirdsEye ? birdsEyeScale : normalScale;
+        actions.setViewerCameraProjectionScale(scale);
       }
     }
   };
@@ -211,16 +286,11 @@ function FocusedProofreading(props) {
   // eslint-disable-next-line no-unused-vars
   const onMeshLoaded = (id, layer, mesh) => {
     // TODO: If `id` is one of the task's bodies, use the vertices of `mesh` to compute
-    // the bird's eye view camera pose.
-    const normal = {
-      position: {
-        voxelSize: [8, 8, 8],
-        voxelCoordinates: [7338.26953125, 7072, 4246.69140625],
-      },
-    };
+    // the bird's eye view camera scale.
+    const normal = 1000;
     const birdsEye = normal;
-    setNormalPose(normal);
-    setBirdsEyePose(birdsEye);
+    setNormalScale(normal);
+    setBirdsEyeScale(birdsEye);
   };
 
   // Add `onMeshLoaded` to the props of the child, which is a react-neuroglancer viewer.
