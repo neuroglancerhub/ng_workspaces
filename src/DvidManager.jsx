@@ -13,6 +13,8 @@ export class DvidManager {
 
   onInitCompleted = undefined;
 
+  segmentationURL = 'https://flyem.dvid.io/d925633ed0974da78e2bb5cf38d01f4d/segmentation';
+
   init = (onInitCompleted) => {
     if (this.initialized === 0) {
       this.onInitCompleted = onInitCompleted;
@@ -32,7 +34,7 @@ export class DvidManager {
 
   segmentationSourceURL = () => {
     // TODO: Get this value from the proper UI.
-    const result = 'dvid://https://flyem.dvid.io/d925633ed0974da78e2bb5cf38d01f4d/segmentation';
+    const result = `dvid://${this.segmentationURL}`;
     return (result);
   }
 
@@ -49,12 +51,22 @@ export class DvidManager {
 
     const fakeAssignmentKey = `${coord0}_${coord1}`;
     const fakeAssignmentBodies = {
-      '10011_20011_30011_10012_20012_30012': ['191933097', '208299761'],
-      '10021_20021_30021_10022_20022_30022': ['12885603', '178649151'],
-      '10031_20031_30031_10032_20032_30032': ['970337', '206403180'],
+      '7300_7070_4440_7250_7075_4440': ['191933097', '208299761'],
+      '7500_7070_4140_7500_7070_4100': ['12885603', '178649151'],
+      '7400_7070_4160_7405_7080_4170': ['970337', '206403180'],
     };
     const result = fakeAssignmentBodies[fakeAssignmentKey];
     return (result);
+  }
+
+  segmentationAPIURL = () => {
+    const parts = this.segmentationURL.split('/');
+    return (`${parts[0]}//${parts[2]}/api/node/${parts[3]}/${parts[4]}`);
+  }
+
+  sparseVolSize = (bodyId, onCompletion) => {
+    const url = `${this.segmentationAPIURL()}/sparsevol-size/${bodyId}`;
+    fetch(url).then((response) => response.json()).then((data) => onCompletion(data));
   }
 }
 

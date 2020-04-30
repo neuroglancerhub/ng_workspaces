@@ -14,18 +14,18 @@ import React from 'react';
 const fakeAssignment = [
   {
     'task type': 'focused merge',
-    'body point 1': [10011, 20011, 30011],
-    'body point 2': [10012, 20012, 30012],
+    'body point 1': [7300, 7070, 4440],
+    'body point 2': [7250, 7075, 4440],
   },
   {
     'task type': 'focused merge',
-    'body point 1': [10021, 20021, 30021],
-    'body point 2': [10022, 20022, 30022],
+    'body point 1': [7500, 7070, 4140],
+    'body point 2': [7500, 7070, 4100],
   },
   {
     'task type': 'focused merge',
-    'body point 1': [10031, 20031, 30031],
-    'body point 2': [10032, 20032, 30032],
+    'body point 1': [7400, 7070, 4160],
+    'body point 2': [7405, 7080, 4170],
   },
 ];
 let fakeAssignmentIndex = 0;

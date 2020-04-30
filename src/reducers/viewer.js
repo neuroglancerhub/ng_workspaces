@@ -63,14 +63,20 @@ export default function viewerReducer(state = viewerState, action) {
     case C.SET_VIEWER_SEGMENTATION_SOURCE: {
       return setInLayerArray(syncedState(state), 'segmentation', 'source', action.payload);
     }
-    case C.SET_VIEWER_NAVIGATION_POSE: {
-      return (state.setIn(['ngState', 'navigation', 'pose'], action.payload));
-    }
     case C.SET_VIEWER_SEGMENTS: {
       return setInLayerArray(syncedState(state), 'segmentation', 'segments', action.payload);
     }
     case C.SET_VIEWER_SEGMENT_COLORS: {
       return setInLayerArray(syncedState(state), 'segmentation', 'segmentColors', action.payload);
+    }
+    case C.SET_VIEWER_CAMERA_POSITION: {
+      return (syncedState(state).setIn(['ngState', 'position'], action.payload));
+    }
+    case C.SET_VIEWER_CAMERA_PROJECTION_SCALE: {
+      return (syncedState(state).setIn(['ngState', 'projectionScale'], action.payload));
+    }
+    case C.SET_VIEWER_CAMERA_PROJECTION_ORIENTATION: {
+      return (syncedState(state).setIn(['ngState', 'projectionOrientation'], action.payload));
     }
     default: {
       return state;
