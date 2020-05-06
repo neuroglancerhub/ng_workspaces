@@ -19,45 +19,43 @@ export class AssignmentManager {
 
   assignment = {};
 
-  assignmentIndex = 0;
+  taskIndex = 0;
+
+  noValidTasks = false;
 
   // Public API
 
+  // The `onTaskLoaded` function should return a promise, which evaluates to
+  // `false` if the task specified by `taskJson()` should be skipped due to
+  // protocol-specific reasons, or `true` if that task should proceed normally.
   init = (onTaskLoaded) => {
     this.onTaskLoaded = onTaskLoaded;
   }
 
   load = (onLoadInteractionDone) => {
     this.onLoadInteractionDone = onLoadInteractionDone;
-    this.assignmentIndex = 0;
   }
 
   next = () => {
-    this.assignmentIndex += 1;
-    if (this.assignmentIndex === this.taskList().length) {
-      this.assignmentIndex = 0;
-    }
-
-    this.onTaskLoaded(this);
+    this.nextOrPrev(true);
   }
+
+  nextButtonDisabled = () => (
+    this.noValidTasks || (this.nextValidTaskIndex() === undefined)
+  )
 
   prev = () => {
-    this.assignmentIndex -= 1;
-    if (this.assignmentIndex === -1) {
-      this.assignmentIndex = this.taskList().length - 1;
-    }
-
-    this.onTaskLoaded(this);
+    this.nextOrPrev(false);
   }
+
+  prevButtonDisabled = () => (
+    this.noValidTasks || (this.prevValidTaskIndex() === undefined)
+  )
 
   taskJson = () => {
-    const result = this.taskList()[this.assignmentIndex];
+    const result = this.taskList()[this.taskIndex];
     return (result);
   }
-
-  taskIndexString = () => (
-    this.taskList().length > 1 ? (this.assignmentIndex + 1).toString() : ''
-  )
 
   // Internal
 
@@ -68,7 +66,8 @@ export class AssignmentManager {
         try {
           this.assignment = JSON.parse(event.target.result);
           this.initTaskList();
-          this.onTaskLoaded(this);
+          this.taskIndex = -1;
+          this.next();
         } catch (exc) {
           // TODO: Add error processing.
           console.log(`* Error loading assignment JSON: '${exc}' *`);
@@ -89,11 +88,53 @@ export class AssignmentManager {
   );
 
   initTaskList = () => {
-    const l = this.assignment[KEY_FOCUSED_PROOFREADING_ASSIGNMENT_TASK_LIST].map((task) => (
-      { ...task, completed: false }
+    const l = this.assignment[KEY_FOCUSED_PROOFREADING_ASSIGNMENT_TASK_LIST].map((task, index) => (
+      { ...task, index, completed: false }
     ));
     this.assignment[KEY_FOCUSED_PROOFREADING_ASSIGNMENT_TASK_LIST] = l;
   };
+
+  nextOrPrev = async (doNext) => {
+    this.noValidTasks = false;
+    const oldTaskIndex = this.taskIndex;
+    do {
+      this.taskIndex = doNext ? this.nextValidTaskIndex() : this.prevValidTaskIndex();
+      if (this.taskIndex !== undefined) {
+        // Disable the eslint error because `await` here is not for concurrency.
+        // eslint-disable-next-line no-await-in-loop
+        const valid = await this.onTaskLoaded(this);
+        if (valid) {
+          return;
+        }
+      } else {
+        this.taskIndex = oldTaskIndex;
+        break;
+      }
+    } while (this.taskIndex !== oldTaskIndex);
+    this.noValidTasks = true;
+  }
+
+  nextValidTaskIndex = () => {
+    let index = this.taskIndex + 1;
+    while (index < this.taskList().length) {
+      if (!this.taskList()[index].completed) {
+        return index;
+      }
+      index += 1;
+    }
+    return undefined;
+  }
+
+  prevValidTaskIndex = () => {
+    let index = this.taskIndex - 1;
+    while (index >= 0) {
+      if (!this.taskList()[index].completed) {
+        return index;
+      }
+      index -= 1;
+    }
+    return undefined;
+  }
 }
 
 export function AssignmentManagerDialog(props) {

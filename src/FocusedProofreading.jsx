@@ -44,6 +44,11 @@ const keyBindings = {
 //
 // Constants
 
+const TASK_KEYS = Object.freeze({
+  BODY_PT1: 'body point 1',
+  BODY_PT2: 'body point 2',
+});
+
 const RESULTS = Object.freeze({
   DONT_MERGE: 'dontMerge',
   MERGE: 'merge',
@@ -71,14 +76,13 @@ const COLOR_OTHER_BODY = '#908827';
 // Functions that can be factored out of the React component (because they don't use hooks)
 
 const bodyPoints = (taskJson) => (
-  [taskJson['body point 1'], taskJson['body point 2']]
+  [taskJson[TASK_KEYS.BODY_PT1], taskJson[TASK_KEYS.BODY_PT2]]
 );
 
-const taskDocString = (assnMngr, taskJson) => {
+const taskDocString = (taskJson) => {
   if (taskJson) {
-    const indexStr = assnMngr.taskIndexString();
-    const taskStr = `${indexStr ? ' ' : ''}${indexStr}`;
-    return (`${'\xa0'}Task${taskStr}: [${taskJson['body point 1']}] + [${taskJson['body point 2']}]`);
+    const indexStr = ` ${taskJson.index + 1}`;
+    return (`${'\xa0'}Task${indexStr}: [${taskJson[TASK_KEYS.BODY_PT1]}] + [${taskJson[TASK_KEYS.BODY_PT2]}]`);
   }
   return ('');
 };
@@ -119,46 +123,86 @@ const cameraPose = (bodyPts) => {
   return ({ position, projectionOrientation });
 };
 
-const cameraProjectionScale = (bodyIds, dvidMngr, onCompletion) => {
-  dvidMngr.sparseVolSize(bodyIds[0], (data0) => {
-    dvidMngr.sparseVolSize(bodyIds[1], (data1) => {
-      // A first heuristic for the projection scale is the half the largest dimension
-      // of the smaller body's bounding box.
-      const minA = (data0.voxels < data1.voxels) ? data0.minvoxel : data1.minvoxel;
-      const maxA = (data0.voxels < data1.voxels) ? data0.maxvoxel : data1.maxvoxel;
-      const dimsA = [maxA[0] - minA[0], maxA[1] - minA[1], maxA[2] - minA[2]];
-      const scale = Math.max(dimsA[0], dimsA[1], dimsA[2]) / 2;
+const cameraProjectionScale = (bodyIds, dvidMngr) => {
+  // TODO: Make `onError` an argument, for error handling specific to the 'get' calls here.
+  const onError = (err) => {
+    console.error('Failed to get body size: ', err);
+  };
+  return (
+    dvidMngr.getSparseVolSize(bodyIds[0])
+      .then((data0) => (
+        dvidMngr.getSparseVolSize(bodyIds[1]).then((data1) => ([data0, data1]))
+      ))
+      .then(([data0, data1]) => {
+        // A first heuristic for the projection scale is the half the largest dimension
+        // of the smaller body's bounding box.
+        // TODO: Take the camera angle computed by cameraPos() as an argument,
+        // and use the dimension, X or Z, most perpendicular to the view direction.
+        const minA = (data0.voxels < data1.voxels) ? data0.minvoxel : data1.minvoxel;
+        const maxA = (data0.voxels < data1.voxels) ? data0.maxvoxel : data1.maxvoxel;
+        const dimsA = [maxA[0] - minA[0], maxA[1] - minA[1], maxA[2] - minA[2]];
+        const scale = Math.max(dimsA[0], dimsA[1], dimsA[2]) / 2;
 
-      // For the bird's eye view scale, use the largest dimension of the bounding box
-      // for both bodies.
-      const minB = [
-        Math.min(data0.minvoxel[0], data1.minvoxel[0]),
-        Math.min(data0.minvoxel[1], data1.minvoxel[1]),
-        Math.min(data0.minvoxel[2], data1.minvoxel[2]),
-      ];
-      const maxB = [
-        Math.min(data0.maxvoxel[0], data1.maxvoxel[0]),
-        Math.min(data0.maxvoxel[1], data1.maxvoxel[1]),
-        Math.min(data0.maxvoxel[2], data1.maxvoxel[2]),
-      ];
-      const dimsB = [maxB[0] - minB[0], maxB[1] - minB[1], maxB[2] - minB[2]];
-      const scaleBirdsEye = Math.max(dimsB[0], dimsB[1], dimsB[2]);
+        // For the bird's eye view scale, use the largest dimension of the bounding box
+        // for both bodies.
+        const minB = [
+          Math.min(data0.minvoxel[0], data1.minvoxel[0]),
+          Math.min(data0.minvoxel[1], data1.minvoxel[1]),
+          Math.min(data0.minvoxel[2], data1.minvoxel[2]),
+        ];
+        const maxB = [
+          Math.min(data0.maxvoxel[0], data1.maxvoxel[0]),
+          Math.min(data0.maxvoxel[1], data1.maxvoxel[1]),
+          Math.min(data0.maxvoxel[2], data1.maxvoxel[2]),
+        ];
+        const dimsB = [maxB[0] - minB[0], maxB[1] - minB[1], maxB[2] - minB[2]];
+        const scaleBirdsEye = Math.max(dimsB[0], dimsB[1], dimsB[2]);
 
-      onCompletion(scale, scaleBirdsEye);
-    });
-  });
+        return ([scale, scaleBirdsEye]);
+      })
+      .catch(onError)
+  );
 };
 
 // eslint-disable-next-line no-unused-vars
-const storeResults = (taskJson, result, dvidMngr) => {
-  // TODO: Add actual storing of `result` using `dvidMngr`.
-  console.log(`* storing result '${result}' for '${JSON.stringify(taskJson)}' *`);
+const storeResults = (bodyIds, result, taskJson, dvidMngr) => {
+  const bodyIdMergedOnto = bodyIds[0];
+  const bodyIdOther = bodyIds[1];
+  const dvidLogKey = bodyIdOther;
+  const time = (new Date()).toISOString();
+
+  // TODO: Get the user name from the token returned by
+  // https://hemibrain-dvid2.janelia.org/api/server/token
+  const user = 'unknown';
+
+  const dvidLogValue = {
+    [TASK_KEYS.BODY_PT1]: taskJson[TASK_KEYS.BODY_PT1],
+    [TASK_KEYS.BODY_PT2]: taskJson[TASK_KEYS.BODY_PT2],
+    'body ID 1': bodyIdMergedOnto,
+    'body ID 2': bodyIdOther,
+    result,
+    time,
+    user,
+  };
+  if (result === RESULTS.MERGE) {
+    const onCompletion = (res) => {
+      dvidLogValue['mutation ID'] = res.MutationID;
+      dvidMngr.postKeyValue('segmentation_focused', dvidLogKey, dvidLogValue);
+      // TODO: Add Kafka logging?
+      console.log(`Successful merge of ${bodyIdOther} onto ${bodyIdMergedOnto}, mutation ID ${res.MutationID}`);
+    };
+    const onError = (err) => {
+      // TODO: Add proper error reporting.
+      console.error(`Failed to merge ${bodyIdOther} onto ${bodyIdMergedOnto}: `, err);
+    };
+    dvidMngr.postMerge(bodyIdMergedOnto, bodyIdOther, onCompletion, onError);
+  } else {
+    dvidMngr.postKeyValue('segmentation_focused', dvidLogKey, dvidLogValue);
+  }
 };
 
 // Returns [result, completed]
-// eslint-disable-next-line no-unused-vars
-const restoreResults = (taskJson, dvidMngr) => {
-  // TODO: Add actual restoring of the result for `taskJson` using `dvidMngr`.
+const restoreResults = (taskJson) => {
   const completed = !!taskJson.completed;
   const result = [RESULTS.DONT_MERGE, completed];
   return (result);
@@ -197,33 +241,49 @@ function FocusedProofreading(props) {
   const setupTask = React.useCallback(() => {
     const json = assnMngr.taskJson();
     const bodyPts = bodyPoints(json);
-    dvidMngr.bodyId(bodyPts[0], (bodyId0) => {
-      dvidMngr.bodyId(bodyPts[1], (bodyId1) => {
-        const segments = [bodyId0, bodyId1];
-        const [restoredResult, restoredCompleted] = restoreResults(json, dvidMngr);
-        const { position, projectionOrientation } = cameraPose(bodyPts);
-        cameraProjectionScale(segments, dvidMngr, (scale, scaleBirdsEye) => {
-          setTaskJson(json);
-          setResult(restoredResult);
-          setCompleted(restoredCompleted);
-          setBodyIds(segments);
-          setNormalScale(scale);
-          setBirdsEyeScale(scaleBirdsEye);
+    return (
+      dvidMngr.getBodyId(bodyPts[0])
+        .then((bodyId0) => (
+          dvidMngr.getBodyId(bodyPts[1]).then((bodyId1) => [bodyId0, bodyId1])
+        ))
+        .then(([bodyId0, bodyId1]) => (
+          dvidMngr.getKeyValue('segmentation_focused', bodyId1).then((data) => [bodyId0, bodyId1, data])
+        ))
+        .then(([bodyId0, bodyId1, prevResult]) => {
+          if (bodyId0 === bodyId1) {
+            // Skip a task involving bodies that have been merged already.
+            return false;
+          }
+          if (prevResult) {
+            // Skip a task that has a stored result already.
+            return false;
+          }
+          const segments = [bodyId0, bodyId1];
+          const [restoredResult, restoredCompleted] = restoreResults(json);
+          const { position, projectionOrientation } = cameraPose(bodyPts);
+          cameraProjectionScale(segments, dvidMngr).then(([scale, scaleBirdsEye]) => {
+            setTaskJson(json);
+            setResult(restoredResult);
+            setCompleted(restoredCompleted);
+            setBodyIds(segments);
+            setNormalScale(scale);
+            setBirdsEyeScale(scaleBirdsEye);
 
-          actions.setViewerSegments(segments);
-          actions.setViewerSegmentColors(bodyColors(segments, result));
-          actions.setViewerCameraPosition(position);
-          actions.setViewerCameraProjectionOrientation(projectionOrientation);
+            actions.setViewerSegments(segments);
+            actions.setViewerSegmentColors(bodyColors(segments, restoredResult));
+            actions.setViewerCameraPosition(position);
+            actions.setViewerCameraProjectionOrientation(projectionOrientation);
 
-          // TODO: Neuroglancer does something to the 'projectionScale' value,
-          // which seems end up being this emprically determined conversion factor.
-          // Replace it with a more principled solution.
-          const conversion = 125000000;
-          actions.setViewerCameraProjectionScale(scale / conversion);
-        });
-      });
-    });
-  }, [actions, assnMngr, dvidMngr, result]);
+            // TODO: Neuroglancer does something to the 'projectionScale' value,
+            // which seems end up being this emprically determined conversion factor.
+            // Replace it with a more principled solution.
+            const conversion = 125000000;
+            actions.setViewerCameraProjectionScale(scale / conversion);
+          });
+          return true;
+        })
+    );
+  }, [actions, assnMngr, dvidMngr]);
 
   const noTask = (taskJson === undefined);
 
@@ -265,7 +325,7 @@ function FocusedProofreading(props) {
     setCompleted(event.target.checked);
     taskJson.completed = event.target.checked;
     if (event.target.checked) {
-      storeResults(taskJson, result, dvidMngr);
+      storeResults(bodyIds, result, taskJson, dvidMngr);
     }
   };
 
@@ -305,6 +365,9 @@ function FocusedProofreading(props) {
     React.cloneElement(child, { onMeshLoaded }, null)
   ));
 
+  const prevDisabled = noTask || assnMngr.prevButtonDisabled();
+  const nextDisabled = noTask || assnMngr.nextButtonDisabled();
+
   // TODO: Use a style that changes the 'secondary' color (used by default on `Radio` and
   // `Checkbox` controls) so it is not red, to avoid red-green colorblindness issues.
   return (
@@ -319,15 +382,15 @@ function FocusedProofreading(props) {
             <Button color="primary" variant="contained" onClick={handleLoadButton}>
               Load
             </Button>
-            <Button color="primary" variant="contained" onClick={handleNextButton} disabled={noTask}>
-              Next
-            </Button>
-            <Button color="primary" variant="contained" onClick={handlePrevButton} disabled={noTask}>
+            <Button color="primary" variant="contained" onClick={handlePrevButton} disabled={prevDisabled}>
               Prev
+            </Button>
+            <Button color="primary" variant="contained" onClick={handleNextButton} disabled={nextDisabled}>
+              Next
             </Button>
           </ButtonGroup>
           <Typography color="inherit">
-            {taskDocString(assnMngr, taskJson)}
+            {taskDocString(taskJson)}
           </Typography>
         </div>
         <FormControl component="fieldset" disabled={noTask}>
