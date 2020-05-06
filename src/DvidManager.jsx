@@ -46,16 +46,55 @@ export class DvidManager {
     this.segmentationURL
   )
 
-  sparseVolSize = (bodyId, onCompletion) => {
+  // Returns a promise, whose value is accessible with `.then((data) => { ... })`.
+  getSparseVolSize = (bodyId) => {
     const url = `${this.segmentationAPIURL()}/sparsevol-size/${bodyId}`;
-    fetch(url).then((response) => response.json()).then((data) => onCompletion(data));
+    return (fetch(url).then((response) => response.json()));
   }
 
-  bodyId = (bodyPt, onCompletion) => {
+  // Returns a promise, whose value is accessible with `.then((id) => { ... })`.
+  getBodyId = (bodyPt) => {
     const key = `${bodyPt[0]}_${bodyPt[1]}_${bodyPt[2]}`;
     const url = `${this.segmentationAPIURL()}/label/${key}`;
-    fetch(url).then((response) => response.json()).then((data) => onCompletion(data.Label));
+    return (fetch(url).then((response) => response.json()).then((json) => (json.Label)));
   };
+
+  // TODO: Update to return a promise.
+  postMerge = (bodyIdMergedOnto, bodyIdOther,
+    onCompletion = this.defaultOnCompletion, onError = this.defaultOnError) => {
+    const url = `${this.segmentationAPIURL()}/merge`;
+    const body = [bodyIdMergedOnto, bodyIdOther];
+    const options = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    };
+    fetch(url, options).then((response) => response.json()).then((data) => onCompletion(data))
+      .catch((error) => onError(error));
+  }
+
+  // TODO: Update to return a promise.
+  postKeyValue = (instance, key, value,
+    onCompletion = this.defaultOnCompletion, onError = this.defaultOnError) => {
+    const url = `${this.segmentationAPIURL(instance)}/key/${key}`;
+    const options = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(value),
+    };
+    fetch(url, options).then((response) => response).then((data) => onCompletion(data))
+      .catch((error) => onError(error));
+  }
+
+  // Returns a promise, whose value is accessible with `.then((data) => { ... })`.
+  getKeyValue = (instance, key) => {
+    const url = `${this.segmentationAPIURL(instance)}/key/${key}`;
+    return (fetch(url).then((response) => response.json()).catch(() => {}));
+  }
 
   //
 
@@ -77,11 +116,18 @@ export class DvidManager {
     }
   }
 
-  segmentationAPIURL = () => {
+  segmentationAPIURL = (alternateInstance) => {
     const i = this.segmentationURL.indexOf('http');
     const url = this.segmentationURL.substring(i);
     const parts = url.split('/');
-    return (`${parts[0]}//${parts[2]}/api/node/${parts[3]}/${parts[4]}`);
+    const instance = alternateInstance || parts[4];
+    return (`${parts[0]}//${parts[2]}/api/node/${parts[3]}/${instance}`);
+  }
+
+  defaultOnCompletion = () => {}
+
+  defaultOnError = (error) => {
+    console.error(`DvidManager error: '${error}'`);
   }
 
   localStorageAvailable = () => {
