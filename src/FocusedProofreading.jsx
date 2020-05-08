@@ -137,7 +137,7 @@ const cameraProjectionScale = (bodyIds, orientation, dvidMngr) => {
         // The heuristics here consider the sizes of bounding box dimensions (sides)
         // as seen with the current camera orientation.  This orientation is a rotation
         // around the Y axis.  A bounding box X dimension apears scaled by the cosine of
-        // the camera angle, and the Z by the sine.
+        // the camera angle, and the Z by the sine.  The Y dimension is unscaled.
         const angle = Math.acos(orientation[3]) * 2;
         const c = Math.cos(angle);
         const s = Math.sin(angle);
@@ -148,7 +148,7 @@ const cameraProjectionScale = (bodyIds, orientation, dvidMngr) => {
         const dimsA = [maxA[0] - minA[0], maxA[1] - minA[1], maxA[2] - minA[2]];
         const visibleXA = Math.abs(c * dimsA[0]);
         const visibleZA = Math.abs(s * dimsA[2]);
-        let scale = Math.max(visibleXA, visibleZA);
+        let scale = Math.max(visibleXA, dimsA[1], visibleZA);
         // Make it a bit tighter.
         scale /= 2;
 
@@ -166,7 +166,7 @@ const cameraProjectionScale = (bodyIds, orientation, dvidMngr) => {
         const dimsB = [maxB[0] - minB[0], maxB[1] - minB[1], maxB[2] - minB[2]];
         const visibleXB = Math.abs(c * dimsB[0]);
         const visibleZB = Math.abs(s * dimsB[2]);
-        const scaleBirdsEye = Math.max(visibleXB, visibleZB);
+        const scaleBirdsEye = Math.max(visibleXB, dimsB[1], visibleZB);
 
         return ([scale, scaleBirdsEye]);
       })
