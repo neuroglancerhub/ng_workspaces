@@ -123,7 +123,7 @@ const cameraPose = (bodyPts) => {
   return ({ position, projectionOrientation });
 };
 
-const cameraProjectionScale = (bodyIds, dvidMngr) => {
+const cameraProjectionScale = (bodyIds, orientation, dvidMngr) => {
   // TODO: Make `onError` an argument, for error handling specific to the 'get' calls here.
   const onError = (err) => {
     console.error('Failed to get body size: ', err);
@@ -134,29 +134,39 @@ const cameraProjectionScale = (bodyIds, dvidMngr) => {
         dvidMngr.getSparseVolSize(bodyIds[1]).then((data1) => ([data0, data1]))
       ))
       .then(([data0, data1]) => {
-        // A first heuristic for the projection scale is the half the largest dimension
-        // of the smaller body's bounding box.
-        // TODO: Take the camera angle computed by cameraPos() as an argument,
-        // and use the dimension, X or Z, most perpendicular to the view direction.
+        // The heuristics here consider the sizes of bounding box dimensions (sides)
+        // as seen with the current camera orientation.  This orientation is a rotation
+        // around the Y axis.  A bounding box X dimension apears scaled by the cosine of
+        // the camera angle, and the Z by the sine.
+        const angle = Math.acos(orientation[3]) * 2;
+        const c = Math.cos(angle);
+        const s = Math.sin(angle);
+        // For the normal scale, use the smaller body's bounding box, and pick the
+        // scaled dimension that is bigger.
         const minA = (data0.voxels < data1.voxels) ? data0.minvoxel : data1.minvoxel;
         const maxA = (data0.voxels < data1.voxels) ? data0.maxvoxel : data1.maxvoxel;
         const dimsA = [maxA[0] - minA[0], maxA[1] - minA[1], maxA[2] - minA[2]];
-        const scale = Math.max(dimsA[0], dimsA[1], dimsA[2]) / 2;
+        const visibleXA = Math.abs(c * dimsA[0]);
+        const visibleZA = Math.abs(s * dimsA[2]);
+        let scale = Math.max(visibleXA, visibleZA);
+        // Make it a bit tighter.
+        scale /= 2;
 
-        // For the bird's eye view scale, use the largest dimension of the bounding box
-        // for both bodies.
+        // For the bird's eye view scale, use the bounding box for both bodies.
         const minB = [
           Math.min(data0.minvoxel[0], data1.minvoxel[0]),
           Math.min(data0.minvoxel[1], data1.minvoxel[1]),
           Math.min(data0.minvoxel[2], data1.minvoxel[2]),
         ];
         const maxB = [
-          Math.min(data0.maxvoxel[0], data1.maxvoxel[0]),
-          Math.min(data0.maxvoxel[1], data1.maxvoxel[1]),
-          Math.min(data0.maxvoxel[2], data1.maxvoxel[2]),
+          Math.max(data0.maxvoxel[0], data1.maxvoxel[0]),
+          Math.max(data0.maxvoxel[1], data1.maxvoxel[1]),
+          Math.max(data0.maxvoxel[2], data1.maxvoxel[2]),
         ];
         const dimsB = [maxB[0] - minB[0], maxB[1] - minB[1], maxB[2] - minB[2]];
-        const scaleBirdsEye = Math.max(dimsB[0], dimsB[1], dimsB[2]);
+        const visibleXB = Math.abs(c * dimsB[0]);
+        const visibleZB = Math.abs(s * dimsB[2]);
+        const scaleBirdsEye = Math.max(visibleXB, visibleZB);
 
         return ([scale, scaleBirdsEye]);
       })
@@ -261,25 +271,26 @@ function FocusedProofreading(props) {
           const segments = [bodyId0, bodyId1];
           const [restoredResult, restoredCompleted] = restoreResults(json);
           const { position, projectionOrientation } = cameraPose(bodyPts);
-          cameraProjectionScale(segments, dvidMngr).then(([scale, scaleBirdsEye]) => {
-            setTaskJson(json);
-            setResult(restoredResult);
-            setCompleted(restoredCompleted);
-            setBodyIds(segments);
-            setNormalScale(scale);
-            setBirdsEyeScale(scaleBirdsEye);
+          cameraProjectionScale(segments, projectionOrientation, dvidMngr)
+            .then(([scale, scaleBirdsEye]) => {
+              setTaskJson(json);
+              setResult(restoredResult);
+              setCompleted(restoredCompleted);
+              setBodyIds(segments);
+              setNormalScale(scale);
+              setBirdsEyeScale(scaleBirdsEye);
 
-            actions.setViewerSegments(segments);
-            actions.setViewerSegmentColors(bodyColors(segments, restoredResult));
-            actions.setViewerCameraPosition(position);
-            actions.setViewerCameraProjectionOrientation(projectionOrientation);
+              actions.setViewerSegments(segments);
+              actions.setViewerSegmentColors(bodyColors(segments, restoredResult));
+              actions.setViewerCameraPosition(position);
+              actions.setViewerCameraProjectionOrientation(projectionOrientation);
 
-            // TODO: Neuroglancer does something to the 'projectionScale' value,
-            // which seems end up being this emprically determined conversion factor.
-            // Replace it with a more principled solution.
-            const conversion = 125000000;
-            actions.setViewerCameraProjectionScale(scale / conversion);
-          });
+              // TODO: Neuroglancer does something to the 'projectionScale' value,
+              // which seems end up being this emprically determined conversion factor.
+              // Replace it with a more principled solution.
+              const conversion = 125000000;
+              actions.setViewerCameraProjectionScale(scale / conversion);
+            });
           return true;
         })
     );
