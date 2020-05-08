@@ -21,6 +21,8 @@ export class AssignmentManager {
 
   taskIndex = 0;
 
+  skippedTaskIndices = new Set();
+
   noValidTasks = false;
 
   // Public API
@@ -55,6 +57,19 @@ export class AssignmentManager {
   taskJson = () => {
     const result = this.taskList()[this.taskIndex];
     return (result);
+  }
+
+  completedPercentage = () => {
+    let numCompleted = 0;
+    this.taskList().forEach((task) => {
+      if (task.completed) {
+        numCompleted += 1;
+        this.skippedTaskIndices.delete(task.index);
+      }
+    });
+    const frac = (numCompleted / (this.taskList().length - this.skippedTaskIndices.size));
+    const percent = Math.round(100 * frac);
+    return (percent);
   }
 
   // Internal
@@ -92,6 +107,7 @@ export class AssignmentManager {
       { ...task, index, completed: false }
     ));
     this.assignment[KEY_FOCUSED_PROOFREADING_ASSIGNMENT_TASK_LIST] = l;
+    this.skippedTaskIndices.clear();
   };
 
   nextOrPrev = async (doNext) => {
@@ -106,6 +122,7 @@ export class AssignmentManager {
         if (valid) {
           return;
         }
+        this.skippedTaskIndices.add(this.taskIndex);
       } else {
         this.taskIndex = oldTaskIndex;
         break;

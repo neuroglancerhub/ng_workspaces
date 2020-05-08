@@ -79,9 +79,10 @@ const bodyPoints = (taskJson) => (
   [taskJson[TASK_KEYS.BODY_PT1], taskJson[TASK_KEYS.BODY_PT2]]
 );
 
-const taskDocString = (taskJson) => {
+const taskDocString = (taskJson, assnMngr) => {
   if (taskJson) {
-    const indexStr = ` ${taskJson.index + 1}`;
+    let indexStr = ` ${taskJson.index + 1}`;
+    indexStr += ` (${assnMngr.completedPercentage()}%)`;
     return (`${'\xa0'}Task${indexStr}: [${taskJson[TASK_KEYS.BODY_PT1]}] + [${taskJson[TASK_KEYS.BODY_PT2]}]`);
   }
   return ('');
@@ -265,6 +266,7 @@ function FocusedProofreading(props) {
             return false;
           }
           if (prevResult) {
+            json.completed = true;
             // Skip a task that has a stored result already.
             return false;
           }
@@ -401,7 +403,7 @@ function FocusedProofreading(props) {
             </Button>
           </ButtonGroup>
           <Typography color="inherit">
-            {taskDocString(taskJson)}
+            {taskDocString(taskJson, assnMngr)}
           </Typography>
         </div>
         <FormControl component="fieldset" disabled={noTask}>
