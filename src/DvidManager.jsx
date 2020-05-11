@@ -47,16 +47,35 @@ export class DvidManager {
   )
 
   // Returns a promise, whose value is accessible with `.then((data) => { ... })`.
-  getSparseVolSize = (bodyId) => {
+  getSparseVolSize = (bodyId, onError = this.defaultOnError) => {
     const url = `${this.segmentationAPIURL()}/sparsevol-size/${bodyId}`;
-    return (fetch(url).then((response) => response.json()));
+    return (fetch(url)
+      .then((response) => {
+        if (response.ok) {
+          return (response.json());
+        }
+        const error = `Error status ${response.status} '${response.statusText}' ${url}`;
+        onError(error);
+        return ({});
+      })
+      .catch((error) => onError(error)));
   }
 
   // Returns a promise, whose value is accessible with `.then((id) => { ... })`.
-  getBodyId = (bodyPt) => {
+  getBodyId = (bodyPt, onError = this.defaultOnError) => {
     const key = `${bodyPt[0]}_${bodyPt[1]}_${bodyPt[2]}`;
     const url = `${this.segmentationAPIURL()}/label/${key}`;
-    return (fetch(url).then((response) => response.json()).then((json) => (json.Label)));
+    return (fetch(url)
+      .then((response) => {
+        if (response.ok) {
+          return (response.json());
+        }
+        const error = `Error status ${response.status} '${response.statusText}' ${url}`;
+        onError(error);
+        return ({});
+      })
+      .then((json) => (json.Label))
+      .catch((error) => onError(error)));
   };
 
   // TODO: Update to return a promise.
