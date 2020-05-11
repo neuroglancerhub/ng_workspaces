@@ -12,6 +12,7 @@ import Typography from '@material-ui/core/Typography';
 import { vec2 } from 'gl-matrix';
 
 import { AssignmentManager, AssignmentManagerDialog } from './AssignmentManager';
+import { AuthManager, AuthManagerDialog } from './AuthManager';
 import { DvidManager, DvidManagerDialog } from './DvidManager';
 import './FocusedProofreading.css';
 
@@ -175,41 +176,42 @@ const cameraProjectionScale = (bodyIds, orientation, dvidMngr) => {
   );
 };
 
-// eslint-disable-next-line no-unused-vars
-const storeResults = (bodyIds, result, taskJson, dvidMngr) => {
+const storeResults = (bodyIds, result, taskJson, authMngr, dvidMngr) => {
   const bodyIdMergedOnto = bodyIds[0];
   const bodyIdOther = bodyIds[1];
   const dvidLogKey = bodyIdOther;
   const time = (new Date()).toISOString();
 
-  // TODO: Get the user name from the token returned by
-  // https://hemibrain-dvid2.janelia.org/api/server/token
-  const user = 'unknown';
+  // Copy the task JSON for the (unlikely) possibility that the next task starts
+  // before this asynchronous code finishes.
+  const taskJsonCopy = JSON.parse(JSON.stringify(taskJson));
 
-  const dvidLogValue = {
-    [TASK_KEYS.BODY_PT1]: taskJson[TASK_KEYS.BODY_PT1],
-    [TASK_KEYS.BODY_PT2]: taskJson[TASK_KEYS.BODY_PT2],
-    'body ID 1': bodyIdMergedOnto,
-    'body ID 2': bodyIdOther,
-    result,
-    time,
-    user,
-  };
-  if (result === RESULTS.MERGE) {
-    const onCompletion = (res) => {
-      dvidLogValue['mutation ID'] = res.MutationID;
+  authMngr.getUser().then((user) => {
+    const dvidLogValue = {
+      [TASK_KEYS.BODY_PT1]: taskJsonCopy[TASK_KEYS.BODY_PT1],
+      [TASK_KEYS.BODY_PT2]: taskJsonCopy[TASK_KEYS.BODY_PT2],
+      'body ID 1': bodyIdMergedOnto,
+      'body ID 2': bodyIdOther,
+      result,
+      time,
+      user,
+    };
+    if (result === RESULTS.MERGE) {
+      const onCompletion = (res) => {
+        dvidLogValue['mutation ID'] = res.MutationID;
+        dvidMngr.postKeyValue('segmentation_focused', dvidLogKey, dvidLogValue);
+        // TODO: Add Kafka logging?
+        console.log(`Successful merge of ${bodyIdOther} onto ${bodyIdMergedOnto}, mutation ID ${res.MutationID}`);
+      };
+      const onError = (err) => {
+        // TODO: Add proper error reporting.
+        console.error(`Failed to merge ${bodyIdOther} onto ${bodyIdMergedOnto}: `, err);
+      };
+      dvidMngr.postMerge(bodyIdMergedOnto, bodyIdOther, onCompletion, onError);
+    } else {
       dvidMngr.postKeyValue('segmentation_focused', dvidLogKey, dvidLogValue);
-      // TODO: Add Kafka logging?
-      console.log(`Successful merge of ${bodyIdOther} onto ${bodyIdMergedOnto}, mutation ID ${res.MutationID}`);
-    };
-    const onError = (err) => {
-      // TODO: Add proper error reporting.
-      console.error(`Failed to merge ${bodyIdOther} onto ${bodyIdMergedOnto}: `, err);
-    };
-    dvidMngr.postMerge(bodyIdMergedOnto, bodyIdOther, onCompletion, onError);
-  } else {
-    dvidMngr.postKeyValue('segmentation_focused', dvidLogKey, dvidLogValue);
-  }
+    }
+  });
 };
 
 // Returns [result, completed]
@@ -228,6 +230,9 @@ const restoreResults = (taskJson) => {
 function FocusedProofreading(props) {
   const { actions, children } = props;
 
+  const [authMngr] = React.useState(new AuthManager());
+  const [authManagerDialogOpen, setAuthManagerDialogOpen] = React.useState(false);
+
   const [assnMngr] = React.useState(new AssignmentManager());
   const [assnMngrLoading, setAssnMngrLoading] = React.useState(false);
 
@@ -240,6 +245,13 @@ function FocusedProofreading(props) {
   const [normalScale, setNormalScale] = React.useState(100);
   const [birdsEyeScale, setBirdsEyeScale] = React.useState(100);
   const [usingBirdsEye, setUsingBirdsEye] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleNotLoggedIn = () => { setAuthManagerDialogOpen(true); };
+    authMngr.init(handleNotLoggedIn);
+  }, [authMngr]);
+
+  const handleAuthManagerDialogClose = () => { setAuthManagerDialogOpen(false); };
 
   React.useEffect(() => {
     const onDvidInitialized = () => {
@@ -338,7 +350,7 @@ function FocusedProofreading(props) {
     setCompleted(event.target.checked);
     taskJson.completed = event.target.checked;
     if (event.target.checked) {
-      storeResults(bodyIds, result, taskJson, dvidMngr);
+      storeResults(bodyIds, result, taskJson, authMngr, dvidMngr);
     }
   };
 
@@ -429,8 +441,9 @@ function FocusedProofreading(props) {
             />
           </RadioGroup>
         </FormControl>
-        <AssignmentManagerDialog manager={assnMngr} open={assnMngrLoading} />
+        <AuthManagerDialog open={authManagerDialogOpen} onClose={handleAuthManagerDialogClose} />
         <DvidManagerDialog manager={dvidMngr} />
+        <AssignmentManagerDialog manager={assnMngr} open={assnMngrLoading} />
       </div>
       <div className="ng-container">
         {childrenWithCallback}
