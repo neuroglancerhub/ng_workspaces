@@ -5,6 +5,14 @@ import C from './constants';
 
 const viewerState = Immutable.Map({
   ngState: {
+    // The dimensions must be specified explicitly to keen Neuroglancer from applying a
+    // transformation to the `projectionScale` and `crossSectionScale`.
+    dimensions: {
+      x: [8e-9, 'm'],
+      y: [8e-9, 'm'],
+      z: [8e-9, 'm'],
+    },
+    crossSectionScale: 1,
     // The "legacy" form of Neuroglancer view state 'layers' as a map, with layer names as keys.
     // But when Neuroglancer returns its current state, it returns 'layers' as an array.
     layers: [
@@ -21,7 +29,7 @@ const viewerState = Immutable.Map({
         segmentColors: {},
       },
     ],
-    position: [7560, 6735, 4505],
+    position: [24500, 13700, 21000],
     projectionScale: 2600,
     showSlices: false,
     layout: '4panel', // 'xz-3d',
@@ -38,6 +46,16 @@ const syncedState = (state) => {
   if (syncStateNeeded) {
     const ngState = getNeuroglancerViewerState();
     syncStateNeeded = false;
+
+    // For some reason, the state returned by Neuroglancer is missing `dimensions`
+    // in some cases, which adversely affects the value of `projectionScale`.
+    if (ngState.dimensions === undefined) {
+      ngState.dimensions = JSON.parse(JSON.stringify(state.getIn(['ngState', 'dimensions'])));
+      // When `dimensions` is missing, then `crossSectionScale` seems to have a
+      // bogus value.
+      ngState.crossSectionScale = state.getIn(['ngState', 'crossSectionScale']);
+    }
+
     return state.set('ngState', ngState);
   }
   return state;

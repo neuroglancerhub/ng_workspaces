@@ -298,12 +298,7 @@ function FocusedProofreading(props) {
               actions.setViewerSegmentColors(bodyColors(segments, restoredResult));
               actions.setViewerCameraPosition(position);
               actions.setViewerCameraProjectionOrientation(projectionOrientation);
-
-              // TODO: Neuroglancer does something to the 'projectionScale' value,
-              // which seems end up being this emprically determined conversion factor.
-              // Replace it with a more principled solution.
-              const conversion = 125000000;
-              actions.setViewerCameraProjectionScale(scale / conversion);
+              actions.setViewerCameraProjectionScale(scale);
             });
           return true;
         })
