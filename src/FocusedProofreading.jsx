@@ -7,7 +7,8 @@ import PropTypes from 'prop-types';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import React from 'react';
-import { withStyles } from '@material-ui/core/styles';
+import { createMuiTheme, withStyles } from '@material-ui/core/styles';
+import { ThemeProvider } from '@material-ui/styles';
 import Typography from '@material-ui/core/Typography';
 import { vec2 } from 'gl-matrix';
 
@@ -29,6 +30,10 @@ const styles = {
     margin: '1em',
   },
 };
+
+// Use a default theme for dialogs, so their text is the normal size.
+const dialogTheme = createMuiTheme({
+});
 
 //
 
@@ -84,7 +89,7 @@ const taskDocString = (taskJson, assnMngr) => {
   if (taskJson) {
     let indexStr = ` ${taskJson.index + 1}`;
     indexStr += ` (${assnMngr.completedPercentage()}%)`;
-    return (`${'\xa0'}Task${indexStr}: [${taskJson[TASK_KEYS.BODY_PT1]}] + [${taskJson[TASK_KEYS.BODY_PT2]}]`);
+    return (`${'\xa0'}Task${indexStr}: [${taskJson[TASK_KEYS.BODY_PT1]}] + [${taskJson[TASK_KEYS.BODY_PT2]}]${'\xa0'}`);
   }
   return ('');
 };
@@ -388,31 +393,27 @@ function FocusedProofreading(props) {
   const prevDisabled = noTask || assnMngr.prevButtonDisabled();
   const nextDisabled = noTask || assnMngr.nextButtonDisabled();
 
-  // TODO: Use a style that changes the 'secondary' color (used by default on `Radio` and
-  // `Checkbox` controls) so it is not red, to avoid red-green colorblindness issues.
   return (
     <div
       className="focused-proofreading-container"
       tabIndex={0}
       onKeyPress={handleKeyPress}
     >
-      <div className="focused-proofreading-controls">
-        <div className="focused-proofreading-control-row">
-          <ButtonGroup variant="contained" color="primary">
-            <Button color="primary" variant="contained" onClick={handleLoadButton}>
-              Load
-            </Button>
-            <Button color="primary" variant="contained" onClick={handlePrevButton} disabled={prevDisabled}>
-              Prev
-            </Button>
-            <Button color="primary" variant="contained" onClick={handleNextButton} disabled={nextDisabled}>
-              Next
-            </Button>
-          </ButtonGroup>
-          <Typography color="inherit">
-            {taskDocString(taskJson, assnMngr)}
-          </Typography>
-        </div>
+      <div className="focused-proofreading-control-row">
+        <ButtonGroup variant="contained" color="primary" size="small">
+          <Button color="primary" variant="contained" onClick={handleLoadButton}>
+            Load
+          </Button>
+          <Button color="primary" variant="contained" onClick={handlePrevButton} disabled={prevDisabled}>
+            Prev
+          </Button>
+          <Button color="primary" variant="contained" onClick={handleNextButton} disabled={nextDisabled}>
+            Next
+          </Button>
+        </ButtonGroup>
+        <Typography color="inherit">
+          {taskDocString(taskJson, assnMngr)}
+        </Typography>
         <FormControl component="fieldset" disabled={noTask}>
           <RadioGroup row name="proofReadingResults" value={result} onChange={handleResultRadio}>
             <FormControlLabel
@@ -436,9 +437,11 @@ function FocusedProofreading(props) {
             />
           </RadioGroup>
         </FormControl>
-        <AuthManagerDialog open={authManagerDialogOpen} onClose={handleAuthManagerDialogClose} />
-        <DvidManagerDialog manager={dvidMngr} />
-        <AssignmentManagerDialog manager={assnMngr} open={assnMngrLoading} />
+        <ThemeProvider theme={dialogTheme}>
+          <AuthManagerDialog open={authManagerDialogOpen} onClose={handleAuthManagerDialogClose} />
+          <DvidManagerDialog manager={dvidMngr} />
+          <AssignmentManagerDialog manager={assnMngr} open={assnMngrLoading} />
+        </ThemeProvider>
       </div>
       <div className="ng-container">
         {childrenWithCallback}
