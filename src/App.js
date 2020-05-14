@@ -69,7 +69,7 @@ const theme = createMuiTheme({
         // Adjust spacing to reach minimal touch target hitbox
         marginLeft: 4,
         marginRight: 4,
-        padding: 12,
+        padding: 6,
       },
     },
   },
