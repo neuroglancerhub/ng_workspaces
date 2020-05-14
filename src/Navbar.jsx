@@ -29,8 +29,8 @@ const useStyles = makeStyles((theme) => ({
   },
   floater: {
     position: 'absolute',
-    top: '0',
-    right: '0',
+    top: '5px',
+    right: '24px',
     color: 'white',
   },
   navToggle: {
