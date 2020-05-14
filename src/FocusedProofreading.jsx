@@ -9,6 +9,7 @@ import RadioGroup from '@material-ui/core/RadioGroup';
 import React from 'react';
 import { createMuiTheme, withStyles } from '@material-ui/core/styles';
 import { ThemeProvider } from '@material-ui/styles';
+import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import { vec2 } from 'gl-matrix';
 
@@ -254,6 +255,7 @@ function FocusedProofreading(props) {
   const [normalScale, setNormalScale] = React.useState(100);
   const [birdsEyeScale, setBirdsEyeScale] = React.useState(100);
   const [usingBirdsEye, setUsingBirdsEye] = React.useState(false);
+  const [usedBirdsEye, setUsedBirdsEye] = React.useState(false);
 
   React.useEffect(() => {
     const handleNotLoggedIn = () => { setAuthManagerDialogOpen(true); };
@@ -329,6 +331,7 @@ function FocusedProofreading(props) {
 
   const resetForNewTask = () => {
     setUsingBirdsEye(false);
+    setUsedBirdsEye(false);
     actions.setViewerCameraProjectionScale(normalScale);
   };
 
@@ -370,11 +373,13 @@ function FocusedProofreading(props) {
         setResult(newResult);
         handleResultChange(newResult);
       } else if (event.key === keyBindings.focusedProofreadingToggleBirdsEyeView) {
-        // TODO: If !usingBirdsEye, save the current scale as normalScale, probably
+        const startUsingBirdsEye = !usingBirdsEye;
+        // TODO: If startUsingBirdsEye, save the current scale as normalScale, probably
         // by calling getNeuroglancerViewerState().
-        setUsingBirdsEye(!usingBirdsEye);
-        const scale = !usingBirdsEye ? birdsEyeScale : normalScale;
+        const scale = startUsingBirdsEye ? birdsEyeScale : normalScale;
+        setUsedBirdsEye(usedBirdsEye || startUsingBirdsEye);
         actions.setViewerCameraProjectionScale(scale);
+        setUsingBirdsEye(startUsingBirdsEye);
       }
     }
   };
@@ -397,6 +402,8 @@ function FocusedProofreading(props) {
 
   const prevDisabled = noTask || assnMngr.prevButtonDisabled();
   const nextDisabled = noTask || assnMngr.nextButtonDisabled();
+
+  const tooltip = `Use bird's eye view (key "${keyBindings.focusedProofreadingToggleBirdsEyeView}") to enable "Completed"`;
 
   return (
     <div
@@ -436,10 +443,12 @@ function FocusedProofreading(props) {
               control={<Radio />}
               value={RESULTS.DONT_KNOW}
             />
-            <FormControlLabel
-              label="Completed"
-              control={<Checkbox checked={completed} onChange={handleCompletedCheckbox} name="completed" />}
-            />
+            <Tooltip title={(noTask || usedBirdsEye) ? '' : tooltip}>
+              <FormControlLabel
+                label="Completed"
+                control={<Checkbox disabled={!usedBirdsEye} checked={completed} onChange={handleCompletedCheckbox} name="completed" />}
+              />
+            </Tooltip>
           </RadioGroup>
         </FormControl>
         <ThemeProvider theme={dialogTheme}>
