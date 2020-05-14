@@ -181,7 +181,7 @@ const cameraProjectionScale = (bodyIds, orientation, dvidMngr) => {
   );
 };
 
-const storeResults = (bodyIds, result, taskJson, authMngr, dvidMngr) => {
+const storeResults = (bodyIds, result, taskJson, taskStartTime, authMngr, dvidMngr) => {
   const bodyIdMergedOnto = bodyIds[0];
   const bodyIdOther = bodyIds[1];
   const dvidLogKey = bodyIdOther;
@@ -192,6 +192,8 @@ const storeResults = (bodyIds, result, taskJson, authMngr, dvidMngr) => {
   const taskJsonCopy = JSON.parse(JSON.stringify(taskJson));
 
   authMngr.getUser().then((user) => {
+    const taskEndTime = Date.now();
+    const elapsedMs = taskEndTime - taskStartTime;
     const dvidLogValue = {
       [TASK_KEYS.BODY_PT1]: taskJsonCopy[TASK_KEYS.BODY_PT1],
       [TASK_KEYS.BODY_PT2]: taskJsonCopy[TASK_KEYS.BODY_PT2],
@@ -200,6 +202,7 @@ const storeResults = (bodyIds, result, taskJson, authMngr, dvidMngr) => {
       result,
       time,
       user,
+      'time to complete (ms)': elapsedMs,
     };
     if (result === RESULTS.MERGE) {
       const onCompletion = (res) => {
@@ -244,6 +247,7 @@ function FocusedProofreading(props) {
   const [dvidMngr] = React.useState(new DvidManager());
 
   const [taskJson, setTaskJson] = React.useState(undefined);
+  const [taskStartTime, setTaskStartTime] = React.useState(0);
   const [bodyIds, setBodyIds] = React.useState([]);
   const [result, setResult] = React.useState(RESULTS.DONT_MERGE);
   const [completed, setCompleted] = React.useState(false);
@@ -267,6 +271,7 @@ function FocusedProofreading(props) {
   }, [actions, dvidMngr]);
 
   const setupTask = React.useCallback(() => {
+    setTaskStartTime(Date.now());
     const json = assnMngr.taskJson();
     const bodyPts = bodyPoints(json);
     return (
@@ -350,7 +355,7 @@ function FocusedProofreading(props) {
     setCompleted(event.target.checked);
     taskJson.completed = event.target.checked;
     if (event.target.checked) {
-      storeResults(bodyIds, result, taskJson, authMngr, dvidMngr);
+      storeResults(bodyIds, result, taskJson, taskStartTime, authMngr, dvidMngr);
     }
   };
 
