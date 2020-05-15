@@ -354,12 +354,16 @@ function FocusedProofreading(props) {
     handleResultChange(event.target.value);
   };
 
-  const handleCompletedCheckbox = (event) => {
-    setCompleted(event.target.checked);
-    taskJson.completed = event.target.checked;
-    if (event.target.checked) {
+  const handleTaskCompleted = (isCompleted) => {
+    setCompleted(isCompleted);
+    taskJson.completed = isCompleted;
+    if (isCompleted) {
       storeResults(bodyIds, result, taskJson, taskStartTime, authMngr, dvidMngr);
     }
+  };
+
+  const handleCompletedCheckbox = (event) => {
+    handleTaskCompleted(event.target.checked);
   };
 
   const handleKeyPress = (event) => {
@@ -368,6 +372,12 @@ function FocusedProofreading(props) {
         handleNextButton();
       } else if (event.key === keyBindings.protocolPrevTask) {
         handlePrevButton();
+      } else if ((event.key === keyBindings.protocolCompletedAndNextTask1)
+        || (event.key === keyBindings.protocolCompletedAndNextTask2)) {
+        if (usedBirdsEye) {
+          handleTaskCompleted(true);
+          handleNextButton();
+        }
       } else if (event.key === keyBindings.focusedProofreadingCycleResults) {
         const newResult = RESULT_CYCLES_NEXT[result];
         setResult(newResult);
