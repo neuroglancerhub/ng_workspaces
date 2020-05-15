@@ -7,9 +7,8 @@ import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import InfoIcon from '@material-ui/icons/Info';
-import IconButton from '@material-ui/core/IconButton';
+import Button from '@material-ui/core/Button';
 import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
-import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
 import Tooltip from '@material-ui/core/Tooltip';
 import { makeStyles } from '@material-ui/core/styles';
 import { useTheme } from '@material-ui/styles';
@@ -29,11 +28,15 @@ const useStyles = makeStyles((theme) => ({
   },
   floater: {
     position: 'absolute',
-    top: '5px',
-    right: '24px',
-    color: 'white',
+    top: '0',
+    right: '90px',
+    background: theme.palette.primary.main,
+    textAlign: 'center',
+    borderRadius: '0 0 5px 5px',
+    zIndex: 20,
   },
   navToggle: {
+    marginRight: '25px',
     color: 'white',
   },
 }));
@@ -85,11 +88,13 @@ function Navbar(props) {
 
   if (isCollapsed) {
     return (
-      <Tooltip title="Show Navigation">
-        <IconButton className={classes.floater} onClick={handleCollapse} size="small">
-          <ArrowDownwardIcon fontSize="inherit" />
-        </IconButton>
-      </Tooltip>
+      <div className={classes.floater}>
+        <Tooltip title="Show Navigation">
+          <Button onClick={handleCollapse} size="small">
+            <ArrowDownwardIcon fontSize="inherit" style={{ color: '#fff' }} />
+          </Button>
+        </Tooltip>
+      </div>
     );
   }
 
@@ -110,14 +115,12 @@ function Navbar(props) {
             options={workspaceOptions}
           />
         </div>
+        <Button onClick={handleCollapse} className={classes.navToggle} size="small">
+          Hide Navigation
+        </Button>
         <Link to="/about" className={classes.title}>
           <InfoIcon />
         </Link>
-        <Tooltip title="Hide Navigation">
-          <IconButton onClick={handleCollapse} className={classes.navToggle} size="small">
-            <ArrowUpwardIcon fontSize="inherit" />
-          </IconButton>
-        </Tooltip>
       </Toolbar>
     </AppBar>
   );
