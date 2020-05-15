@@ -116,7 +116,7 @@ function Navbar(props) {
           />
         </div>
         <Button onClick={handleCollapse} className={classes.navToggle} size="small">
-          Hide Navigation
+          Hide Header
         </Button>
         <Link to="/about" className={classes.title}>
           <InfoIcon />
