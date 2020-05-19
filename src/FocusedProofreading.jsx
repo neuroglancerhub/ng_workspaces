@@ -45,7 +45,7 @@ const keyBindings = {
   protocolCompletedAndNextTask1: 'E',
   protocolCompletedAndNextTask2: 'X',
   focusedProofreadingCycleResults: 'v',
-  focusedProofreadingToggleBirdsEyeView: 'g', // TODO 'b',
+  focusedProofreadingToggleBirdsEyeView: 'b',
 };
 
 //
@@ -404,10 +404,12 @@ function FocusedProofreading(props) {
     setBirdsEyeScale(birdsEye);
   };
 
+  const eventBindingsToUpdate = Object.entries(keyBindings).map((e) => [`key${e[1]}`, `control+key${e[1]}`]);
+
   // Add `onMeshLoaded` to the props of the child, which is a react-neuroglancer viewer.
   // TODO: Add support for `onMeshLoaded` to `react-neurogloancer`.
-  const childrenWithCallback = React.Children.map(children, (child) => (
-    React.cloneElement(child, { onMeshLoaded }, null)
+  const childrenWithMoreProps = React.Children.map(children, (child) => (
+    React.cloneElement(child, { eventBindingsToUpdate, onMeshLoaded }, null)
   ));
 
   const prevDisabled = noTask || assnMngr.prevButtonDisabled();
@@ -468,7 +470,7 @@ function FocusedProofreading(props) {
         </ThemeProvider>
       </div>
       <div className="ng-container">
-        {childrenWithCallback}
+        {childrenWithMoreProps}
       </div>
     </div>
   );
