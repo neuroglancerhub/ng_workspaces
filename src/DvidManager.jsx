@@ -57,6 +57,9 @@ export class DvidManager {
 
   // Returns a promise, whose value is accessible with `.then((id) => { ... })`.
   getBodyId = (bodyPt, onError = this.defaultOnError) => {
+    if (bodyPt.length !== 3) {
+      return new Promise((resolve) => { resolve(undefined); });
+    }
     const key = `${bodyPt[0]}_${bodyPt[1]}_${bodyPt[2]}`;
     const url = `${this.segmentationAPIURL()}/label/${key}`;
     return (fetch(url)
@@ -104,9 +107,22 @@ export class DvidManager {
   }
 
   // Returns a promise, whose value is accessible with `.then((data) => { ... })`.
-  getKeyValue = (instance, key) => {
+  getKeyValue = (instance, key, onError = this.defaultOnError) => {
     const url = `${this.segmentationAPIURL(instance)}/key/${key}`;
-    return (fetch(url).then((response) => response.json()).catch(() => {}));
+    return (fetch(url)
+      .then((response) => {
+        if (response.ok) {
+          return (response.json());
+        }
+        if (response.status === 404) {
+          // The key is not found, which is not really an error.
+          return (undefined);
+        }
+        const error = `Error status ${response.status} '${response.statusText}' ${url}`;
+        onError(error);
+        return ({});
+      })
+      .catch((error) => onError(error)));
   }
 
   //
