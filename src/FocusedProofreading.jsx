@@ -240,12 +240,13 @@ function FocusedProofreading(props) {
   const { actions, children } = props;
 
   const [authMngr] = React.useState(new AuthManager());
-  const [authManagerDialogOpen, setAuthManagerDialogOpen] = React.useState(false);
+  const [authMngrDialogOpen, setAuthMngrDialogOpen] = React.useState(false);
+
+  const [dvidMngr] = React.useState(new DvidManager());
+  const [dvidMngrDialogOpen, setDvidMngrDialogOpen] = React.useState(false);
 
   const [assnMngr] = React.useState(new AssignmentManager());
   const [assnMngrLoading, setAssnMngrLoading] = React.useState(false);
-
-  const [dvidMngr] = React.useState(new DvidManager());
 
   const [taskJson, setTaskJson] = React.useState(undefined);
   const [taskStartTime, setTaskStartTime] = React.useState(0);
@@ -258,14 +259,16 @@ function FocusedProofreading(props) {
   const [usedBirdsEye, setUsedBirdsEye] = React.useState(false);
 
   React.useEffect(() => {
-    const handleNotLoggedIn = () => { setAuthManagerDialogOpen(true); };
+    const handleNotLoggedIn = () => { setAuthMngrDialogOpen(true); };
     authMngr.init(handleNotLoggedIn);
   }, [authMngr]);
 
-  const handleAuthManagerDialogClose = () => { setAuthManagerDialogOpen(false); };
+  const handleAuthManagerDialogClose = () => { setAuthMngrDialogOpen(false); };
 
   React.useEffect(() => {
+    setDvidMngrDialogOpen(true);
     const onDvidInitialized = () => {
+      setDvidMngrDialogOpen(false);
       actions.setViewerGrayscaleSource(dvidMngr.grayscaleSourceURL());
       actions.setViewerSegmentationSource(dvidMngr.segmentationSourceURL());
     };
@@ -464,8 +467,8 @@ function FocusedProofreading(props) {
           </RadioGroup>
         </FormControl>
         <ThemeProvider theme={dialogTheme}>
-          <AuthManagerDialog open={authManagerDialogOpen} onClose={handleAuthManagerDialogClose} />
-          <DvidManagerDialog manager={dvidMngr} />
+          <AuthManagerDialog open={authMngrDialogOpen} onClose={handleAuthManagerDialogClose} />
+          <DvidManagerDialog manager={dvidMngr} open={dvidMngrDialogOpen} />
           <AssignmentManagerDialog manager={assnMngr} open={assnMngrLoading} />
         </ThemeProvider>
       </div>

@@ -11,9 +11,6 @@ const KEY_GRAYSCALE_SOURCE = 'NG_WORKSPACES-FOCUSED-PROOFREADING-GRAYSCALE-SOURC
 const KEY_SEGMENTATION_SOURCE = 'NG_WORKSPACES-FOCUSED-PROOFREADING-SEGMENTATION-SOURCE';
 
 export class DvidManager {
-  // TODO: Switch to an enum: 0 = not initialized, 1 = initializing, 2 = initialized.
-  initialized = 0;
-
   onInitCompleted = undefined;
 
   grayscaleURL = 'dvid://https://flyem.dvid.io/ab6e610d4fe140aba0e030645a1d7229/grayscalejpeg';
@@ -21,21 +18,18 @@ export class DvidManager {
   segmentationURL = 'dvid://https://flyem.dvid.io/d925633ed0974da78e2bb5cf38d01f4d/segmentation';
 
   init = (onInitCompleted) => {
-    if (this.initialized === 0) {
-      if (this.localStorageAvailable()) {
-        // If localStorage is available, use it to remember the URLs across sessions.
-        const g = localStorage.getItem(KEY_GRAYSCALE_SOURCE);
-        if (g) {
-          this.grayscaleURL = g;
-        }
-        const s = localStorage.getItem(KEY_SEGMENTATION_SOURCE);
-        if (s) {
-          this.segmentationURL = s;
-        }
+    if (this.localStorageAvailable()) {
+      // If localStorage is available, use it to remember the URLs across sessions.
+      const g = localStorage.getItem(KEY_GRAYSCALE_SOURCE);
+      if (g) {
+        this.grayscaleURL = g;
       }
-      this.onInitCompleted = onInitCompleted;
-      this.initialized = 1;
+      const s = localStorage.getItem(KEY_SEGMENTATION_SOURCE);
+      if (s) {
+        this.segmentationURL = s;
+      }
     }
+    this.onInitCompleted = onInitCompleted;
   }
 
   grayscaleSourceURL = () => (
@@ -174,24 +168,15 @@ export class DvidManager {
 }
 
 export function DvidManagerDialog(props) {
-  const { manager } = props;
-  const [open, setOpen] = React.useState(manager.initialized === 1);
+  const { manager, open } = props;
 
   const handleClose = () => {
-    // It does NOT work to use `setOpen(false)`.  Since React state changes from state hooks
-    // are asynchronous, `open` may still be false at this point.  So we would not get another
-    // state change, which we need to force one more rendering, to make Dialog disappear.
-    // Note that `open={manager.initialized === 1}`, below, is a necesary alternative to
-    // `open={open}` for the same reason.  For more details, see:
-    // https://linguinecode.com/post/why-react-setstate-usestate-does-not-update-immediately
-    setOpen(!open);
-    manager.initialized = 2;
     manager.onDialogClosed();
   };
 
   // TODO: Add proper UI.
   return (
-    <Dialog onClose={handleClose} open={manager.initialized === 1} maxWidth="md" fullWidth disableEnforceFocus>
+    <Dialog onClose={handleClose} open={open} maxWidth="md" fullWidth disableEnforceFocus>
       <DialogTitle>Set Up DVID</DialogTitle>
       <DialogContent>
         <TextField
@@ -218,4 +203,5 @@ export function DvidManagerDialog(props) {
 
 DvidManagerDialog.propTypes = {
   manager: PropTypes.object.isRequired,
+  open: PropTypes.bool.isRequired,
 };
