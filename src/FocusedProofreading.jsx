@@ -82,9 +82,12 @@ const COLOR_OTHER_BODY = '#908827';
 //
 // Functions that can be factored out of the React component (because they don't use hooks)
 
-const bodyPoints = (taskJson) => (
-  [taskJson[TASK_KEYS.BODY_PT1], taskJson[TASK_KEYS.BODY_PT2]]
-);
+const bodyPoints = (taskJson) => {
+  if ((TASK_KEYS.BODY_PT1 in taskJson) && (TASK_KEYS.BODY_PT2 in taskJson)) {
+    return ([taskJson[TASK_KEYS.BODY_PT1], taskJson[TASK_KEYS.BODY_PT2]]);
+  }
+  return (undefined);
+};
 
 const taskDocString = (taskJson, assnMngr) => {
   if (taskJson) {
@@ -279,6 +282,9 @@ function FocusedProofreading(props) {
     setTaskStartTime(Date.now());
     const json = assnMngr.taskJson();
     const bodyPts = bodyPoints(json);
+    if (!bodyPts) {
+      return new Promise((resolve) => { resolve(false); });
+    }
     return (
       dvidMngr.getBodyId(bodyPts[0])
         .then((bodyId0) => (
@@ -288,6 +294,9 @@ function FocusedProofreading(props) {
           dvidMngr.getKeyValue('segmentation_focused', bodyId1).then((data) => [bodyId0, bodyId1, data])
         ))
         .then(([bodyId0, bodyId1, prevResult]) => {
+          if (!bodyId0 || !bodyId1) {
+            return false;
+          }
           if (bodyId0 === bodyId1) {
             // Skip a task involving bodies that have been merged already.
             return false;

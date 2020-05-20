@@ -195,7 +195,7 @@ export function AssignmentManagerDialog(props) {
           <FormControl>
             <RadioGroup value={source} onChange={handleSourceChange}>
               <FormControlLabel
-                label="From assignment['task list'] manager"
+                label="From assignment manager"
                 control={<Radio />}
                 value="assignmentManager"
               />
