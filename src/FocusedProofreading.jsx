@@ -3,6 +3,7 @@ import ButtonGroup from '@material-ui/core/ButtonGroup';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
+import { getNeuroglancerViewerState } from '@janelia-flyem/react-neuroglancer';
 import PropTypes from 'prop-types';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
@@ -396,8 +397,10 @@ function FocusedProofreading(props) {
         handleResultChange(newResult);
       } else if (event.key === keyBindings.focusedProofreadingToggleBirdsEyeView) {
         const startUsingBirdsEye = !usingBirdsEye;
-        // TODO: If startUsingBirdsEye, save the current scale as normalScale, probably
-        // by calling getNeuroglancerViewerState().
+        if (startUsingBirdsEye) {
+          const ngState = getNeuroglancerViewerState();
+          setNormalScale(ngState.projectionScale);
+        }
         const scale = startUsingBirdsEye ? birdsEyeScale : normalScale;
         setUsedBirdsEye(usedBirdsEye || startUsingBirdsEye);
         actions.setViewerCameraProjectionScale(scale);
