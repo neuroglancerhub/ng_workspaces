@@ -200,6 +200,8 @@ const storeResults = (bodyIds, result, taskJson, taskStartTime, authMngr, dvidMn
     const taskEndTime = Date.now();
     const elapsedMs = taskEndTime - taskStartTime;
     const dvidLogValue = {
+      'grayscale source': dvidMngr.grayscaleSourceURL(),
+      'segmentation source': dvidMngr.segmentationSourceURL(),
       [TASK_KEYS.BODY_PT1]: taskJsonCopy[TASK_KEYS.BODY_PT1],
       [TASK_KEYS.BODY_PT2]: taskJsonCopy[TASK_KEYS.BODY_PT2],
       'body ID 1': bodyIdMergedOnto,
