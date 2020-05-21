@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import Select from 'react-select';
 
 import AppBar from '@material-ui/core/AppBar';
@@ -46,6 +46,15 @@ function Navbar(props) {
   const classes = useStyles();
   const theme = useTheme();
   const [isCollapsed, setCollapsed] = useState(false);
+  const [selectedWorkspace, setWorkspace] = useState(null);
+
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.pathname === '/') {
+      setWorkspace(null);
+    }
+  }, [location]);
 
   const selectStyles = {
     placeholder: () => ({
@@ -83,6 +92,7 @@ function Navbar(props) {
 
   function handleChange(selected) {
     // redirect to the workspace that was chosen.
+    setWorkspace(selected);
     history.push(`/${selected.value}`);
   }
 
@@ -111,6 +121,7 @@ function Navbar(props) {
             className={classes.search}
             styles={selectStyles}
             onChange={handleChange}
+            value={selectedWorkspace}
             placeholder="Select a workspace"
             options={workspaceOptions}
           />
