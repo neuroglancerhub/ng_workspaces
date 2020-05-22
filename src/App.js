@@ -6,6 +6,7 @@ import { Router, Route } from 'react-router-dom';
 
 import './App.css';
 import Navbar from './Navbar';
+import Alerts from './Alerts';
 
 const history = createBrowserHistory();
 
@@ -90,6 +91,7 @@ function App() {
             <Route path="/about" component={About} />
           </Suspense>
         </div>
+        <Alerts />
       </ThemeProvider>
     </Router>
   );
