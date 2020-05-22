@@ -3,14 +3,14 @@ import { useDispatch } from 'react-redux';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 
-import { addMessage } from './actions/alerts';
+import { addAlert } from './actions/alerts';
 
 function About() {
   const dispatch = useDispatch();
 
   const handleAlert = () => {
     dispatch(
-      addMessage({
+      addAlert({
         message: 'this is an alert message, that must be dismissed',
       }),
     );
@@ -18,7 +18,7 @@ function About() {
 
   const handleInfo = () => {
     dispatch(
-      addMessage({
+      addAlert({
         message: 'this is some information for quick display. Closes after 3 secs.',
         severity: 'info',
         duration: 3000,

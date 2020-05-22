@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import Snackbar from '@material-ui/core/Snackbar';
 import MuiAlert from '@material-ui/lab/Alert';
 
-import { deleteMessage } from './actions/alerts';
+import { deleteAlert } from './actions/alerts';
 import './Alerts.css';
 
 function Alert(props) {
@@ -17,7 +17,7 @@ export default function Alerts() {
 
   const handleClose = (message) => {
     // remove the alert from the state.
-    dispatch(deleteMessage(message));
+    dispatch(deleteAlert(message));
   };
 
   const snacks = alerts.map((alert, i) => {
