@@ -7,6 +7,7 @@ function Home() {
       <Typography variant="h5" >
         Homepage
       </Typography >
+      <span>v{process.env.REACT_APP_VERSION}</span>
     </div>
   );
 }

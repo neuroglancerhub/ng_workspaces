@@ -7,7 +7,7 @@ import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import InfoIcon from "@material-ui/icons/Info";
 import { makeStyles } from "@material-ui/core/styles";
-import { useTheme } from '@material-ui/styles';
+import { useTheme } from "@material-ui/styles";
 
 const useStyles = makeStyles(theme => ({
   search: {
