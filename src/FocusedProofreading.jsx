@@ -47,6 +47,7 @@ const keyBindings = {
   protocolCompletedAndNextTask2: 'X',
   focusedProofreadingCycleResults: 'v',
   focusedProofreadingToggleBirdsEyeView: 'b',
+  focusedProofreadingInitialView: 'i',
 };
 
 //
@@ -260,12 +261,15 @@ function FocusedProofreading(props) {
   const [taskJson, setTaskJson] = React.useState(undefined);
   const [taskStartTime, setTaskStartTime] = React.useState(0);
   const [bodyIds, setBodyIds] = React.useState([]);
-  const [result, setResult] = React.useState(RESULTS.DONT_MERGE);
-  const [completed, setCompleted] = React.useState(false);
+  const [initialPosition, setInitialPosition] = React.useState(undefined);
+  const [initialOrientation, setInitialOrientation] = React.useState(undefined);
+  const [initialScale, setInitialScale] = React.useState(undefined);
   const [normalScale, setNormalScale] = React.useState(100);
   const [birdsEyeScale, setBirdsEyeScale] = React.useState(100);
   const [usingBirdsEye, setUsingBirdsEye] = React.useState(false);
   const [usedBirdsEye, setUsedBirdsEye] = React.useState(false);
+  const [result, setResult] = React.useState(RESULTS.DONT_MERGE);
+  const [completed, setCompleted] = React.useState(false);
 
   React.useEffect(() => {
     const handleNotLoggedIn = () => { setAuthMngrDialogOpen(true); };
@@ -319,11 +323,14 @@ function FocusedProofreading(props) {
           cameraProjectionScale(segments, projectionOrientation, dvidMngr)
             .then(([scale, scaleBirdsEye]) => {
               setTaskJson(json);
-              setResult(restoredResult);
-              setCompleted(restoredCompleted);
               setBodyIds(segments);
               setNormalScale(scale);
               setBirdsEyeScale(scaleBirdsEye);
+              setInitialPosition(position);
+              setInitialOrientation(projectionOrientation);
+              setInitialScale(scale);
+              setResult(restoredResult);
+              setCompleted(restoredCompleted);
 
               actions.setViewerSegments(segments);
               actions.setViewerSegmentColors(bodyColors(segments, restoredResult));
@@ -362,6 +369,12 @@ function FocusedProofreading(props) {
   const handlePrevButton = () => {
     assnMngr.prev();
     resetForNewTask();
+  };
+
+  const handleInitialViewButton = () => {
+    actions.setViewerCameraPosition(initialPosition);
+    actions.setViewerCameraProjectionOrientation(initialOrientation);
+    actions.setViewerCameraProjectionScale(initialScale);
   };
 
   const handleResultChange = (newResult) => {
@@ -411,6 +424,8 @@ function FocusedProofreading(props) {
         setUsedBirdsEye(usedBirdsEye || startUsingBirdsEye);
         actions.setViewerCameraProjectionScale(scale);
         setUsingBirdsEye(startUsingBirdsEye);
+      } else if (event.key === keyBindings.focusedProofreadingInitialView) {
+        handleInitialViewButton();
       }
     }
   };
@@ -459,6 +474,9 @@ function FocusedProofreading(props) {
         <Typography color="inherit">
           {taskDocString(taskJson, assnMngr)}
         </Typography>
+        <Button color="primary" variant="contained" onClick={handleInitialViewButton} disabled={noTask}>
+          Initial View
+        </Button>
         <FormControl component="fieldset" disabled={noTask}>
           <RadioGroup row name="proofReadingResults" value={result} onChange={handleResultRadio}>
             <FormControlLabel
