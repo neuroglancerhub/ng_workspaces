@@ -186,10 +186,13 @@ const cameraProjectionScale = (bodyIds, orientation, dvidMngr) => {
   );
 };
 
+const dvidLogKey = (bodyId0, bodyId1) => (
+  `${Math.min(bodyId0, bodyId1)}+${Math.max(bodyId0, bodyId1)}`
+);
+
 const storeResults = (bodyIds, result, taskJson, taskStartTime, authMngr, dvidMngr) => {
   const bodyIdMergedOnto = bodyIds[0];
   const bodyIdOther = bodyIds[1];
-  const dvidLogKey = bodyIdOther;
   const time = (new Date()).toISOString();
 
   // Copy the task JSON for the (unlikely) possibility that the next task starts
@@ -214,7 +217,7 @@ const storeResults = (bodyIds, result, taskJson, taskStartTime, authMngr, dvidMn
     if (result === RESULTS.MERGE) {
       const onCompletion = (res) => {
         dvidLogValue['mutation ID'] = res.MutationID;
-        dvidMngr.postKeyValue('segmentation_focused', dvidLogKey, dvidLogValue);
+        dvidMngr.postKeyValue('segmentation_focused', dvidLogKey(bodyIds[0], bodyIds[1]), dvidLogValue);
         // TODO: Add Kafka logging?
         console.log(`Successful merge of ${bodyIdOther} onto ${bodyIdMergedOnto}, mutation ID ${res.MutationID}`);
       };
@@ -224,7 +227,7 @@ const storeResults = (bodyIds, result, taskJson, taskStartTime, authMngr, dvidMn
       };
       dvidMngr.postMerge(bodyIdMergedOnto, bodyIdOther, onCompletion, onError);
     } else {
-      dvidMngr.postKeyValue('segmentation_focused', dvidLogKey, dvidLogValue);
+      dvidMngr.postKeyValue('segmentation_focused', dvidLogKey(bodyIds[0], bodyIds[1]), dvidLogValue);
     }
   });
 };
@@ -294,7 +297,8 @@ function FocusedProofreading(props) {
           dvidMngr.getBodyId(bodyPts[1]).then((bodyId1) => [bodyId0, bodyId1])
         ))
         .then(([bodyId0, bodyId1]) => (
-          dvidMngr.getKeyValue('segmentation_focused', bodyId1).then((data) => [bodyId0, bodyId1, data])
+          dvidMngr.getKeyValue('segmentation_focused', dvidLogKey(bodyId0, bodyId1))
+            .then((data) => [bodyId0, bodyId1, data])
         ))
         .then(([bodyId0, bodyId1, prevResult]) => {
           if (!bodyId0 || !bodyId1) {
