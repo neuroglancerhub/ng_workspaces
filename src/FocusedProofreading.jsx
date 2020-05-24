@@ -371,7 +371,7 @@ function FocusedProofreading(props) {
     resetForNewTask();
   };
 
-  const handleInitialViewButton = () => {
+  const handleInitialView = () => {
     actions.setViewerCameraPosition(initialPosition);
     actions.setViewerCameraProjectionOrientation(initialOrientation);
     actions.setViewerCameraProjectionScale(initialScale);
@@ -425,7 +425,7 @@ function FocusedProofreading(props) {
         actions.setViewerCameraProjectionScale(scale);
         setUsingBirdsEye(startUsingBirdsEye);
       } else if (event.key === keyBindings.focusedProofreadingInitialView) {
-        handleInitialViewButton();
+        handleInitialView();
       }
     }
   };
@@ -474,9 +474,6 @@ function FocusedProofreading(props) {
         <Typography color="inherit">
           {taskDocString(taskJson, assnMngr)}
         </Typography>
-        <Button color="primary" variant="contained" onClick={handleInitialViewButton} disabled={noTask}>
-          Initial View
-        </Button>
         <FormControl component="fieldset" disabled={noTask}>
           <RadioGroup row name="proofReadingResults" value={result} onChange={handleResultRadio}>
             <FormControlLabel
