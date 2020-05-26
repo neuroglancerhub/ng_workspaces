@@ -12,7 +12,9 @@ const viewerState = Immutable.Map({
       y: [8e-9, 'm'],
       z: [8e-9, 'm'],
     },
-    crossSectionScale: 1,
+    // For fun, start zoomed out so the whole hemi-brain is visible.
+    crossSectionScale: 100,
+    position: [17000, 20175, 21000],
     // The "legacy" form of Neuroglancer view state 'layers' as a map, with layer names as keys.
     // But when Neuroglancer returns its current state, it returns 'layers' as an array.
     layers: [
@@ -29,7 +31,6 @@ const viewerState = Immutable.Map({
         segmentColors: {},
       },
     ],
-    position: [24500, 13700, 21000],
     projectionScale: 2600,
     showSlices: false,
     layout: '4panel', // 'xz-3d',
@@ -86,6 +87,9 @@ export default function viewerReducer(state = viewerState, action) {
     }
     case C.SET_VIEWER_SEGMENT_COLORS: {
       return setInLayerArray(syncedState(state), 'segmentation', 'segmentColors', action.payload);
+    }
+    case C.SET_VIEWER_CROSS_SECTION_SCALE: {
+      return (syncedState(state).setIn(['ngState', 'crossSectionScale'], action.payload));
     }
     case C.SET_VIEWER_CAMERA_POSITION: {
       return (syncedState(state).setIn(['ngState', 'position'], action.payload));
