@@ -289,6 +289,7 @@ function FocusedProofreading(props) {
   }, [actions, dvidMngr]);
 
   const setupTask = React.useCallback(() => {
+    const onError = (group) => (error) => { actions.addAlert({ group, message: error }); };
     setTaskStartTime(Date.now());
     const json = assnMngr.taskJson();
     const bodyPts = bodyPoints(json);
@@ -296,12 +297,12 @@ function FocusedProofreading(props) {
       return new Promise((resolve) => { resolve(false); });
     }
     return (
-      dvidMngr.getBodyId(bodyPts[0])
+      dvidMngr.getBodyId(bodyPts[0], onError(1))
         .then((bodyId0) => (
-          dvidMngr.getBodyId(bodyPts[1]).then((bodyId1) => [bodyId0, bodyId1])
+          dvidMngr.getBodyId(bodyPts[1], onError(2)).then((bodyId1) => [bodyId0, bodyId1])
         ))
         .then(([bodyId0, bodyId1]) => (
-          dvidMngr.getKeyValue('segmentation_focused', dvidLogKey(bodyId0, bodyId1))
+          dvidMngr.getKeyValue('segmentation_focused', dvidLogKey(bodyId0, bodyId1), onError(3))
             .then((data) => [bodyId0, bodyId1, data])
         ))
         .then(([bodyId0, bodyId1, prevResult]) => {

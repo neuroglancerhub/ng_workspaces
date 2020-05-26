@@ -8,6 +8,7 @@ import { connect } from 'react-redux';
 // if possible.
 import NeuroGlancer from '@janelia-flyem/react-neuroglancer';
 
+import { addAlert } from './actions/alerts';
 import {
   initViewer, setViewerGrayscaleSource, setViewerSegmentationSource,
   setViewerCameraPosition, setViewerCameraProjectionScale, setViewerCameraProjectionOrientation,
@@ -102,6 +103,9 @@ const WorkSpacesActions = (dispatch) => ({
     },
     setViewerCameraProjectionOrientation: (newState) => {
       dispatch(setViewerCameraProjectionOrientation(newState));
+    },
+    addAlert: (newState) => {
+      dispatch(addAlert(newState));
     },
   },
 });
