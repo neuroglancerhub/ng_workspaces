@@ -335,6 +335,7 @@ function FocusedProofreading(props) {
 
               actions.setViewerSegments(segments);
               actions.setViewerSegmentColors(bodyColors(segments, restoredResult));
+              actions.setViewerCrossSectionScale(1);
               actions.setViewerCameraPosition(position);
               actions.setViewerCameraProjectionOrientation(projectionOrientation);
               actions.setViewerCameraProjectionScale(scale);

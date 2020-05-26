@@ -10,7 +10,7 @@ import NeuroGlancer from '@janelia-flyem/react-neuroglancer';
 
 import { addAlert } from './actions/alerts';
 import {
-  initViewer, setViewerGrayscaleSource, setViewerSegmentationSource,
+  initViewer, setViewerGrayscaleSource, setViewerSegmentationSource, setViewerCrossSectionScale,
   setViewerCameraPosition, setViewerCameraProjectionScale, setViewerCameraProjectionOrientation,
   setViewerSegments, setViewerSegmentColors,
 } from './actions/viewer';
@@ -88,6 +88,9 @@ const WorkSpacesActions = (dispatch) => ({
     },
     setViewerSegmentationSource: (newState) => {
       dispatch(setViewerSegmentationSource(newState));
+    },
+    setViewerCrossSectionScale: (newState) => {
+      dispatch(setViewerCrossSectionScale(newState));
     },
     setViewerSegments: (newState) => {
       dispatch(setViewerSegments(newState));

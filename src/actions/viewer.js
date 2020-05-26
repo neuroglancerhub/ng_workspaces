@@ -21,6 +21,13 @@ export function setViewerSegmentationSource(payload) {
   };
 }
 
+export function setViewerCrossSectionScale(payload) {
+  return {
+    type: C.SET_VIEWER_CROSS_SECTION_SCALE,
+    payload,
+  };
+}
+
 export function setViewerCameraPosition(payload) {
   return {
     type: C.SET_VIEWER_CAMERA_POSITION,
