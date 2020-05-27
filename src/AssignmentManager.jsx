@@ -25,13 +25,16 @@ export class AssignmentManager {
 
   noValidTasks = false;
 
+  addAlert = undefined;
+
   // Public API
 
   // The `onTaskLoaded` function should return a promise, which evaluates to
   // `false` if the task specified by `taskJson()` should be skipped due to
   // protocol-specific reasons, or `true` if that task should proceed normally.
-  init = (onTaskLoaded) => {
+  init = (onTaskLoaded, addAlert) => {
     this.onTaskLoaded = onTaskLoaded;
+    this.addAlert = addAlert;
   }
 
   load = (onLoadInteractionDone) => {
@@ -129,6 +132,7 @@ export class AssignmentManager {
       }
     } while (this.taskIndex !== oldTaskIndex);
     this.noValidTasks = true;
+    this.addAlert({ severity: 'info', message: 'All tasks have been completed.' });
   }
 
   nextValidTaskIndex = () => {
