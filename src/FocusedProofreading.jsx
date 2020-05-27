@@ -348,8 +348,8 @@ function FocusedProofreading(props) {
   const noTask = (taskJson === undefined);
 
   React.useEffect(() => {
-    assnMngr.init(setupTask);
-  }, [assnMngr, setupTask]);
+    assnMngr.init(setupTask, actions.addAlert);
+  }, [assnMngr, setupTask, actions]);
 
   const handleLoadButton = () => {
     setAssnMngrLoading(true);
