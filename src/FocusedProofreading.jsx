@@ -4,6 +4,8 @@ import Checkbox from '@material-ui/core/Checkbox';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import { getNeuroglancerViewerState } from '@janelia-flyem/react-neuroglancer';
+import HelpIcon from '@material-ui/icons/Help';
+import IconButton from '@material-ui/core/IconButton';
 import PropTypes from 'prop-types';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
@@ -18,6 +20,7 @@ import { AssignmentManager, AssignmentManagerDialog } from './AssignmentManager'
 import { AuthManager, AuthManagerDialog } from './AuthManager';
 import { DvidManager, DvidManagerDialog } from './DvidManager';
 import './FocusedProofreading.css';
+import FocusedProofreadingHelp from './FocusedProofreadingHelp';
 
 const styles = {
   window: {
@@ -41,13 +44,13 @@ const dialogTheme = createMuiTheme({
 
 // TODO: Make a general mechanism for user-modifiable key bindings.
 const keyBindings = {
-  protocolNextTask: 'e',
-  protocolPrevTask: 'q',
-  protocolCompletedAndNextTask1: 'E',
-  protocolCompletedAndNextTask2: 'X',
-  focusedProofreadingCycleResults: 'v',
-  focusedProofreadingToggleBirdsEyeView: 'b',
-  focusedProofreadingInitialView: 'i',
+  protocolNextTask: { key: 'e', help: 'Next task' },
+  protocolPrevTask: { key: 'q', help: 'Previous task' },
+  protocolCompletedAndNextTask1: { key: 'E', help: 'Next task and check "Completed"' },
+  protocolCompletedAndNextTask2: { key: 'X', help: 'Next task and check "Completed"' },
+  focusedProofreadingCycleResults: { key: 'v', help: 'Cycle through results' },
+  focusedProofreadingToggleBirdsEyeView: { key: 'b', help: "Toggle between normal and bird's eye views" },
+  focusedProofreadingInitialView: { key: 'i', help: "Use task's initial view" },
 };
 
 //
@@ -271,6 +274,8 @@ function FocusedProofreading(props) {
   const [result, setResult] = React.useState(RESULTS.DONT_MERGE);
   const [completed, setCompleted] = React.useState(false);
 
+  const [helpOpen, setHelpOpen] = React.useState(false);
+
   React.useEffect(() => {
     const handleNotLoggedIn = () => { setAuthMngrDialogOpen(true); };
     authMngr.init(handleNotLoggedIn);
@@ -400,23 +405,26 @@ function FocusedProofreading(props) {
     handleTaskCompleted(event.target.checked);
   };
 
+  const handleHelpOpen = () => { setHelpOpen(true); };
+  const handleHelpClose = () => { setHelpOpen(false); };
+
   const handleKeyPress = (event) => {
     if (!noTask) {
-      if (event.key === keyBindings.protocolNextTask) {
+      if (event.key === keyBindings.protocolNextTask.key) {
         handleNextButton();
-      } else if (event.key === keyBindings.protocolPrevTask) {
+      } else if (event.key === keyBindings.protocolPrevTask.key) {
         handlePrevButton();
-      } else if ((event.key === keyBindings.protocolCompletedAndNextTask1)
-        || (event.key === keyBindings.protocolCompletedAndNextTask2)) {
+      } else if ((event.key === keyBindings.protocolCompletedAndNextTask1.key)
+        || (event.key === keyBindings.protocolCompletedAndNextTask2.key)) {
         if (usedBirdsEye) {
           handleTaskCompleted(true);
           handleNextButton();
         }
-      } else if (event.key === keyBindings.focusedProofreadingCycleResults) {
+      } else if (event.key === keyBindings.focusedProofreadingCycleResults.key) {
         const newResult = RESULT_CYCLES_NEXT[result];
         setResult(newResult);
         handleResultChange(newResult);
-      } else if (event.key === keyBindings.focusedProofreadingToggleBirdsEyeView) {
+      } else if (event.key === keyBindings.focusedProofreadingToggleBirdsEyeView.key) {
         const startUsingBirdsEye = !usingBirdsEye;
         if (startUsingBirdsEye) {
           const ngState = getNeuroglancerViewerState();
@@ -426,7 +434,7 @@ function FocusedProofreading(props) {
         setUsedBirdsEye(usedBirdsEye || startUsingBirdsEye);
         actions.setViewerCameraProjectionScale(scale);
         setUsingBirdsEye(startUsingBirdsEye);
-      } else if (event.key === keyBindings.focusedProofreadingInitialView) {
+      } else if (event.key === keyBindings.focusedProofreadingInitialView.key) {
         handleInitialView();
       }
     }
@@ -442,7 +450,7 @@ function FocusedProofreading(props) {
     setBirdsEyeScale(birdsEye);
   };
 
-  const eventBindingsToUpdate = Object.entries(keyBindings).map((e) => [`key${e[1]}`, `control+key${e[1]}`]);
+  const eventBindingsToUpdate = Object.entries(keyBindings).map((e) => [`key${e[1].key}`, `control+key${e[1].key}`]);
 
   // Add `onMeshLoaded` to the props of the child, which is a react-neuroglancer viewer.
   // TODO: Add support for `onMeshLoaded` to `react-neurogloancer`.
@@ -453,7 +461,7 @@ function FocusedProofreading(props) {
   const prevDisabled = noTask || assnMngr.prevButtonDisabled();
   const nextDisabled = noTask || assnMngr.nextButtonDisabled();
 
-  const tooltip = `Use bird's eye view (key "${keyBindings.focusedProofreadingToggleBirdsEyeView}") to enable "Completed"`;
+  const tooltip = `Use bird's eye view (key "${keyBindings.focusedProofreadingToggleBirdsEyeView.key}") to enable "Completed"`;
 
   return (
     <div
@@ -501,10 +509,18 @@ function FocusedProofreading(props) {
             </Tooltip>
           </RadioGroup>
         </FormControl>
+        <IconButton onClick={handleHelpOpen}>
+          <HelpIcon />
+        </IconButton>
         <ThemeProvider theme={dialogTheme}>
           <AuthManagerDialog open={authMngrDialogOpen} onClose={handleAuthManagerDialogClose} />
           <DvidManagerDialog manager={dvidMngr} open={dvidMngrDialogOpen} />
           <AssignmentManagerDialog manager={assnMngr} open={assnMngrLoading} />
+          <FocusedProofreadingHelp
+            keyBindings={keyBindings}
+            open={helpOpen}
+            onClose={handleHelpClose}
+          />
         </ThemeProvider>
       </div>
       <div className="ng-container">
