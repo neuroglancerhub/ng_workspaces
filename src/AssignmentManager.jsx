@@ -17,6 +17,8 @@ export class AssignmentManager {
 
   onTaskLoaded = undefined;
 
+  assignmentFile = undefined;
+
   assignment = {};
 
   taskIndex = 0;
@@ -94,6 +96,7 @@ export class AssignmentManager {
         // TODO: Add error processing.
       }
     };
+    this.assignmentFile = file.name;
     reader.readAsText(file);
   };
 
