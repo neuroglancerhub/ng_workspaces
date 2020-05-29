@@ -190,11 +190,11 @@ const cameraProjectionScale = (bodyIds, orientation, dvidMngr) => {
   );
 };
 
-const dvidLogKey = (bodyId0, bodyId1) => (
-  `${Math.min(bodyId0, bodyId1)}+${Math.max(bodyId0, bodyId1)}`
+const dvidLogKey = (taskJson) => (
+  `${taskJson[TASK_KEYS.BODY_PT1]}+${taskJson[TASK_KEYS.BODY_PT2]}`.replace(/,/g, '_')
 );
 
-const storeResults = (bodyIds, result, taskJson, taskStartTime, authMngr, dvidMngr) => {
+const storeResults = (bodyIds, result, taskJson, taskStartTime, authMngr, dvidMngr, assnMngr) => {
   const bodyIdMergedOnto = bodyIds[0];
   const bodyIdOther = bodyIds[1];
   const time = (new Date()).toISOString();
@@ -206,7 +206,7 @@ const storeResults = (bodyIds, result, taskJson, taskStartTime, authMngr, dvidMn
   authMngr.getUser().then((user) => {
     const taskEndTime = Date.now();
     const elapsedMs = taskEndTime - taskStartTime;
-    const dvidLogValue = {
+    let dvidLogValue = {
       'grayscale source': dvidMngr.grayscaleSourceURL(),
       'segmentation source': dvidMngr.segmentationSourceURL(),
       [TASK_KEYS.BODY_PT1]: taskJsonCopy[TASK_KEYS.BODY_PT1],
@@ -218,10 +218,16 @@ const storeResults = (bodyIds, result, taskJson, taskStartTime, authMngr, dvidMn
       user,
       'time to complete (ms)': elapsedMs,
     };
+    if (taskJson.index !== undefined) {
+      dvidLogValue = { ...dvidLogValue, index: taskJson.index };
+    }
+    if (assnMngr.assignmentFile) {
+      dvidLogValue = { ...dvidLogValue, assignment: assnMngr.assignmentFile };
+    }
     if (result === RESULTS.MERGE) {
       const onCompletion = (res) => {
         dvidLogValue['mutation ID'] = res.MutationID;
-        dvidMngr.postKeyValue('segmentation_focused', dvidLogKey(bodyIds[0], bodyIds[1]), dvidLogValue);
+        dvidMngr.postKeyValue('segmentation_focused', dvidLogKey(taskJsonCopy), dvidLogValue);
         // TODO: Add Kafka logging?
         console.log(`Successful merge of ${bodyIdOther} onto ${bodyIdMergedOnto}, mutation ID ${res.MutationID}`);
       };
@@ -231,7 +237,7 @@ const storeResults = (bodyIds, result, taskJson, taskStartTime, authMngr, dvidMn
       };
       dvidMngr.postMerge(bodyIdMergedOnto, bodyIdOther, onCompletion, onError);
     } else {
-      dvidMngr.postKeyValue('segmentation_focused', dvidLogKey(bodyIds[0], bodyIds[1]), dvidLogValue);
+      dvidMngr.postKeyValue('segmentation_focused', dvidLogKey(taskJsonCopy), dvidLogValue);
     }
   });
 };
@@ -307,7 +313,7 @@ function FocusedProofreading(props) {
           dvidMngr.getBodyId(bodyPts[1], onError(2)).then((bodyId1) => [bodyId0, bodyId1])
         ))
         .then(([bodyId0, bodyId1]) => (
-          dvidMngr.getKeyValue('segmentation_focused', dvidLogKey(bodyId0, bodyId1), onError(3))
+          dvidMngr.getKeyValue('segmentation_focused', dvidLogKey(json), onError(3))
             .then((data) => [bodyId0, bodyId1, data])
         ))
         .then(([bodyId0, bodyId1, prevResult]) => {
@@ -397,7 +403,7 @@ function FocusedProofreading(props) {
     setCompleted(isCompleted);
     taskJson.completed = isCompleted;
     if (isCompleted) {
-      storeResults(bodyIds, result, taskJson, taskStartTime, authMngr, dvidMngr);
+      storeResults(bodyIds, result, taskJson, taskStartTime, authMngr, dvidMngr, assnMngr);
     }
   };
 
