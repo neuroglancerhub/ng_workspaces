@@ -18,6 +18,7 @@ import { vec2 } from 'gl-matrix';
 
 import { AssignmentManager, AssignmentManagerDialog } from './AssignmentManager';
 import { AuthManager, AuthManagerDialog } from './AuthManager';
+import ClientInfo from './ClientInfo';
 import { DvidManager, DvidManagerDialog } from './DvidManager';
 import './FocusedProofreading.css';
 import FocusedProofreadingHelp from './FocusedProofreadingHelp';
@@ -194,7 +195,8 @@ const dvidLogKey = (taskJson) => (
   `${taskJson[TASK_KEYS.BODY_PT1]}+${taskJson[TASK_KEYS.BODY_PT2]}`.replace(/,/g, '_')
 );
 
-const storeResults = (bodyIds, result, taskJson, taskStartTime, authMngr, dvidMngr, assnMngr) => {
+const storeResults = (bodyIds, result, taskJson, taskStartTime,
+  authMngr, dvidMngr, assnMngr, clientInfo) => {
   const bodyIdMergedOnto = bodyIds[0];
   const bodyIdOther = bodyIds[1];
   const time = (new Date()).toISOString();
@@ -217,6 +219,7 @@ const storeResults = (bodyIds, result, taskJson, taskStartTime, authMngr, dvidMn
       time,
       user,
       'time to complete (ms)': elapsedMs,
+      client: clientInfo.info,
     };
     if (taskJson.index !== undefined) {
       dvidLogValue = { ...dvidLogValue, index: taskJson.index };
@@ -257,6 +260,8 @@ const restoreResults = (taskJson) => {
 
 function FocusedProofreading(props) {
   const { actions, children } = props;
+
+  const [clientInfo] = React.useState(new ClientInfo());
 
   const [authMngr] = React.useState(new AuthManager());
   const [authMngrDialogOpen, setAuthMngrDialogOpen] = React.useState(false);
@@ -403,7 +408,8 @@ function FocusedProofreading(props) {
     setCompleted(isCompleted);
     taskJson.completed = isCompleted;
     if (isCompleted) {
-      storeResults(bodyIds, result, taskJson, taskStartTime, authMngr, dvidMngr, assnMngr);
+      storeResults(bodyIds, result, taskJson, taskStartTime,
+        authMngr, dvidMngr, assnMngr, clientInfo);
     }
   };
 
