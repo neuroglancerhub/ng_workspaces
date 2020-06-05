@@ -261,15 +261,15 @@ const restoreResults = (taskJson) => {
 function FocusedProofreading(props) {
   const { actions, children } = props;
 
-  const [clientInfo] = React.useState(new ClientInfo());
+  const [clientInfo] = React.useState(() => (new ClientInfo()));
 
-  const [authMngr] = React.useState(new AuthManager());
+  const [authMngr] = React.useState(() => (new AuthManager()));
   const [authMngrDialogOpen, setAuthMngrDialogOpen] = React.useState(false);
 
-  const [dvidMngr] = React.useState(new DvidManager());
+  const [dvidMngr] = React.useState(() => (new DvidManager()));
   const [dvidMngrDialogOpen, setDvidMngrDialogOpen] = React.useState(false);
 
-  const [assnMngr] = React.useState(new AssignmentManager());
+  const [assnMngr] = React.useState(() => (new AssignmentManager()));
   const [assnMngrLoading, setAssnMngrLoading] = React.useState(false);
 
   const [taskJson, setTaskJson] = React.useState(undefined);
