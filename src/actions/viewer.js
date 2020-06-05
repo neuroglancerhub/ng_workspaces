@@ -21,6 +21,27 @@ export function setViewerSegmentationSource(payload) {
   };
 }
 
+export function setViewerTodosSource(payload) {
+  return {
+    type: C.SET_VIEWER_TODOS_SOURCE,
+    payload,
+  };
+}
+
+export function setViewerTodosType(payload) {
+  return {
+    type: C.SET_VIEWER_TODOS_TYPE,
+    payload,
+  };
+}
+
+export function setViewerTodosHint(payload) {
+  return {
+    type: C.SET_VIEWER_TODOS_HINT,
+    payload,
+  };
+}
+
 export function setViewerCrossSectionScale(payload) {
   return {
     type: C.SET_VIEWER_CROSS_SECTION_SCALE,

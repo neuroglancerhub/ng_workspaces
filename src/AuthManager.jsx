@@ -20,6 +20,10 @@ export class AuthManager {
     });
   }
 
+  static tokenURL = () => (
+    'https://hemibrain-dvid2.janelia.org/api/server/token'
+  )
+
   getUser = () => {
     if (this.user === 'unknown') {
       if (this.token === '') {
@@ -39,11 +43,10 @@ export class AuthManager {
   // Internal
 
   getToken = () => {
-    const url = 'https://hemibrain-dvid2.janelia.org/api/server/token';
     const options = {
       credentials: 'include',
     };
-    return (fetch(url, options)
+    return (fetch(AuthManager.tokenURL(), options)
       .then((response) => {
         if (response.ok) {
           return (response.text());

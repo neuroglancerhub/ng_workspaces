@@ -30,6 +30,18 @@ const viewerState = Immutable.Map({
         segments: [0],
         segmentColors: {},
       },
+      {
+        name: 'todos',
+        type: 'annotation',
+        source: '',
+        tool: 'annotatePoint',
+        defaultAnnotationProperties: {
+          point: {
+            type: 'False Merge',
+            hint: '',
+          },
+        },
+      },
     ],
     projectionScale: 2600,
     showSlices: false,
@@ -62,10 +74,10 @@ const syncedState = (state) => {
   return state;
 };
 
-const setInLayerArray = (state, layerName, propName, propValue) => {
+const setInLayerArray = (state, layerName, propPathArray, propValue) => {
   const layers = state.getIn(['ngState', 'layers']);
   const i = layers.findIndex((value) => (value.name === layerName));
-  return state.setIn(['ngState', 'layers', i, propName], propValue);
+  return state.setIn(['ngState', 'layers', i, ...propPathArray], propValue);
 };
 
 export default function viewerReducer(state = viewerState, action) {
@@ -77,16 +89,25 @@ export default function viewerReducer(state = viewerState, action) {
       return state.set('ngState', action.payload);
     }
     case C.SET_VIEWER_GRAYSCALE_SOURCE: {
-      return setInLayerArray(syncedState(state), 'grayscale', 'source', action.payload);
+      return setInLayerArray(syncedState(state), 'grayscale', ['source'], action.payload);
     }
     case C.SET_VIEWER_SEGMENTATION_SOURCE: {
-      return setInLayerArray(syncedState(state), 'segmentation', 'source', action.payload);
+      return setInLayerArray(syncedState(state), 'segmentation', ['source'], action.payload);
+    }
+    case C.SET_VIEWER_TODOS_SOURCE: {
+      return setInLayerArray(syncedState(state), 'todos', ['source'], action.payload);
+    }
+    case C.SET_VIEWER_TODOS_TYPE: {
+      return setInLayerArray(syncedState(state), 'todos', ['defaultAnnotationProperties', 'point', 'type'], action.payload);
+    }
+    case C.SET_VIEWER_TODOS_HINT: {
+      return setInLayerArray(syncedState(state), 'todos', ['defaultAnnotationProperties', 'point', 'hint'], action.payload);
     }
     case C.SET_VIEWER_SEGMENTS: {
-      return setInLayerArray(syncedState(state), 'segmentation', 'segments', action.payload);
+      return setInLayerArray(syncedState(state), 'segmentation', ['segments'], action.payload);
     }
     case C.SET_VIEWER_SEGMENT_COLORS: {
-      return setInLayerArray(syncedState(state), 'segmentation', 'segmentColors', action.payload);
+      return setInLayerArray(syncedState(state), 'segmentation', ['segmentColors'], action.payload);
     }
     case C.SET_VIEWER_CROSS_SECTION_SCALE: {
       return (syncedState(state).setIn(['ngState', 'crossSectionScale'], action.payload));

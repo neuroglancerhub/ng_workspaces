@@ -7,6 +7,8 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 
+import { AuthManager } from './AuthManager';
+
 const KEY_GRAYSCALE_SOURCE = 'NG_WORKSPACES-FOCUSED-PROOFREADING-GRAYSCALE-SOURCE';
 const KEY_SEGMENTATION_SOURCE = 'NG_WORKSPACES-FOCUSED-PROOFREADING-SEGMENTATION-SOURCE';
 
@@ -39,6 +41,14 @@ export class DvidManager {
   segmentationSourceURL = () => (
     this.segmentationURL
   )
+
+  todosSourceURL = () => {
+    const [server, node] = this.segmentationServerAndNode();
+    if (server) {
+      return (`${server}/${node}/neuroglancer_todo?usertag=true&auth=${AuthManager.tokenURL()}`);
+    }
+    return (undefined);
+  }
 
   // Returns a promise, whose value is accessible with `.then((data) => { ... })`.
   getSparseVolSize = (bodyId, onError = this.defaultOnError) => {
@@ -145,12 +155,30 @@ export class DvidManager {
     }
   }
 
+  segmentationServerAndNode = () => {
+    if (this.segmentationURL.startsWith('dvid')) {
+      let url = this.segmentationURL;
+      if (url.endsWith('/')) {
+        url = url.slice(0, -1);
+      }
+      const i1 = url.lastIndexOf('/');
+      const i2 = url.lastIndexOf('/', i1 - 1);
+      const server = url.substring(0, i2);
+      const node = url.substring(i2 + 1, i1);
+      return ([server, node]);
+    }
+    return ([undefined, undefined]);
+  }
+
   segmentationAPIURL = (alternateInstance) => {
-    const i = this.segmentationURL.indexOf('http');
-    const url = this.segmentationURL.substring(i);
-    const parts = url.split('/');
-    const instance = alternateInstance || parts[4];
-    return (`${parts[0]}//${parts[2]}/api/node/${parts[3]}/${instance}`);
+    if (this.segmentationURL.startsWith('dvid')) {
+      const i = this.segmentationURL.indexOf('http');
+      const url = this.segmentationURL.substring(i);
+      const parts = url.split('/');
+      const instance = alternateInstance || parts[4];
+      return (`${parts[0]}//${parts[2]}/api/node/${parts[3]}/${instance}`);
+    }
+    return (undefined);
   }
 
   defaultOnCompletion = () => {}
