@@ -6,10 +6,12 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import { getNeuroglancerViewerState } from '@janelia-flyem/react-neuroglancer';
 import HelpIcon from '@material-ui/icons/Help';
 import IconButton from '@material-ui/core/IconButton';
+import MenuItem from '@material-ui/core/MenuItem';
 import PropTypes from 'prop-types';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import React from 'react';
+import Select from '@material-ui/core/Select';
 import { createMuiTheme, withStyles } from '@material-ui/core/styles';
 import { ThemeProvider } from '@material-ui/styles';
 import Tooltip from '@material-ui/core/Tooltip';
@@ -80,6 +82,15 @@ const RESULT_CYCLES_NEXT = Object.freeze({
   [RESULTS.DONT_KNOW]: RESULTS.DONT_MERGE,
 });
 
+const TODO_TYPES = Object.freeze([
+  { value: 'False Merge*', label: 'Todo: Blocking False Merge' },
+  { value: 'False Merge', label: 'Todo: False Merge' },
+  { value: 'False Split', label: 'Todo: False Split' },
+  { value: 'orphan', label: 'Todo: Orphan' },
+  { value: 'orphan hotknife', label: 'Todo: Orphan Hotknife' },
+  { value: 'Other', label: 'Todo: Other' },
+]);
+
 // Green
 const COLOR_PRIMARY_BODY = '#348E53';
 // Mustard yellow
@@ -101,10 +112,14 @@ const taskDocString = (taskJson, assnMngr) => {
   if (taskJson) {
     let indexStr = ` ${taskJson.index + 1}`;
     indexStr += ` (${assnMngr.completedPercentage()}%)`;
-    return (`${'\xa0'}Task${indexStr}: [${taskJson[TASK_KEYS.BODY_PT1]}] + [${taskJson[TASK_KEYS.BODY_PT2]}]${'\xa0'}`);
+    return (`${'\xa0'}Task${indexStr}:${'\xa0'}`);
   }
   return ('');
 };
+
+const taskDocTooltip = (taskJson) => (
+  taskJson ? `[${taskJson[TASK_KEYS.BODY_PT1]}] + [${taskJson[TASK_KEYS.BODY_PT2]}]` : ''
+);
 
 const bodyColors = (bodyIds, result) => {
   if (result === RESULTS.MERGE) {
@@ -282,6 +297,7 @@ function FocusedProofreading(props) {
   const [usingBirdsEye, setUsingBirdsEye] = React.useState(false);
   const [usedBirdsEye, setUsedBirdsEye] = React.useState(false);
   const [result, setResult] = React.useState(RESULTS.DONT_MERGE);
+  const [todoType, setTodoType] = React.useState(TODO_TYPES[0].value);
   const [completed, setCompleted] = React.useState(false);
 
   const [helpOpen, setHelpOpen] = React.useState(false);
@@ -299,9 +315,17 @@ function FocusedProofreading(props) {
       setDvidMngrDialogOpen(false);
       actions.setViewerGrayscaleSource(dvidMngr.grayscaleSourceURL());
       actions.setViewerSegmentationSource(dvidMngr.segmentationSourceURL());
+      actions.setViewerTodosSource(dvidMngr.todosSourceURL());
     };
     dvidMngr.init(onDvidInitialized);
   }, [actions, dvidMngr]);
+
+  const handleTodoTypeChange = React.useCallback((type, json) => {
+    setTodoType(type);
+    actions.setViewerTodosType(type.replace('*', ''));
+    const hint = `focused task [${json[TASK_KEYS.BODY_PT1]}] [${json[TASK_KEYS.BODY_PT2]}]`;
+    actions.setViewerTodosHint((type === TODO_TYPES[0].value) ? hint : '');
+  }, [setTodoType, actions]);
 
   const setupTask = React.useCallback(() => {
     const onError = (group) => (error) => { actions.addAlert({ group, message: error }); };
@@ -348,6 +372,8 @@ function FocusedProofreading(props) {
               setResult(restoredResult);
               setCompleted(restoredCompleted);
 
+              handleTodoTypeChange(TODO_TYPES[0].value, json);
+
               actions.setViewerSegments(segments);
               actions.setViewerSegmentColors(bodyColors(segments, restoredResult));
               actions.setViewerCrossSectionScale(1);
@@ -358,7 +384,7 @@ function FocusedProofreading(props) {
           return true;
         })
     );
-  }, [actions, assnMngr, dvidMngr]);
+  }, [actions, handleTodoTypeChange, assnMngr, dvidMngr]);
 
   const noTask = (taskJson === undefined);
 
@@ -401,6 +427,10 @@ function FocusedProofreading(props) {
   const handleResultRadio = (event) => {
     setResult(event.target.value);
     handleResultChange(event.target.value);
+  };
+
+  const handleTodoTypeSelect = (event) => {
+    handleTodoTypeChange(event.target.value, taskJson);
   };
 
   const handleTaskCompleted = (isCompleted) => {
@@ -491,9 +521,11 @@ function FocusedProofreading(props) {
             Next
           </Button>
         </ButtonGroup>
-        <Typography color="inherit">
-          {taskDocString(taskJson, assnMngr)}
-        </Typography>
+        <Tooltip title={taskDocTooltip(taskJson)}>
+          <Typography color="inherit">
+            {taskDocString(taskJson, assnMngr)}
+          </Typography>
+        </Tooltip>
         <FormControl component="fieldset" disabled={noTask}>
           <RadioGroup row name="proofReadingResults" value={result} onChange={handleResultRadio}>
             <FormControlLabel
@@ -511,6 +543,15 @@ function FocusedProofreading(props) {
               control={<Radio />}
               value={RESULTS.DONT_KNOW}
             />
+            <FormControl variant="outlined" disabled={noTask}>
+              <Select value={todoType} onChange={handleTodoTypeSelect}>
+                {TODO_TYPES.map((x) => (
+                  <MenuItem key={x.value} value={x.value}>
+                    {x.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
             <Tooltip title={(noTask || usedBirdsEye) ? '' : tooltip}>
               <FormControlLabel
                 label="Completed"
