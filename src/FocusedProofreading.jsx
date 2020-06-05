@@ -387,6 +387,8 @@ function FocusedProofreading(props) {
   }, [actions, handleTodoTypeChange, assnMngr, dvidMngr]);
 
   const noTask = (taskJson === undefined);
+  const prevDisabled = noTask || assnMngr.prevButtonDisabled();
+  const nextDisabled = noTask || assnMngr.nextButtonDisabled();
 
   React.useEffect(() => {
     assnMngr.init(setupTask, actions.addAlert);
@@ -451,12 +453,16 @@ function FocusedProofreading(props) {
   const handleKeyPress = (event) => {
     if (!noTask) {
       if (event.key === keyBindings.protocolNextTask.key) {
-        handleNextButton();
+        if (!nextDisabled) {
+          handleNextButton();
+        }
       } else if (event.key === keyBindings.protocolPrevTask.key) {
-        handlePrevButton();
+        if (!prevDisabled) {
+          handlePrevButton();
+        }
       } else if ((event.key === keyBindings.protocolCompletedAndNextTask1.key)
         || (event.key === keyBindings.protocolCompletedAndNextTask2.key)) {
-        if (usedBirdsEye) {
+        if (usedBirdsEye && !nextDisabled) {
           handleTaskCompleted(true);
           handleNextButton();
         }
@@ -497,9 +503,6 @@ function FocusedProofreading(props) {
   const childrenWithMoreProps = React.Children.map(children, (child) => (
     React.cloneElement(child, { eventBindingsToUpdate, onMeshLoaded }, null)
   ));
-
-  const prevDisabled = noTask || assnMngr.prevButtonDisabled();
-  const nextDisabled = noTask || assnMngr.nextButtonDisabled();
 
   const tooltip = `Use bird's eye view (key "${keyBindings.focusedProofreadingToggleBirdsEyeView.key}") to enable "Completed"`;
 
