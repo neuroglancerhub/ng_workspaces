@@ -85,6 +85,8 @@ const COLOR_PRIMARY_BODY = '#348E53';
 // Mustard yellow
 const COLOR_OTHER_BODY = '#908827';
 
+const CLIENT_INFO = new ClientInfo();
+
 //
 // Functions that can be factored out of the React component (because they don't use hooks)
 
@@ -195,8 +197,7 @@ const dvidLogKey = (taskJson) => (
   `${taskJson[TASK_KEYS.BODY_PT1]}+${taskJson[TASK_KEYS.BODY_PT2]}`.replace(/,/g, '_')
 );
 
-const storeResults = (bodyIds, result, taskJson, taskStartTime,
-  authMngr, dvidMngr, assnMngr, clientInfo) => {
+const storeResults = (bodyIds, result, taskJson, taskStartTime, authMngr, dvidMngr, assnMngr) => {
   const bodyIdMergedOnto = bodyIds[0];
   const bodyIdOther = bodyIds[1];
   const time = (new Date()).toISOString();
@@ -219,7 +220,7 @@ const storeResults = (bodyIds, result, taskJson, taskStartTime,
       time,
       user,
       'time to complete (ms)': elapsedMs,
-      client: clientInfo.info,
+      client: CLIENT_INFO.info,
     };
     if (taskJson.index !== undefined) {
       dvidLogValue = { ...dvidLogValue, index: taskJson.index };
@@ -260,8 +261,6 @@ const restoreResults = (taskJson) => {
 
 function FocusedProofreading(props) {
   const { actions, children } = props;
-
-  const [clientInfo] = React.useState(() => (new ClientInfo()));
 
   const [authMngr] = React.useState(() => (new AuthManager()));
   const [authMngrDialogOpen, setAuthMngrDialogOpen] = React.useState(false);
@@ -408,8 +407,7 @@ function FocusedProofreading(props) {
     setCompleted(isCompleted);
     taskJson.completed = isCompleted;
     if (isCompleted) {
-      storeResults(bodyIds, result, taskJson, taskStartTime,
-        authMngr, dvidMngr, assnMngr, clientInfo);
+      storeResults(bodyIds, result, taskJson, taskStartTime, authMngr, dvidMngr, assnMngr);
     }
   };
 
