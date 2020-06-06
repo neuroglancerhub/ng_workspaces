@@ -19,6 +19,13 @@ export class DvidManager {
 
   segmentationURL = 'dvid://https://flyem.dvid.io/d925633ed0974da78e2bb5cf38d01f4d/segmentation';
 
+  // For when the source URLs are available with the assignment.
+  init = (grayscaleURL, segmentationURL) => {
+    this.grayscaleURL = grayscaleURL;
+    this.segmentationURL = segmentationURL;
+  };
+
+  // For when the user should enter the source URLs in a dialog.
   init = (onInitCompleted) => {
     if (this.localStorageAvailable()) {
       // If localStorage is available, use it to remember the URLs across sessions.

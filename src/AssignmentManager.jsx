@@ -15,6 +15,8 @@ const KEY_FOCUSED_PROOFREADING_ASSIGNMENT_TASK_LIST = 'task list';
 export class AssignmentManager {
   onLoadInteractionDone = undefined;
 
+  onAssignmentLoaded = undefined;
+
   onTaskLoaded = undefined;
 
   assignmentFile = undefined;
@@ -34,7 +36,8 @@ export class AssignmentManager {
   // The `onTaskLoaded` function should return a promise, which evaluates to
   // `false` if the task specified by `taskJson()` should be skipped due to
   // protocol-specific reasons, or `true` if that task should proceed normally.
-  init = (onTaskLoaded, addAlert) => {
+  init = (onAssignmentLoaded, onTaskLoaded, addAlert) => {
+    this.onAssignmentLoaded = onAssignmentLoaded;
     this.onTaskLoaded = onTaskLoaded;
     this.addAlert = addAlert;
   }
@@ -87,7 +90,7 @@ export class AssignmentManager {
           this.assignment = JSON.parse(event.target.result);
           this.initTaskList();
           this.taskIndex = -1;
-          this.next();
+          this.onAssignmentLoaded().then(() => { this.next(); });
         } catch (exc) {
           // TODO: Add error processing.
           console.log(`* Error loading assignment JSON: '${exc}' *`);
