@@ -73,6 +73,11 @@ const theme = createMuiTheme({
         padding: 6,
       },
     },
+    MuiTooltip: {
+      tooltip: {
+        fontSize: 12,
+      },
+    },
   },
 });
 
