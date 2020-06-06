@@ -60,6 +60,8 @@ const keyBindings = {
 // Constants
 
 const TASK_KEYS = Object.freeze({
+  GRAYSCALE_SOURCE: 'grayscale source URL',
+  SEGMENTATION_SOURCE: 'segmentation source URL',
   BODY_PT1: 'body point 1',
   BODY_PT2: 'body point 2',
 });
@@ -309,23 +311,38 @@ function FocusedProofreading(props) {
 
   const handleAuthManagerDialogClose = () => { setAuthMngrDialogOpen(false); };
 
-  React.useEffect(() => {
-    setDvidMngrDialogOpen(true);
-    const onDvidInitialized = () => {
-      setDvidMngrDialogOpen(false);
-      actions.setViewerGrayscaleSource(dvidMngr.grayscaleSourceURL());
-      actions.setViewerSegmentationSource(dvidMngr.segmentationSourceURL());
-      actions.setViewerTodosSource(dvidMngr.todosSourceURL());
-    };
-    dvidMngr.init(onDvidInitialized);
-  }, [actions, dvidMngr]);
-
   const handleTodoTypeChange = React.useCallback((type, json) => {
     setTodoType(type);
     actions.setViewerTodosType(type.replace('*', ''));
     const hint = `focused task [${json[TASK_KEYS.BODY_PT1]}] [${json[TASK_KEYS.BODY_PT2]}]`;
     actions.setViewerTodosHint((type === TODO_TYPES[0].value) ? hint : '');
   }, [setTodoType, actions]);
+
+  const setupAssn = React.useCallback(() => {
+    const json = assnMngr.assignment;
+    const setViewer = () => {
+      actions.setViewerGrayscaleSource(dvidMngr.grayscaleSourceURL());
+      actions.setViewerSegmentationSource(dvidMngr.segmentationSourceURL());
+      actions.setViewerTodosSource(dvidMngr.todosSourceURL());
+    };
+    let resolver;
+    if (json[TASK_KEYS.GRAYSCALE_SOURCE] && json[TASK_KEYS.SEGMENTATION_SOURCE]) {
+      dvidMngr.init(json[TASK_KEYS.GRAYSCALE_SOURCE], json[TASK_KEYS.SEGMENTATION_SOURCE]);
+      setViewer();
+      // This promise immediately calls the `.then(...)` code, as there is no dialog to wait for.
+      return new Promise((resolve) => { resolve(); });
+    }
+    setDvidMngrDialogOpen(true);
+    const onDvidInitialized = () => {
+      setDvidMngrDialogOpen(false);
+      setViewer();
+      resolver();
+    };
+    dvidMngr.init(onDvidInitialized);
+    // This promise saves the `.then(...)` code so it can be can be called at the end of
+    // `onDvidInitialized()`, above, when the sources dialog has been closed.
+    return new Promise((resolve) => { resolver = resolve; });
+  }, [actions, assnMngr, dvidMngr]);
 
   const setupTask = React.useCallback(() => {
     const onError = (group) => (error) => { actions.addAlert({ group, message: error }); };
@@ -391,8 +408,8 @@ function FocusedProofreading(props) {
   const nextDisabled = noTask || assnMngr.nextButtonDisabled();
 
   React.useEffect(() => {
-    assnMngr.init(setupTask, actions.addAlert);
-  }, [assnMngr, setupTask, actions]);
+    assnMngr.init(setupAssn, setupTask, actions.addAlert);
+  }, [assnMngr, setupAssn, setupTask, actions]);
 
   const handleLoadButton = () => {
     setAssnMngrLoading(true);
