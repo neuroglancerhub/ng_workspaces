@@ -332,13 +332,13 @@ function FocusedProofreading(props) {
       // This promise immediately calls the `.then(...)` code, as there is no dialog to wait for.
       return new Promise((resolve) => { resolve(); });
     }
-    setDvidMngrDialogOpen(true);
     const onDvidInitialized = () => {
       setDvidMngrDialogOpen(false);
       setViewer();
       resolver();
     };
     dvidMngr.init(onDvidInitialized);
+    setDvidMngrDialogOpen(true);
     // This promise saves the `.then(...)` code so it can be can be called at the end of
     // `onDvidInitialized()`, above, when the sources dialog has been closed.
     return new Promise((resolve) => { resolver = resolve; });
