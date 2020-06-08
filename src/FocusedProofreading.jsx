@@ -60,8 +60,8 @@ const keyBindings = {
 // Constants
 
 const TASK_KEYS = Object.freeze({
-  GRAYSCALE_SOURCE: 'grayscale source URL',
-  SEGMENTATION_SOURCE: 'segmentation source URL',
+  GRAYSCALE_SOURCE: 'grayscale source',
+  SEGMENTATION_SOURCE: 'segmentation source',
   BODY_PT1: 'body point 1',
   BODY_PT2: 'body point 2',
 });
