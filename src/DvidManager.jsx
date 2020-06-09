@@ -26,7 +26,7 @@ export class DvidManager {
   };
 
   // For when the user should enter the source URLs in a dialog.
-  init = (onInitCompleted) => {
+  initForDialog = (onInitCompleted) => {
     if (this.localStorageAvailable()) {
       // If localStorage is available, use it to remember the URLs across sessions.
       const g = localStorage.getItem(KEY_GRAYSCALE_SOURCE);
