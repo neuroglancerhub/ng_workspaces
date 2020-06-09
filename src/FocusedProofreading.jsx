@@ -326,7 +326,7 @@ function FocusedProofreading(props) {
       actions.setViewerTodosSource(dvidMngr.todosSourceURL());
     };
     let resolver;
-    if (json[TASK_KEYS.GRAYSCALE_SOURCE] && json[TASK_KEYS.SEGMENTATION_SOURCE]) {
+    if ((TASK_KEYS.GRAYSCALE_SOURCE in json) && (TASK_KEYS.SEGMENTATION_SOURCE in json)) {
       dvidMngr.init(json[TASK_KEYS.GRAYSCALE_SOURCE], json[TASK_KEYS.SEGMENTATION_SOURCE]);
       setViewer();
       // This promise immediately calls the `.then(...)` code, as there is no dialog to wait for.
@@ -337,7 +337,7 @@ function FocusedProofreading(props) {
       setViewer();
       resolver();
     };
-    dvidMngr.init(onDvidInitialized);
+    dvidMngr.initForDialog(onDvidInitialized);
     setDvidMngrDialogOpen(true);
     // This promise saves the `.then(...)` code so it can be can be called at the end of
     // `onDvidInitialized()`, above, when the sources dialog has been closed.
