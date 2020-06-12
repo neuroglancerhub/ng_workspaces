@@ -7,3 +7,16 @@
 .neuroglancer-container {
   height: 100%;
 }
+
+.neuroglancer-layer-side-panel-title {
+  display: block !important;
+}
+
+.neuroglancer-layer-side-panel-title input {
+  max-width: 135px;
+  overflow:hidden;
+}
+
+.neuroglancer-layer-side-panel-title .neuroglancer-icon {
+  float:right;
+}
