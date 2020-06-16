@@ -62,6 +62,7 @@ const keyBindings = {
 const TASK_KEYS = Object.freeze({
   GRAYSCALE_SOURCE: 'grayscale source',
   SEGMENTATION_SOURCE: 'segmentation source',
+  DVID_SOURCE: 'DVID source',
   BODY_PT1: 'body point 1',
   BODY_PT2: 'body point 2',
 });
@@ -229,6 +230,7 @@ const storeResults = (bodyIds, result, taskJson, taskStartTime, authMngr, dvidMn
     let dvidLogValue = {
       'grayscale source': dvidMngr.grayscaleSourceURL(),
       'segmentation source': dvidMngr.segmentationSourceURL(),
+      'DVID source': dvidMngr.dvidSourceURL(),
       [TASK_KEYS.BODY_PT1]: taskJsonCopy[TASK_KEYS.BODY_PT1],
       [TASK_KEYS.BODY_PT2]: taskJsonCopy[TASK_KEYS.BODY_PT2],
       'body ID 1': bodyIdMergedOnto,
@@ -327,7 +329,8 @@ function FocusedProofreading(props) {
     };
     let resolver;
     if ((TASK_KEYS.GRAYSCALE_SOURCE in json) && (TASK_KEYS.SEGMENTATION_SOURCE in json)) {
-      dvidMngr.init(json[TASK_KEYS.GRAYSCALE_SOURCE], json[TASK_KEYS.SEGMENTATION_SOURCE]);
+      const dvid = json[TASK_KEYS.DVID_SOURCE] || '';
+      dvidMngr.init(json[TASK_KEYS.GRAYSCALE_SOURCE], json[TASK_KEYS.SEGMENTATION_SOURCE], dvid);
       setViewer();
       // This promise immediately calls the `.then(...)` code, as there is no dialog to wait for.
       return new Promise((resolve) => { resolve(); });

@@ -11,18 +11,30 @@ import { AuthManager } from './AuthManager';
 
 const KEY_GRAYSCALE_SOURCE = 'NG_WORKSPACES-FOCUSED-PROOFREADING-GRAYSCALE-SOURCE';
 const KEY_SEGMENTATION_SOURCE = 'NG_WORKSPACES-FOCUSED-PROOFREADING-SEGMENTATION-SOURCE';
+const KEY_DVID_SOURCE = 'NG_WORKSPACES-FOCUSED-PROOFREADING-DVID-SOURCE';
 
 export class DvidManager {
   onInitCompleted = undefined;
+
+  // TODO: Consider changing "URL" to "Url" everywhere.
 
   grayscaleURL = 'dvid://https://flyem.dvid.io/ab6e610d4fe140aba0e030645a1d7229/grayscalejpeg';
 
   segmentationURL = 'dvid://https://flyem.dvid.io/d925633ed0974da78e2bb5cf38d01f4d/segmentation';
 
+  // If empty, then the DVID API URL is derived from `segmentationURL`.
+  dvidURL = '';
+
+  dvidServer = undefined;
+
+  dvidNode = undefined;
+
   // For when the source URLs are available with the assignment.
-  init = (grayscaleURL, segmentationURL) => {
+  init = (grayscaleURL, segmentationURL, dvidURL = '') => {
     this.grayscaleURL = grayscaleURL;
     this.segmentationURL = segmentationURL;
+    this.dvidURL = dvidURL;
+    [this.dvidServer, this.dvidNode] = DvidManager.serverNode(this.segmentationURL, this.dvidURL);
   };
 
   // For when the user should enter the source URLs in a dialog.
@@ -30,13 +42,11 @@ export class DvidManager {
     if (this.localStorageAvailable()) {
       // If localStorage is available, use it to remember the URLs across sessions.
       const g = localStorage.getItem(KEY_GRAYSCALE_SOURCE);
-      if (g) {
-        this.grayscaleURL = g;
-      }
+      this.grayscaleURL = g || this.grayscaleURL;
       const s = localStorage.getItem(KEY_SEGMENTATION_SOURCE);
-      if (s) {
-        this.segmentationURL = s;
-      }
+      this.segmentationURL = s || this.segmentationURL;
+      const d = localStorage.getItem(KEY_DVID_SOURCE);
+      this.dvidURL = d || this.dvidURL;
     }
     this.onInitCompleted = onInitCompleted;
   }
@@ -49,17 +59,20 @@ export class DvidManager {
     this.segmentationURL
   )
 
+  dvidSourceURL = () => (
+    this.dvidURL || `${this.dvidServer}/${this.dvidNode}`
+  )
+
   todosSourceURL = () => {
-    const [server, node] = this.segmentationServerAndNode();
-    if (server) {
-      return (`${server}/${node}/neuroglancer_todo?usertag=true&auth=${AuthManager.tokenURL()}`);
+    if (this.dvidServer) {
+      return (`dvid://${this.dvidServer}/${this.dvidNode}/neuroglancer_todo?usertag=true&auth=${AuthManager.tokenURL()}`);
     }
     return (undefined);
   }
 
   // Returns a promise, whose value is accessible with `.then((data) => { ... })`.
   getSparseVolSize = (bodyId, onError = this.defaultOnError) => {
-    const url = `${this.segmentationAPIURL()}/sparsevol-size/${bodyId}`;
+    const url = `${this.dvidApiURL('segmentation')}/sparsevol-size/${bodyId}`;
     return (fetch(url)
       .then((response) => {
         if (response.ok) {
@@ -78,7 +91,7 @@ export class DvidManager {
       return new Promise((resolve) => { resolve(undefined); });
     }
     const key = `${bodyPt[0]}_${bodyPt[1]}_${bodyPt[2]}`;
-    const url = `${this.segmentationAPIURL()}/label/${key}`;
+    const url = `${this.dvidApiURL('segmentation')}/label/${key}`;
     return (fetch(url)
       .then((response) => {
         if (response.ok) {
@@ -95,7 +108,7 @@ export class DvidManager {
   // TODO: Update to return a promise.
   postMerge = (bodyIdMergedOnto, bodyIdOther,
     onCompletion = this.defaultOnCompletion, onError = this.defaultOnError) => {
-    const url = `${this.segmentationAPIURL()}/merge`;
+    const url = `${this.dvidApiURL('segmentation')}/merge`;
     const body = [bodyIdMergedOnto, bodyIdOther];
     const options = {
       method: 'POST',
@@ -111,7 +124,7 @@ export class DvidManager {
   // TODO: Update to return a promise.
   postKeyValue = (instance, key, value,
     onCompletion = this.defaultOnCompletion, onError = this.defaultOnError) => {
-    const url = `${this.segmentationAPIURL(instance)}/key/${key}`;
+    const url = `${this.dvidApiURL(instance)}/key/${key}`;
     const options = {
       method: 'POST',
       headers: {
@@ -125,7 +138,7 @@ export class DvidManager {
 
   // Returns a promise, whose value is accessible with `.then((data) => { ... })`.
   getKeyValue = (instance, key, onError = this.defaultOnError) => {
-    const url = `${this.segmentationAPIURL(instance)}/key/${key}`;
+    const url = `${this.dvidApiURL(instance)}/key/${key}`;
     return (fetch(url)
       .then((response) => {
         if (response.ok) {
@@ -145,6 +158,7 @@ export class DvidManager {
   //
 
   onDialogClosed = () => {
+    [this.dvidServer, this.dvidNode] = DvidManager.serverNode(this.segmentationURL, this.dvidURL);
     this.onInitCompleted();
   }
 
@@ -162,28 +176,34 @@ export class DvidManager {
     }
   }
 
-  segmentationServerAndNode = () => {
-    if (this.segmentationURL.startsWith('dvid')) {
-      let url = this.segmentationURL;
-      if (url.endsWith('/')) {
-        url = url.slice(0, -1);
+  onDvidSourceChange = (event) => {
+    this.dvidURL = event.target.value;
+    if (this.localStorageAvailable()) {
+      localStorage.setItem(KEY_DVID_SOURCE, this.dvidURL);
+    }
+  }
+
+  static serverNode = (segmentationURL, dvidURL) => {
+    let url = dvidURL;
+    if (!url) {
+      if (segmentationURL.startsWith('dvid://')) {
+        url = segmentationURL.substring(7);
       }
-      const i1 = url.lastIndexOf('/');
-      const i2 = url.lastIndexOf('/', i1 - 1);
-      const server = url.substring(0, i2);
-      const node = url.substring(i2 + 1, i1);
+    }
+    if (url) {
+      url = url.replace('/#/repo', '');
+      url = url.replace('/api/node', '');
+      const parts = url.split('/');
+      const server = `${parts[0]}//${parts[2]}`;
+      const node = `${parts[3]}`;
       return ([server, node]);
     }
     return ([undefined, undefined]);
   }
 
-  segmentationAPIURL = (alternateInstance) => {
-    if (this.segmentationURL.startsWith('dvid')) {
-      const i = this.segmentationURL.indexOf('http');
-      const url = this.segmentationURL.substring(i);
-      const parts = url.split('/');
-      const instance = alternateInstance || parts[4];
-      return (`${parts[0]}//${parts[2]}/api/node/${parts[3]}/${instance}`);
+  dvidApiURL = (instance) => {
+    if (this.dvidServer) {
+      return (`${this.dvidServer}/api/node/${this.dvidNode}/${instance}`);
     }
     return (undefined);
   }
@@ -228,7 +248,7 @@ export function DvidManagerDialog(props) {
   // TODO: Add proper UI.
   return (
     <Dialog onClose={handleClose} open={open} maxWidth="md" fullWidth disableEnforceFocus>
-      <DialogTitle>Set Up DVID</DialogTitle>
+      <DialogTitle>Set Up Sources</DialogTitle>
       <DialogContent>
         <TextField
           label="Grayscale source URL"
@@ -241,6 +261,12 @@ export function DvidManagerDialog(props) {
           defaultValue={manager.segmentationURL}
           fullWidth
           onChange={manager.onSegmentationSourceChange}
+        />
+        <TextField
+          label="DVID source URL (derived from segmentation if blank)"
+          defaultValue={manager.dvidURL}
+          fullWidth
+          onChange={manager.onDvidSourceChange}
         />
       </DialogContent>
       <DialogActions>
