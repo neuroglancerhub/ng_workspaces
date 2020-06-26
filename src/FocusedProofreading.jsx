@@ -23,7 +23,7 @@ import { AuthManager, AuthManagerDialog } from './AuthManager';
 import ClientInfo from './ClientInfo';
 import { DvidManager, DvidManagerDialog } from './DvidManager';
 import './FocusedProofreading.css';
-import FocusedProofreadingHelp from './FocusedProofreadingHelp';
+import ProtocolHelp from './ProtocolHelp';
 
 const styles = {
   window: {
@@ -593,7 +593,8 @@ function FocusedProofreading(props) {
           <AuthManagerDialog open={authMngrDialogOpen} onClose={handleAuthManagerDialogClose} />
           <DvidManagerDialog manager={dvidMngr} open={dvidMngrDialogOpen} />
           <AssignmentManagerDialog manager={assnMngr} open={assnMngrLoading} />
-          <FocusedProofreadingHelp
+          <ProtocolHelp
+            title="Focused Proofreading Help"
             keyBindings={keyBindings}
             open={helpOpen}
             onClose={handleHelpClose}

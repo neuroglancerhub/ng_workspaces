@@ -21,6 +21,13 @@ export function setViewerSegmentationSource(payload) {
   };
 }
 
+export function setViewerSegmentationLayerName(payload) {
+  return {
+    type: C.SET_VIEWER_SEGMENTATION_LAYER_NAME,
+    payload,
+  };
+}
+
 export function setViewerTodosSource(payload) {
   return {
     type: C.SET_VIEWER_TODOS_SOURCE,

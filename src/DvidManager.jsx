@@ -22,6 +22,14 @@ export class DvidManager {
 
   segmentationURL = 'dvid://https://flyem.dvid.io/d925633ed0974da78e2bb5cf38d01f4d/segmentation';
 
+  segmentationDialogLabel = 'Segmentation';
+
+  segmentationServer = undefined;
+
+  segmentationNode = undefined;
+
+  segmentationInstance = undefined;
+
   // If empty, then the DVID API URL is derived from `segmentationURL`.
   dvidURL = '';
 
@@ -34,11 +42,11 @@ export class DvidManager {
     this.grayscaleURL = grayscaleURL;
     this.segmentationURL = segmentationURL;
     this.dvidURL = dvidURL;
-    [this.dvidServer, this.dvidNode] = DvidManager.serverNode(this.segmentationURL, this.dvidURL);
+    this.setServerNodeInstance();
   };
 
   // For when the user should enter the source URLs in a dialog.
-  initForDialog = (onInitCompleted) => {
+  initForDialog = (onInitCompleted, segmentationDialogLabel = 'Segmentation') => {
     if (this.localStorageAvailable()) {
       // If localStorage is available, use it to remember the URLs across sessions.
       const g = localStorage.getItem(KEY_GRAYSCALE_SOURCE);
@@ -48,6 +56,7 @@ export class DvidManager {
       const d = localStorage.getItem(KEY_DVID_SOURCE);
       this.dvidURL = d || this.dvidURL;
     }
+    this.segmentationDialogLabel = segmentationDialogLabel;
     this.onInitCompleted = onInitCompleted;
   }
 
@@ -72,7 +81,7 @@ export class DvidManager {
 
   // Returns a promise, whose value is accessible with `.then((data) => { ... })`.
   getSparseVolSize = (bodyId, onError = this.defaultOnError) => {
-    const url = `${this.dvidApiURL('segmentation')}/sparsevol-size/${bodyId}`;
+    const url = `${this.segmentationApiURL()}/sparsevol-size/${bodyId}`;
     return (fetch(url)
       .then((response) => {
         if (response.ok) {
@@ -91,7 +100,7 @@ export class DvidManager {
       return new Promise((resolve) => { resolve(undefined); });
     }
     const key = `${bodyPt[0]}_${bodyPt[1]}_${bodyPt[2]}`;
-    const url = `${this.dvidApiURL('segmentation')}/label/${key}`;
+    const url = `${this.segmentationApiURL()}/label/${key}`;
     return (fetch(url)
       .then((response) => {
         if (response.ok) {
@@ -158,7 +167,7 @@ export class DvidManager {
   //
 
   onDialogClosed = () => {
-    [this.dvidServer, this.dvidNode] = DvidManager.serverNode(this.segmentationURL, this.dvidURL);
+    this.setServerNodeInstance();
     this.onInitCompleted();
   }
 
@@ -183,22 +192,37 @@ export class DvidManager {
     }
   }
 
-  static serverNode = (segmentationURL, dvidURL) => {
-    let url = dvidURL;
-    if (!url) {
-      if (segmentationURL.startsWith('dvid://')) {
-        url = segmentationURL.substring(7);
-      }
+  setServerNodeInstance = () => {
+    const [ds, dn] = DvidManager.serverNodeInstance(this.dvidURL || this.segmentationURL);
+    [this.dvidServer, this.dvidNode] = [ds, dn];
+    const [ss, sn, si] = DvidManager.serverNodeInstance(this.segmentationURL);
+    [this.segmentationServer, this.segmentationNode, this.segmentationInstance] = [ss, sn, si];
+    if (!this.segmentationURL.startsWith('dvid://')) {
+      [this.segmentationServer, this.segmentationNode] = [this.dvidServer, this.dvidNode];
     }
-    if (url) {
-      url = url.replace('/#/repo', '');
-      url = url.replace('/api/node', '');
-      const parts = url.split('/');
-      const server = `${parts[0]}//${parts[2]}`;
-      const node = `${parts[3]}`;
-      return ([server, node]);
+  }
+
+  static serverNodeInstance = (url) => {
+    let x = url;
+    if (x.startsWith('dvid://')) {
+      x = url.substring(7);
+    } else if (x.startsWith('precomputed://')) {
+      x = url.substring(14);
     }
-    return ([undefined, undefined]);
+    x = x.replace('/#/repo', '');
+    x = x.replace('/api/node', '');
+    const parts = x.split('/');
+    const server = `${parts[0]}//${parts[2]}`;
+    const node = `${parts[3]}`;
+    const instance = (parts[4]) ? `${parts[4]}` : 'segmentation';
+    return ([server, node, instance]);
+  }
+
+  segmentationApiURL = () => {
+    if (this.segmentationServer) {
+      return (`${this.segmentationServer}/api/node/${this.segmentationNode}/${this.segmentationInstance}`);
+    }
+    return (undefined);
   }
 
   dvidApiURL = (instance) => {
@@ -257,13 +281,13 @@ export function DvidManagerDialog(props) {
           onChange={manager.onGrayscaleSourceChange}
         />
         <TextField
-          label="Segmentation source URL"
+          label={`${manager.segmentationDialogLabel} source URL`}
           defaultValue={manager.segmentationURL}
           fullWidth
           onChange={manager.onSegmentationSourceChange}
         />
         <TextField
-          label="DVID source URL (derived from segmentation if blank)"
+          label={`DVID source URL (derived from ${manager.segmentationDialogLabel} source if blank)`}
           defaultValue={manager.dvidURL}
           fullWidth
           onChange={manager.onDvidSourceChange}
