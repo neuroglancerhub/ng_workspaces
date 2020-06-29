@@ -10,7 +10,9 @@ import NeuroGlancer from '@janelia-flyem/react-neuroglancer';
 
 import { addAlert } from './actions/alerts';
 import {
-  initViewer, setViewerGrayscaleSource, setViewerSegmentationSource,
+  initViewer,
+  setViewerGrayscaleSource,
+  setViewerSegmentationSource, setViewerSegmentationLayerName,
   setViewerTodosSource, setViewerTodosType, setViewerTodosHint,
   setViewerCrossSectionScale,
   setViewerCameraPosition, setViewerCameraProjectionScale, setViewerCameraProjectionOrientation,
@@ -24,6 +26,7 @@ import './Neuroglancer.css';
 const Neuroglancer = lazy(() => import('./Neuroglancer'));
 const ImagePicker = lazy(() => import('./ImagePicker'));
 const FocusedProofreading = lazy(() => import('./FocusedProofreading'));
+const MitoCount = lazy(() => import('./MitoCount'));
 
 
 function WorkSpaces(props) {
@@ -45,6 +48,9 @@ function WorkSpaces(props) {
       break;
     case 'focused_proofreading':
       RenderedComponent = FocusedProofreading;
+      break;
+    case 'mitochondria_count':
+      RenderedComponent = MitoCount;
       break;
     default:
       RenderedComponent = ImagePicker;
@@ -90,6 +96,9 @@ const WorkSpacesActions = (dispatch) => ({
     },
     setViewerSegmentationSource: (newState) => {
       dispatch(setViewerSegmentationSource(newState));
+    },
+    setViewerSegmentationLayerName: (newState) => {
+      dispatch(setViewerSegmentationLayerName(newState));
     },
     setViewerTodosSource: (newState) => {
       dispatch(setViewerTodosSource(newState));

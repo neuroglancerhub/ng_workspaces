@@ -76,7 +76,10 @@ const syncedState = (state) => {
 
 const setInLayerArray = (state, layerName, propPathArray, propValue) => {
   const layers = state.getIn(['ngState', 'layers']);
-  const i = layers.findIndex((value) => (value.name === layerName));
+  let i = layers.findIndex((value) => (value.name === layerName));
+  if (i === -1) {
+    i = layers.findIndex((value) => (value.type === layerName));
+  }
   return state.setIn(['ngState', 'layers', i, ...propPathArray], propValue);
 };
 
@@ -93,6 +96,9 @@ export default function viewerReducer(state = viewerState, action) {
     }
     case C.SET_VIEWER_SEGMENTATION_SOURCE: {
       return setInLayerArray(syncedState(state), 'segmentation', ['source'], action.payload);
+    }
+    case C.SET_VIEWER_SEGMENTATION_LAYER_NAME: {
+      return setInLayerArray(syncedState(state), 'segmentation', ['name'], action.payload);
     }
     case C.SET_VIEWER_TODOS_SOURCE: {
       return setInLayerArray(syncedState(state), 'todos', ['source'], action.payload);

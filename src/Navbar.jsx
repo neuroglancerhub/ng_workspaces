@@ -79,7 +79,7 @@ function Navbar(props) {
     history: PropTypes.object.isRequired,
   };
 
-  const workspaceOptions = ['neuroglancer', 'image picker', 'focused proofreading'].map(
+  const workspaceOptions = ['neuroglancer', 'image picker', 'focused proofreading', 'mitochondria count'].map(
     (dataset) => ({
       value: `ws/${dataset.replace(/ /, '_')}`,
       label: dataset,

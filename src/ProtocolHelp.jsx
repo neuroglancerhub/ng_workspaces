@@ -11,12 +11,17 @@ import TableRow from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
 import React from 'react';
 
-export default function FocusedProofreadingHelp(props) {
-  const { keyBindings, open, onClose } = props;
+export default function ProtocolHelp(props) {
+  const {
+    title,
+    keyBindings,
+    open,
+    onClose,
+  } = props;
 
   return (
     <Dialog onClose={onClose} open={open} disableEnforceFocus>
-      <DialogTitle>Focused Proofreading Help</DialogTitle>
+      <DialogTitle>{title}</DialogTitle>
       <DialogContent>
         <Typography color="inherit">{`Version ${process.env.REACT_APP_VERSION}`}</Typography>
         <Typography color="inherit">Key bindings:</Typography>
@@ -40,7 +45,8 @@ export default function FocusedProofreadingHelp(props) {
   );
 }
 
-FocusedProofreadingHelp.propTypes = {
+ProtocolHelp.propTypes = {
+  title: PropTypes.string.isRequired,
   keyBindings: PropTypes.object.isRequired,
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
