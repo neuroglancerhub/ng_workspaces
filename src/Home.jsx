@@ -12,7 +12,18 @@ function Home() {
         v
         {process.env.REACT_APP_VERSION}
       </span>
-      {user && <p>{user.getBasicProfile().getName()}</p>}
+      {user && (
+        <>
+          <p>
+            USER:
+            {user.getBasicProfile().getName()}
+          </p>
+          <p>
+            JWT:
+            {user.getAuthResponse().id_token}
+          </p>
+        </>
+      )}
     </div>
   );
 }
