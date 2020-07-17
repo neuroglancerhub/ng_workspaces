@@ -16,10 +16,12 @@ function Home() {
         <>
           <p>
             USER:
+            {' '}
             {user.getBasicProfile().getName()}
           </p>
           <p>
             JWT:
+            {' '}
             {user.getAuthResponse().id_token}
           </p>
         </>

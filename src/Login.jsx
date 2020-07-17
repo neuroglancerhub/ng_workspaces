@@ -7,12 +7,12 @@ import loadScript from './utils/load-script';
 
 export default function Login() {
   const dispatch = useDispatch();
-  const user = useSelector((state) => state.user.get('user'), shallowEqual);
+  const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
 
   function handleLogout() {
     const ga = window.gapi.auth2.getAuthInstance();
     dispatch({
-      type: 'LOGOUT_USER',
+      type: 'LOGOUT_GOOGLE_USER',
       user: ga,
     });
   }
@@ -28,7 +28,7 @@ export default function Login() {
 
   function handleLoggedIn(googleUser) {
     dispatch({
-      type: 'LOGIN_USER',
+      type: 'LOGIN_GOOGLE_USER',
       user: googleUser,
     });
   }
@@ -38,7 +38,7 @@ export default function Login() {
 
     if (ga.isSignedIn.get()) {
       dispatch({
-        type: 'LOGIN_USER',
+        type: 'LOGIN_GOOGLE_USER',
         user: ga.currentUser.get(),
       });
     } else {

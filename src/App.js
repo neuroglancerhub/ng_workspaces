@@ -95,7 +95,7 @@ function App() {
     function onInit(googleAuth) {
       if (googleAuth.isSignedIn.get()) {
         dispatch({
-          type: 'LOGIN_USER',
+          type: 'LOGIN_GOOGLE_USER',
           user: googleAuth.currentUser.get(),
         });
       }
