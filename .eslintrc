@@ -1,0 +1,28 @@
+{
+  "extends": [
+    "airbnb", 
+    "airbnb/hooks",
+    "plugin:react/recommended"
+  ],
+  "parser": "babel-eslint",
+  "plugins": [ 
+    "react"
+  ],
+  "env": {
+    "browser": true,
+    "node": true,
+    "jest": true
+},
+"overrides": [
+    {
+      "files": ["*"],
+      "rules": {
+        "no-console": "off",
+        "jsx-a11y/no-static-element-interactions": "off",
+        "jsx-a11y/no-noninteractive-tabindex": "off",
+        "react/jsx-filename-extension": "off",
+        "react/forbid-prop-types": [1, {"forbid": ["any", "array"]}]
+      }
+    }
+  ]
+}

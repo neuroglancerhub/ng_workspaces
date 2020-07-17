@@ -1,0 +1,14 @@
+.mito-count-container {
+  display: flex;
+  flex-flow: column;
+  height: 100%;
+}
+
+.mito-count-control-row {
+  display: flex;
+  flex-flow: row;
+  background-color: #B0D4AB;
+  align-items: center;
+  justify-content: center;
+  min-height: 0px;
+}
