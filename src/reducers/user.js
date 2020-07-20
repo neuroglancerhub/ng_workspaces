@@ -5,6 +5,7 @@ const userState = Immutable.Map({
   loggedIn: false,
   userInfo: {},
   token: '',
+  googleUser: null,
 });
 
 export default function userReducer(state = userState, action) {
@@ -20,6 +21,13 @@ export default function userReducer(state = userState, action) {
     }
     case C.SET_USER_TOKEN: {
       return state.set('token', action.token);
+    }
+    case C.LOGIN_GOOGLE_USER: {
+      return state.set('googleUser', action.user);
+    }
+    case C.LOGOUT_GOOGLE_USER: {
+      action.user.signOut();
+      return state.set('googleUser', null);
     }
     default: {
       return state;

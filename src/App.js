@@ -1,18 +1,24 @@
-import { createBrowserHistory } from 'history';
-import { createMuiTheme } from '@material-ui/core/styles';
-import { ThemeProvider } from '@material-ui/styles';
-import React, { Suspense, lazy } from 'react';
+import React, { useEffect, Suspense, lazy } from 'react';
 import { Router, Route } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { createBrowserHistory } from 'history';
 
-import './App.css';
+import { ThemeProvider } from '@material-ui/styles';
+import { createMuiTheme } from '@material-ui/core/styles';
+
 import Navbar from './Navbar';
 import Alerts from './Alerts';
+import loadScript from './utils/load-script';
+import removeScript from './utils/remove-script';
+
+import './App.css';
 
 const history = createBrowserHistory();
 
 const Home = lazy(() => import('./Home'));
 const About = lazy(() => import('./About'));
 const WorkSpaces = lazy(() => import('./WorkSpaces'));
+const AuthTest = lazy(() => import('./AuthTest'));
 
 const theme = createMuiTheme({
   palette: {
@@ -82,6 +88,40 @@ const theme = createMuiTheme({
 });
 
 function App() {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    // Check for logged in user and save them to state.
+    function onInit(googleAuth) {
+      if (googleAuth.isSignedIn.get()) {
+        dispatch({
+          type: 'LOGIN_GOOGLE_USER',
+          user: googleAuth.currentUser.get(),
+        });
+      }
+    }
+
+    const jsSrc = 'https://apis.google.com/js/platform.js';
+    loadScript(document, 'script', 'google-login', jsSrc, () => {
+      const g = window.gapi;
+      g.load('auth2', () => {
+        g.auth2
+          .init({
+            client_id: '833853795110-2eu65hnvthhcibk64ibftemb0i1tlu97.apps.googleusercontent.com',
+            fetch_basic_profile: true,
+            // need this scope to access google cloud storage buckets
+            scope: 'https://www.googleapis.com/auth/devstorage.read_only',
+            ux_mode: 'pop-up',
+          })
+          .then(onInit);
+      });
+    });
+
+    return () => {
+      removeScript(document, 'google-login');
+    };
+  }, [dispatch]);
+
   return (
     // eslint-disable-next-line react/jsx-filename-extension
     <Router history={history}>
@@ -94,6 +134,7 @@ function App() {
           <Suspense fallback={<div>Loading...</div>}>
             <Route path="/ws/:ws" component={WorkSpaces} />
             <Route path="/about" component={About} />
+            <Route path="/auth_test" component={AuthTest} />
           </Suspense>
         </div>
         <Alerts />

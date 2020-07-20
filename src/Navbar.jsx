@@ -13,6 +13,8 @@ import Tooltip from '@material-ui/core/Tooltip';
 import { makeStyles } from '@material-ui/core/styles';
 import { useTheme } from '@material-ui/styles';
 
+import Login from './Login';
+
 const useStyles = makeStyles((theme) => ({
   search: {
     fontFamily: theme.typography.fontFamily,
@@ -129,6 +131,7 @@ function Navbar(props) {
         <Button onClick={handleCollapse} className={classes.navToggle} size="small">
           Hide Header
         </Button>
+        <Login />
         <Link to="/about" className={classes.title}>
           <InfoIcon />
         </Link>
