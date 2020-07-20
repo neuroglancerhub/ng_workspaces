@@ -27,7 +27,7 @@ export default function userReducer(state = userState, action) {
     }
     case C.LOGOUT_GOOGLE_USER: {
       action.user.signOut();
-      return state.set('user', null);
+      return state.set('googleUser', null);
     }
     default: {
       return state;
