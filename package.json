@@ -75,7 +75,8 @@
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
     "test": "node scripts/test.js",
-    "lint": "eslint src --ext .js --ext .jsx"
+    "lint": "eslint src --ext .js --ext .jsx",
+    "deploy": "node scripts/build.js && gsutil rsync -dr build/ gs://neurohub.janelia.org"
   },
   "eslintConfig": {
     "extends": "react-app"
