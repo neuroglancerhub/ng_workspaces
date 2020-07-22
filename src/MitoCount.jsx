@@ -63,7 +63,9 @@ const TASK_KEYS = Object.freeze({
   GRAYSCALE_SOURCE: 'grayscale source',
   MITO_ROI_SOURCE: 'mito ROI source',
   DVID_SOURCE: 'DVID source',
+  TOP_PT: 'neighborhood top',
   FOCAL_PT: 'focal point',
+  NEIGHBORHOOD_ID: 'neighborhood id',
 });
 
 const TODO_TYPES = Object.freeze([
@@ -85,9 +87,23 @@ const RESULTS_INSTANCE = 'mito_count';
 //
 // Functions that can be factored out of the React component (because they don't use hooks)
 
+const topPoint = (taskJson) => {
+  if (TASK_KEYS.TOP_PT in taskJson) {
+    return (taskJson[TASK_KEYS.TOP_PT]);
+  }
+  return (undefined);
+};
+
 const focalPoint = (taskJson) => {
   if (TASK_KEYS.FOCAL_PT in taskJson) {
     return (taskJson[TASK_KEYS.FOCAL_PT]);
+  }
+  return (undefined);
+};
+
+const neighborhoodId = (taskJson) => {
+  if (TASK_KEYS.NEIGHBORHOOD_ID in taskJson) {
+    return (taskJson[TASK_KEYS.NEIGHBORHOOD_ID]);
   }
   return (undefined);
 };
@@ -102,10 +118,53 @@ const taskDocString = (taskJson, assnMngr) => {
 };
 
 const taskDocTooltip = (taskJson) => (
-  (taskJson ? `[${taskJson[TASK_KEYS.FOCAL_PT]}]` : '')
+  (taskJson ? `[${focalPoint(taskJson)}]` : '')
 );
 
-const crossSectionScale = (roiId, dvidMngr) => {
+const cameraOrientation = () => {
+  const angle = 0;
+  // Convert that angle and the rotation axis (the Y axis) into a quaternion.
+  const c = Math.cos(angle / 2);
+  const s = Math.sin(angle / 2);
+  const projectionOrientation = [0, s, 0, c];
+  return (projectionOrientation);
+};
+
+const cameraProjectionScale = (data, orientation) => {
+  // The heuristics here consider the sizes of bounding box dimensions (sides)
+  // as seen with the current camera orientation.  This orientation is a rotation
+  // around the Y axis.  A bounding box X dimension apears scaled by the cosine of
+  // the camera angle, and the Z by the sine.  The Y dimension is unscaled.
+  const angle = Math.acos(orientation[3]) * 2;
+  const c = Math.cos(angle);
+  const s = Math.sin(angle);
+  // For the normal scale, use the smaller body's bounding box, and pick the
+  // scaled dimension that is bigger.
+  const dims = [
+    data.maxvoxel[0] - data.minvoxel[0],
+    data.maxvoxel[1] - data.minvoxel[1],
+    data.maxvoxel[2] - data.minvoxel[2],
+  ];
+  const visibleX = Math.abs(c * dims[0]);
+  const visibleZ = Math.abs(s * dims[2]);
+  let scale = Math.max(visibleX, dims[1], visibleZ);
+  // Make it a bit tighter.
+  scale /= 2;
+  return (scale);
+};
+
+const cameraCrossSectionScale = (data) => {
+  const dims = [
+    data.maxvoxel[0] - data.minvoxel[0],
+    data.maxvoxel[1] - data.minvoxel[1],
+    data.maxvoxel[2] - data.minvoxel[2],
+  ];
+  const dim = Math.max(dims[0], dims[1], dims[2]);
+  const scale = (dim / 500.0) * 0.9;
+  return (scale);
+};
+
+const cameraParameters = (roiId, dvidMngr) => {
   // TODO: Make `onError` an argument, for error handling specific to the 'get' calls here.
   const onError = (err) => {
     console.error('Failed to get body size: ', err);
@@ -113,18 +172,17 @@ const crossSectionScale = (roiId, dvidMngr) => {
   return (
     dvidMngr.getSparseVolSize(roiId)
       .then((data) => {
-        const dims = [data.maxvoxel[0] - data.minvoxel[0], data.maxvoxel[1] - data.minvoxel[1],
-          data.maxvoxel[2] - data.minvoxel[2]];
-        const dim = Math.max(dims[0], dims[1], dims[2]);
-        const scale = (dim / 500.0) * 0.9;
-        return (scale);
+        const orientation = cameraOrientation();
+        const projectionScale = cameraProjectionScale(data, orientation);
+        const crossSectionScale = cameraCrossSectionScale(data);
+        return ({ orientation, projectionScale, crossSectionScale });
       })
       .catch(onError)
   );
 };
 
 const dvidLogKey = (taskJson) => (
-  (taskJson ? `${taskJson[TASK_KEYS.FOCAL_PT]}`.replace(/,/g, '_') : '')
+  (taskJson ? `${focalPoint(taskJson)}`.replace(/,/g, '_') : '')
 );
 
 const storeResults = (mitoRoiId, result, taskJson, taskStartTime, authMngr, dvidMngr, assnMngr) => {
@@ -189,6 +247,7 @@ function MitoCount(props) {
   const [taskStartTime, setTaskStartTime] = React.useState(0);
   const [mitoRoiId, setMitoRoiId] = React.useState(0);
   const [initialPosition, setInitialPosition] = React.useState(undefined);
+  const [initialOrientation, setInitialOrientation] = React.useState(undefined);
   const [initialScale, setInitialScale] = React.useState(undefined);
   const [normalScale, setNormalScale] = React.useState(100);
   const [result, setResult] = React.useState(0);
@@ -244,47 +303,44 @@ function MitoCount(props) {
     const startTime = Date.now();
     setTaskStartTime(startTime);
     const json = assnMngr.taskJson();
-    const pt = focalPoint(json);
-    if (!pt) {
+    const roiId = neighborhoodId(json);
+    const pt = topPoint(json);
+    if (!roiId || !pt) {
       return new Promise((resolve) => { resolve(false); });
     }
     return (
-      dvidMngr.getBodyId(pt, onError(1))
-        .then((roiId) => (
-          dvidMngr.getKeyValue(RESULTS_INSTANCE, dvidLogKey(json), onError(3))
-            .then((data) => [roiId, data])
-        ))
-        .then(([roiId, prevResult]) => {
-          if (!roiId) {
-            storeResults(roiId, 'skip (missing mito ROI ID)', json, startTime, authMngr, dvidMngr, assnMngr);
-            return false;
-          }
+      dvidMngr.getKeyValue(RESULTS_INSTANCE, dvidLogKey(json), onError(3))
+        .then((prevResult) => {
           if (prevResult) {
             json.completed = true;
             // Skip a task that has a stored result already.
             return false;
           }
           const [restoredResult, restoredCompleted] = restoreResults(json);
-          crossSectionScale(roiId, dvidMngr).then((scale) => {
-            setTaskJson(json);
-            setMitoRoiId(roiId);
-            setNormalScale(scale);
-            setInitialPosition(pt);
-            setInitialScale(scale);
-            setResult(restoredResult);
-            setCompleted(restoredCompleted);
+          cameraParameters(roiId, dvidMngr)
+            .then(({ orientation, projectionScale, crossSectionScale }) => {
+              setTaskJson(json);
+              setMitoRoiId(roiId);
+              setNormalScale(projectionScale);
+              setInitialPosition(pt);
+              setInitialOrientation(orientation);
+              setInitialScale(projectionScale);
+              setResult(restoredResult);
+              setCompleted(restoredCompleted);
 
-            handleTodoTypeChange(TODO_TYPES[4].value, json);
+              handleTodoTypeChange(TODO_TYPES[4].value, json);
 
-            actions.setViewerSegments([roiId]);
-            actions.setViewerSegmentColors({ [roiId]: COLOR_MITO_ROI });
-            actions.setViewerCrossSectionScale(scale);
-            actions.setViewerCameraPosition(pt);
-          });
+              actions.setViewerSegments([roiId]);
+              actions.setViewerSegmentColors({ [roiId]: COLOR_MITO_ROI });
+              actions.setViewerCrossSectionScale(crossSectionScale);
+              actions.setViewerCameraPosition(pt);
+              actions.setViewerCameraProjectionOrientation(orientation);
+              actions.setViewerCameraProjectionScale(projectionScale);
+            });
           return true;
         })
     );
-  }, [actions, handleTodoTypeChange, authMngr, assnMngr, dvidMngr]);
+  }, [actions, handleTodoTypeChange, assnMngr, dvidMngr]);
 
   const noTask = (taskJson === undefined);
   const prevDisabled = noTask || assnMngr.prevButtonDisabled();
@@ -316,6 +372,7 @@ function MitoCount(props) {
 
   const handleInitialView = () => {
     actions.setViewerCameraPosition(initialPosition);
+    actions.setViewerCameraProjectionOrientation(initialOrientation);
     actions.setViewerCameraProjectionScale(initialScale);
   };
 
