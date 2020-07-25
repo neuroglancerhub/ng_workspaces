@@ -474,6 +474,12 @@ function FocusedProofreading(props) {
   const handleHelpClose = () => { setHelpOpen(false); };
 
   const handleKeyPress = (event) => {
+    // Ignore keyboard shortcuts when a Neuroglancer text input has focus.
+    const focus = document.activeElement;
+    if (focus && focus.type && focus.type.includes('text')) {
+      return;
+    }
+
     if (!noTask) {
       if (event.key === keyBindings.protocolNextTask.key) {
         if (!nextDisabled) {
