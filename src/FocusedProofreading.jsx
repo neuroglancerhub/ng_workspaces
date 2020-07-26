@@ -18,6 +18,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import { vec2 } from 'gl-matrix';
 
+import activeElementNeedsKeypress from './utils/events';
 import { AssignmentManager, AssignmentManagerDialog } from './AssignmentManager';
 import { AuthManager, AuthManagerDialog } from './AuthManager';
 import ClientInfo from './ClientInfo';
@@ -475,8 +476,7 @@ function FocusedProofreading(props) {
 
   const handleKeyPress = (event) => {
     // Ignore keyboard shortcuts when a Neuroglancer text input has focus.
-    const focus = document.activeElement;
-    if (focus && focus.type && focus.type.includes('text')) {
+    if (activeElementNeedsKeypress()) {
       return;
     }
 
