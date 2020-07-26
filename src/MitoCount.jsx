@@ -17,6 +17,7 @@ import { ThemeProvider } from '@material-ui/styles';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 
+import activeElementNeedsKeypress from './utils/events';
 import { AssignmentManager, AssignmentManagerDialog } from './AssignmentManager';
 import { AuthManager, AuthManagerDialog } from './AuthManager';
 import ClientInfo from './ClientInfo';
@@ -404,6 +405,11 @@ function MitoCount(props) {
   const handleHelpClose = () => { setHelpOpen(false); };
 
   const handleKeyPress = (event) => {
+    // Ignore keyboard shortcuts when a Neuroglancer text input has focus.
+    if (activeElementNeedsKeypress()) {
+      return;
+    }
+
     if (!noTask) {
       if (event.key === keyBindings.protocolNextTask.key) {
         if (!nextDisabled) {
