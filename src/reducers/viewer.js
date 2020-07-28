@@ -91,6 +91,9 @@ export default function viewerReducer(state = viewerState, action) {
     case C.INIT_VIEWER: {
       return state.set('ngState', action.payload);
     }
+    case C.SYNC_VIEWER: {
+      return syncedState(state);
+    }
     case C.SET_VIEWER_GRAYSCALE_SOURCE: {
       return setInLayerArray(syncedState(state), 'grayscale', ['source'], action.payload);
     }

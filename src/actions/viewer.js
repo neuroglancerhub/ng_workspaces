@@ -7,6 +7,14 @@ export function initViewer(payload) {
   };
 }
 
+// Necessary only for a UI change that does not correspond to a state change.
+// Prevents the loss of any recent viewer changes at the Neuroglancer level.
+export function syncViewer() {
+  return {
+    type: C.SYNC_VIEWER,
+  };
+}
+
 export function setViewerGrayscaleSource(payload) {
   return {
     type: C.SET_VIEWER_GRAYSCALE_SOURCE,
