@@ -383,6 +383,11 @@ function MitoCount(props) {
       value = Math.max(0, parseInt(value, 10));
     }
     setResult(value);
+
+    // This result is not saved in the Redux state, but any UI change causes the current
+    // Redux state to be pushed to Neuroglancer.  So force the Redux state to be synchronized
+    // with the Neuroglancer state, to avoid losing any recent changes in Neuroglancer.
+    actions.syncViewer();
   };
 
   const handleTodoTypeSelect = (event) => {

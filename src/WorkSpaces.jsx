@@ -10,7 +10,7 @@ import NeuroGlancer from '@janelia-flyem/react-neuroglancer';
 
 import { addAlert } from './actions/alerts';
 import {
-  initViewer,
+  initViewer, syncViewer,
   setViewerGrayscaleSource,
   setViewerSegmentationSource, setViewerSegmentationLayerName,
   setViewerTodosSource, setViewerTodosType, setViewerTodosHint,
@@ -90,6 +90,9 @@ const WorkSpacesActions = (dispatch) => ({
   actions: {
     initViewer: (newState) => {
       dispatch(initViewer(newState));
+    },
+    syncViewer: () => {
+      dispatch(syncViewer());
     },
     setViewerGrayscaleSource: (newState) => {
       dispatch(setViewerGrayscaleSource(newState));
