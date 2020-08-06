@@ -27,6 +27,7 @@ const Neuroglancer = lazy(() => import('./Neuroglancer'));
 const ImagePicker = lazy(() => import('./ImagePicker'));
 const FocusedProofreading = lazy(() => import('./FocusedProofreading'));
 const MitoCount = lazy(() => import('./MitoCount'));
+const Clio = lazy(() => import('./Clio'));
 
 
 function WorkSpaces(props) {
@@ -51,6 +52,9 @@ function WorkSpaces(props) {
       break;
     case 'mitochondria_count':
       RenderedComponent = MitoCount;
+      break;
+    case 'clio':
+      RenderedComponent = Clio;
       break;
     default:
       RenderedComponent = ImagePicker;

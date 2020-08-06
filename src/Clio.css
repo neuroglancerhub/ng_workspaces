@@ -1,0 +1,5 @@
+.clio pre {
+  width:800px;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+}
