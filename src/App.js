@@ -1,6 +1,11 @@
-import React, { useEffect, Suspense, lazy } from 'react';
+import React, {
+  useState,
+  useEffect,
+  Suspense,
+  lazy,
+} from 'react';
 import { Router, Route } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useSelector, shallowEqual, useDispatch } from 'react-redux';
 import { createBrowserHistory } from 'history';
 
 import { ThemeProvider } from '@material-ui/styles';
@@ -10,6 +15,7 @@ import Navbar from './Navbar';
 import Alerts from './Alerts';
 import loadScript from './utils/load-script';
 import removeScript from './utils/remove-script';
+import { useLocalStorage } from './utils/hooks';
 
 import './App.css';
 
@@ -19,6 +25,7 @@ const Home = lazy(() => import('./Home'));
 const About = lazy(() => import('./About'));
 const WorkSpaces = lazy(() => import('./WorkSpaces'));
 const AuthTest = lazy(() => import('./AuthTest'));
+const Settings = lazy(() => import('./Settings'));
 
 const theme = createMuiTheme({
   palette: {
@@ -90,6 +97,38 @@ const theme = createMuiTheme({
 function App() {
   const dispatch = useDispatch();
 
+  const [project, setProject] = useLocalStorage('project_name', '');
+  const [selectedDatasetName, setSelectedDataset] = useLocalStorage('dataset', null);
+
+  const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
+  const [datasets, setDatasets] = useState([]);
+
+  useEffect(() => {
+    if (user) {
+      const options = {
+        headers: {
+          Authorization: `Bearer ${user.getAuthResponse().id_token}`,
+        },
+      };
+
+      const formattedProject = project.toLowerCase().replace(/ /g, '-');
+
+      const datasetUrl = `https://us-east4-${formattedProject}.cloudfunctions.net/clio_toplevel/datasets`;
+
+      fetch(datasetUrl, options)
+        .then((result) => result.json())
+        .then((res) => {
+          const datasetsArray = Object.entries(res).map(([name, meta]) => {
+            const updated = meta;
+            updated.name = name;
+            return updated;
+          });
+          setDatasets(datasetsArray);
+        })
+        .catch((err) => console.log(err));
+    }
+  }, [user, project]);
+
   useEffect(() => {
     // Check for logged in user and save them to state.
     function onInit(googleAuth) {
@@ -132,9 +171,20 @@ function App() {
             <Route path="/" exact component={Home} />
           </Suspense>
           <Suspense fallback={<div>Loading...</div>}>
-            <Route path="/ws/:ws" component={WorkSpaces} />
+            <Route path="/ws/:ws">
+              <WorkSpaces datasets={datasets} selectedDatasetName={selectedDatasetName} />
+            </Route>
             <Route path="/about" component={About} />
             <Route path="/auth_test" component={AuthTest} />
+            <Route path="/settings">
+              <Settings
+                project={project}
+                datasets={datasets}
+                setProject={setProject}
+                selectedDatasetName={selectedDatasetName}
+                setSelectedDataset={setSelectedDataset}
+              />
+            </Route>
           </Suspense>
         </div>
         <Alerts />

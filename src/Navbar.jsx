@@ -9,6 +9,7 @@ import Typography from '@material-ui/core/Typography';
 import InfoIcon from '@material-ui/icons/Info';
 import Button from '@material-ui/core/Button';
 import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
+import SettingsIcon from '@material-ui/icons/Settings';
 import Tooltip from '@material-ui/core/Tooltip';
 import { makeStyles } from '@material-ui/core/styles';
 import { useTheme } from '@material-ui/styles';
@@ -138,6 +139,9 @@ function Navbar(props) {
         <Login />
         <Link to="/about" className={classes.title}>
           <InfoIcon />
+        </Link>
+        <Link to="/settings" className={classes.title}>
+          <SettingsIcon />
         </Link>
       </Toolbar>
     </AppBar>

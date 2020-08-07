@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useSelector, shallowEqual } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
-import DatasetList from './Clio/DatasetList';
 import './Clio.css';
 
 const useStyles = makeStyles({
@@ -13,11 +12,15 @@ const useStyles = makeStyles({
   },
 });
 
-export default function Clio({ children, actions }) {
+export default function Clio({
+  children,
+  actions,
+  datasets,
+  selectedDatasetName,
+}) {
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
   const classes = useStyles();
-  const [datasets, setDatasets] = useState({});
-  const [selectedDataset, setSelectedDataset] = useState(null);
+  const dataset = datasets.filter((ds) => ds.name === selectedDatasetName)[0];
 
   useEffect(() => {
     if (user) {
@@ -32,32 +35,22 @@ export default function Clio({ children, actions }) {
         projectionScale: 2600,
         showSlices: true,
       });
-      const options = {
-        headers: {
-          Authorization: `Bearer ${user.getAuthResponse().id_token}`,
-        },
-      };
-
-      fetch('https://us-east4-flyem-private.cloudfunctions.net/clio_toplevel/datasets', options)
-        .then((result) => result.json())
-        .then((res) => setDatasets(res))
-        .catch((err) => console.log(err));
     }
   }, [user, actions]);
 
   useEffect(() => {
-    if (selectedDataset && datasets[selectedDataset]) {
-      console.log(datasets[selectedDataset].location);
+    if (dataset) {
+      console.log('adding layer to ng');
       actions.initViewer({
         layers: {
           grayscale: {
             type: 'image',
-            source: `precomputed://${datasets[selectedDataset].location}`,
+            source: `precomputed://${dataset.location}`,
           },
         },
       });
     }
-  }, [selectedDataset, actions, datasets]);
+  }, [actions, dataset]);
 
   return (
     <div className="clio">
@@ -71,7 +64,12 @@ export default function Clio({ children, actions }) {
           <pre>{user.getAuthResponse().id_token}</pre>
         </>
       )}
-      <DatasetList datasets={datasets} onChange={setSelectedDataset} />
+      {dataset && (
+        <p>
+          <b>Dataset:</b>
+          {dataset.name}
+        </p>
+      )}
       <div className={classes.window}>{children}</div>
     </div>
   );
@@ -80,4 +78,6 @@ export default function Clio({ children, actions }) {
 Clio.propTypes = {
   children: PropTypes.object.isRequired,
   actions: PropTypes.object.isRequired,
+  datasets: PropTypes.arrayOf(PropTypes.object).isRequired,
+  selectedDatasetName: PropTypes.string.isRequired,
 };
