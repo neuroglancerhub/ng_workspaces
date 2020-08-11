@@ -40,7 +40,6 @@ export default function Clio({
 
   useEffect(() => {
     if (dataset) {
-      console.log('adding layer to ng');
       actions.initViewer({
         layers: {
           grayscale: {
