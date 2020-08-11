@@ -11,7 +11,6 @@ import MenuItem from '@material-ui/core/MenuItem';
 import PropTypes from 'prop-types';
 import React from 'react';
 import Select from '@material-ui/core/Select';
-import TextField from '@material-ui/core/TextField';
 import { createMuiTheme, withStyles } from '@material-ui/core/styles';
 import { ThemeProvider } from '@material-ui/styles';
 import Tooltip from '@material-ui/core/Tooltip';
@@ -55,6 +54,8 @@ const keyBindings = {
   protocolCompletedAndNextTask1: { key: 'E', help: 'Next task and check "Completed"' },
   protocolCompletedAndNextTask2: { key: 'X', help: 'Next task and check "Completed"' },
   mitoCountInitialView: { key: 'i', help: "Use task's initial view" },
+  mitoCountIncrCount: { key: 'v', help: 'Increment the count' },
+  mitoCountDecrCount: { key: 'c', help: 'Decrement the count' },
 };
 
 //
@@ -118,8 +119,8 @@ const taskDocString = (taskJson, assnMngr) => {
   return ('');
 };
 
-const taskDocTooltip = (taskJson) => (
-  (taskJson ? `[${focalPoint(taskJson)}]` : '')
+const taskDocTooltip = (taskJson, assnMngr) => (
+  (taskJson ? `${assnMngr.assignmentFile} [${focalPoint(taskJson)}]` : '')
 );
 
 const cameraOrientation = () => {
@@ -202,6 +203,7 @@ const storeResults = (mitoRoiId, result, taskJson, taskStartTime, authMngr, dvid
       'mito ROI source': dvidMngr.segmentationSourceURL(),
       'DVID source': dvidMngr.dvidSourceURL(),
       [TASK_KEYS.FOCAL_PT]: taskJsonCopy[TASK_KEYS.FOCAL_PT],
+      [TASK_KEYS.TOP_PT]: taskJsonCopy[TASK_KEYS.TOP_PT],
       'mito ROI ID': mitoRoiId,
       result,
       time,
@@ -377,17 +379,31 @@ function MitoCount(props) {
     actions.setViewerCameraProjectionScale(initialScale);
   };
 
-  const handleResultChange = (event) => {
-    let { value } = event.target;
-    if (value !== '') {
-      value = Math.max(0, parseInt(value, 10));
-    }
-    setResult(value);
+  const handleCountIncr = () => {
+    const n = result >= 0 ? result + 1 : 1;
+    setResult(n);
 
     // This result is not saved in the Redux state, but any UI change causes the current
     // Redux state to be pushed to Neuroglancer.  So force the Redux state to be synchronized
     // with the Neuroglancer state, to avoid losing any recent changes in Neuroglancer.
     actions.syncViewer();
+  };
+
+  const handleCountDecr = () => {
+    const n = result >= 0 ? Math.max(result - 1, 0) : 0;
+    setResult(n);
+    actions.syncViewer();
+  };
+
+  const handleResultChange = (event) => {
+    if (event.target.innerText === '+') {
+      handleCountIncr();
+    } else if (event.target.innerText === '-') {
+      handleCountDecr();
+    } else {
+      setResult(-1);
+      actions.syncViewer();
+    }
   };
 
   const handleTodoTypeSelect = (event) => {
@@ -432,6 +448,10 @@ function MitoCount(props) {
         }
       } else if (event.key === keyBindings.mitoCountInitialView.key) {
         handleInitialView();
+      } else if (event.key === keyBindings.mitoCountIncrCount.key) {
+        handleCountIncr();
+      } else if (event.key === keyBindings.mitoCountDecrCount.key) {
+        handleCountDecr();
       }
     }
   };
@@ -459,19 +479,31 @@ function MitoCount(props) {
             Next
           </Button>
         </ButtonGroup>
-        <Tooltip title={taskDocTooltip(taskJson)}>
+        <Tooltip title={taskDocTooltip(taskJson, assnMngr)}>
           <Typography color="inherit">
             {taskDocString(taskJson, assnMngr)}
           </Typography>
         </Tooltip>
-        <TextField
+
+        <Typography
           className={classes.spaced}
-          label="Mitochondria count"
-          type="number"
-          value={result}
-          onChange={handleResultChange}
-          disabled={noTask}
-        />
+          color="inherit"
+        >
+          {`Count: ${result >= 0 ? result : '?'}`}
+          &nbsp;
+        </Typography>
+        <ButtonGroup variant="contained" color="primary" size="small">
+          <Button color="primary" variant="contained" onClick={handleResultChange}>
+            -
+          </Button>
+          <Button color="primary" variant="contained" onClick={handleResultChange}>
+            +
+          </Button>
+          <Button color="primary" variant="contained" onClick={handleResultChange}>
+            ?
+          </Button>
+        </ButtonGroup>
+
         <Select
           className={classes.spaced}
           value={todoType}
