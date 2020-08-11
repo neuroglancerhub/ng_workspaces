@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { Suspense, lazy } from 'react';
+import { useRouteMatch, useLocation } from 'react-router-dom';
 import { connect } from 'react-redux';
 
 // TODO: probably need to do some defensive loading here to make sure that
@@ -10,13 +11,20 @@ import NeuroGlancer from '@janelia-flyem/react-neuroglancer';
 
 import { addAlert } from './actions/alerts';
 import {
-  initViewer, syncViewer,
+  initViewer,
+  syncViewer,
   setViewerGrayscaleSource,
-  setViewerSegmentationSource, setViewerSegmentationLayerName,
-  setViewerTodosSource, setViewerTodosType, setViewerTodosHint,
+  setViewerSegmentationSource,
+  setViewerSegmentationLayerName,
+  setViewerTodosSource,
+  setViewerTodosType,
+  setViewerTodosHint,
   setViewerCrossSectionScale,
-  setViewerCameraPosition, setViewerCameraProjectionScale, setViewerCameraProjectionOrientation,
-  setViewerSegments, setViewerSegmentColors,
+  setViewerCameraPosition,
+  setViewerCameraProjectionScale,
+  setViewerCameraProjectionOrientation,
+  setViewerSegments,
+  setViewerSegmentColors,
 } from './actions/viewer';
 
 import { setSyncStateNeeded } from './reducers/viewer';
@@ -27,14 +35,17 @@ const Neuroglancer = lazy(() => import('./Neuroglancer'));
 const ImagePicker = lazy(() => import('./ImagePicker'));
 const FocusedProofreading = lazy(() => import('./FocusedProofreading'));
 const MitoCount = lazy(() => import('./MitoCount'));
-
+const Clio = lazy(() => import('./Clio'));
 
 function WorkSpaces(props) {
-  // TODO: check the url to figure out which workspace component to render.
-  // Render the selected workspace and pass it the neuroglancer component as
-  // a child.
+  const match = useRouteMatch('/ws/:ws');
+  const location = useLocation();
   const {
-    match, location, viewerState, user, actions,
+    viewerState,
+    user,
+    actions,
+    datasets,
+    selectedDatasetName,
   } = props;
 
   let RenderedComponent = null;
@@ -52,6 +63,9 @@ function WorkSpaces(props) {
     case 'mitochondria_count':
       RenderedComponent = MitoCount;
       break;
+    case 'clio':
+      RenderedComponent = Clio;
+      break;
     default:
       RenderedComponent = ImagePicker;
   }
@@ -66,7 +80,13 @@ function WorkSpaces(props) {
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <RenderedComponent user={user} location={location} actions={actions}>
+      <RenderedComponent
+        user={user}
+        location={location}
+        actions={actions}
+        datasets={datasets}
+        selectedDatasetName={selectedDatasetName}
+      >
         <NeuroGlancer viewerState={viewerState.get('ngState')} />
       </RenderedComponent>
     </Suspense>
@@ -74,10 +94,10 @@ function WorkSpaces(props) {
 }
 
 WorkSpaces.propTypes = {
-  match: PropTypes.object.isRequired,
-  location: PropTypes.object.isRequired,
   viewerState: PropTypes.object.isRequired,
   user: PropTypes.object.isRequired,
+  datasets: PropTypes.arrayOf(PropTypes.object).isRequired,
+  selectedDatasetName: PropTypes.string.isRequired,
   actions: PropTypes.object.isRequired,
 };
 
