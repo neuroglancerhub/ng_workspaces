@@ -133,6 +133,11 @@ function App() {
     // Check for logged in user and save them to state.
     function onInit(googleAuth) {
       if (googleAuth.isSignedIn.get()) {
+        // Save the current user in the global space so that it can be used by
+        // neuroglancer.
+        window.neurohub = {};
+        window.neurohub.clio = {};
+        window.neurohub.clio.auth = googleAuth.currentUser.get();
         dispatch({
           type: 'LOGIN_GOOGLE_USER',
           user: googleAuth.currentUser.get(),
