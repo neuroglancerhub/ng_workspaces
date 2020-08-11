@@ -56,13 +56,10 @@ export default function Clio({
     <div className="clio">
       <p>Clio</p>
       {user && (
-        <>
-          <p>
-            <span>Logged in as:</span>
-            {user.getBasicProfile().getName()}
-          </p>
-          <pre>{user.getAuthResponse().id_token}</pre>
-        </>
+        <p>
+          <span>Logged in as:</span>
+          {user.getBasicProfile().getName()}
+        </p>
       )}
       {dataset && (
         <p>
