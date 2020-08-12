@@ -68,6 +68,9 @@ const TASK_KEYS = Object.freeze({
   TOP_PT: 'neighborhood top',
   FOCAL_PT: 'focal point',
   NEIGHBORHOOD_ID: 'neighborhood id',
+  NEIGHBORHOOD_SIZE: 'neighborhood size',
+  ORIGIN_PT: 'neighborhood origin',
+  CENTROID_PT: 'neighborhood centroid',
 });
 
 const TODO_TYPES = Object.freeze([
@@ -204,7 +207,10 @@ const storeResults = (mitoRoiId, result, taskJson, taskStartTime, authMngr, dvid
       'DVID source': dvidMngr.dvidSourceURL(),
       [TASK_KEYS.FOCAL_PT]: taskJsonCopy[TASK_KEYS.FOCAL_PT],
       [TASK_KEYS.TOP_PT]: taskJsonCopy[TASK_KEYS.TOP_PT],
-      'mito ROI ID': mitoRoiId,
+      [TASK_KEYS.NEIGHBORHOOD_ID]: mitoRoiId,
+      [TASK_KEYS.NEIGHBORHOOD_SIZE]: taskJsonCopy[TASK_KEYS.NEIGHBORHOOD_SIZE],
+      [TASK_KEYS.ORIGIN_PT]: taskJsonCopy[TASK_KEYS.ORIGIN_PT],
+      [TASK_KEYS.CENTROID_PT]: taskJsonCopy[TASK_KEYS.CENTROID_PT],
       result,
       time,
       user,
