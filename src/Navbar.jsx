@@ -54,7 +54,7 @@ function Navbar(props) {
   const location = useLocation();
 
   useEffect(() => {
-    if (location.pathname === '/') {
+    if (!location.pathname.match(/^\/ws\//)) {
       setWorkspace(null);
     }
   }, [location]);
