@@ -8,6 +8,7 @@ import React from 'react';
 import TextField from '@material-ui/core/TextField';
 
 import { AuthManager } from './AuthManager';
+import localStorageAvailable from './utils/storage';
 
 const KEY_GRAYSCALE_SOURCE = 'NG_WORKSPACES-FOCUSED-PROOFREADING-GRAYSCALE-SOURCE';
 const KEY_SEGMENTATION_SOURCE = 'NG_WORKSPACES-FOCUSED-PROOFREADING-SEGMENTATION-SOURCE';
@@ -20,7 +21,11 @@ export class DvidManager {
 
   grayscaleURL = 'dvid://https://flyem.dvid.io/ab6e610d4fe140aba0e030645a1d7229/grayscalejpeg';
 
+  grayscaleDialogReadOnly = false;
+
   segmentationURL = 'dvid://https://flyem.dvid.io/d925633ed0974da78e2bb5cf38d01f4d/segmentation';
+
+  segmentationDialogReadOnly = false;
 
   segmentationDialogLabel = 'Segmentation';
 
@@ -46,16 +51,20 @@ export class DvidManager {
   };
 
   // For when the user should enter the source URLs in a dialog.
-  initForDialog = (onInitCompleted, segmentationDialogLabel = 'Segmentation') => {
-    if (this.localStorageAvailable()) {
+  initForDialog = (onInitCompleted, segmentationDialogLabel = 'Segmentation', grayscaleURL, segmentationURL) => {
+    if (localStorageAvailable()) {
       // If localStorage is available, use it to remember the URLs across sessions.
       const g = localStorage.getItem(KEY_GRAYSCALE_SOURCE);
-      this.grayscaleURL = g || this.grayscaleURL;
+      this.grayscaleURL = grayscaleURL || g || this.grayscaleURL;
       const s = localStorage.getItem(KEY_SEGMENTATION_SOURCE);
-      this.segmentationURL = s || this.segmentationURL;
+      this.segmentationURL = segmentationURL || s || this.segmentationURL;
       const d = localStorage.getItem(KEY_DVID_SOURCE);
       this.dvidURL = d || this.dvidURL;
     }
+
+    this.grayscaleDialogReadOnly = !!grayscaleURL;
+    this.segmentationDialogReadOnly = !!segmentationURL;
+
     this.segmentationDialogLabel = segmentationDialogLabel;
     this.onInitCompleted = onInitCompleted;
   }
@@ -173,21 +182,21 @@ export class DvidManager {
 
   onGrayscaleSourceChange = (event) => {
     this.grayscaleURL = event.target.value;
-    if (this.localStorageAvailable()) {
+    if (localStorageAvailable()) {
       localStorage.setItem(KEY_GRAYSCALE_SOURCE, this.grayscaleURL);
     }
   }
 
   onSegmentationSourceChange = (event) => {
     this.segmentationURL = event.target.value;
-    if (this.localStorageAvailable()) {
+    if (localStorageAvailable()) {
       localStorage.setItem(KEY_SEGMENTATION_SOURCE, this.segmentationURL);
     }
   }
 
   onDvidSourceChange = (event) => {
     this.dvidURL = event.target.value;
-    if (this.localStorageAvailable()) {
+    if (localStorageAvailable()) {
       localStorage.setItem(KEY_DVID_SOURCE, this.dvidURL);
     }
   }
@@ -237,29 +246,6 @@ export class DvidManager {
   defaultOnError = (error) => {
     console.error(`DvidManager error: '${error}'`);
   }
-
-  localStorageAvailable = () => {
-    // https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API
-    try {
-      const x = '__storage_test__';
-      localStorage.setItem(x, x);
-      localStorage.removeItem(x);
-      return true;
-    } catch (e) {
-      return e instanceof DOMException && (
-        // everything except Firefox
-        e.code === 22
-        // Firefox
-        || e.code === 1014
-        // test name field too, because code might not be present
-        // everything except Firefox
-        || e.name === 'QuotaExceededError'
-        // Firefox
-        || e.name === 'NS_ERROR_DOM_QUOTA_REACHED')
-        // acknowledge QuotaExceededError only if there's something already stored
-        && (localStorage && localStorage.length !== 0);
-    }
-  }
 }
 
 export function DvidManagerDialog(props) {
@@ -278,12 +264,14 @@ export function DvidManagerDialog(props) {
           label="Grayscale source URL"
           defaultValue={manager.grayscaleURL}
           fullWidth
+          InputProps={{ readOnly: manager.grayscaleDialogReadOnly }}
           onChange={manager.onGrayscaleSourceChange}
         />
         <TextField
           label={`${manager.segmentationDialogLabel} source URL`}
           defaultValue={manager.segmentationURL}
           fullWidth
+          InputProps={{ readOnly: manager.segmentationDialogReadOnly }}
           onChange={manager.onSegmentationSourceChange}
         />
         <TextField
