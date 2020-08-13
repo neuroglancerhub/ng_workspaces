@@ -26,11 +26,6 @@ export default function ImagePicker({
     if (dataset) {
       actions.initViewer({
         layers: {
-          segmentation: {
-            type: 'segmentation',
-            source: 'dvid://https://flyem.dvid.io/d925633ed0974da78e2bb5cf38d01f4d/segmentation',
-            segments: ['208299761'],
-          },
           grayscale: {
             type: 'image',
             source: `precomputed://${dataset.location}`,
