@@ -31,17 +31,8 @@ export default function ImagePicker({
             source: `precomputed://${dataset.location}`,
           },
         },
-        perspectiveZoom: 20,
-        navigation: {
-          zoomFactor: 8,
-          pose: {
-            position: {
-              voxelSize: [8, 8, 8],
-              voxelCoordinates: [7338.26953125, 7072, 4246.69140625],
-            },
-          },
-        },
         layout: 'xz',
+        showSlices: true,
       });
     }
   }, [actions, dataset]);

@@ -34,16 +34,8 @@ export default function Clio({ children, actions, datasets, selectedDatasetName 
 
       actions.initViewer({
         layers,
-        perspectiveZoom: 20,
-        navigation: {
-          zoomFactor: 8,
-          pose: {
-            position: {
-              voxelSize: [8, 8, 8],
-              voxelCoordinates: [7338.26953125, 7072, 4246.69140625],
-            },
-          },
-        },
+        layout: '4panel',
+        showSlices: true,
       });
     }
   }, [actions, dataset]);
