@@ -216,6 +216,22 @@ const dvidLogKey = (taskJson) => (
   `${taskJson[TASK_KEYS.BODY_PT1]}+${taskJson[TASK_KEYS.BODY_PT2]}`.replace(/,/g, '_')
 );
 
+const isDvidSource = (source) => (
+  source.toLowerCase().startsWith('dvid')
+);
+
+const doLiveMerge = (assnMngr) => {
+  const segSrc = assnMngr.assignment[TASK_KEYS.SEGMENTATION_SOURCE];
+  if (isDvidSource(segSrc)) {
+    const key = 'do live merge';
+    if (!(key in assnMngr.assignment)) {
+      return true;
+    }
+    return (assnMngr.assignment[key]);
+  }
+  return false;
+};
+
 const storeResults = (bodyIds, result, taskJson, taskStartTime, authMngr, dvidMngr, assnMngr) => {
   const bodyIdMergedOnto = bodyIds[0];
   const bodyIdOther = bodyIds[1];
@@ -259,7 +275,9 @@ const storeResults = (bodyIds, result, taskJson, taskStartTime, authMngr, dvidMn
         // TODO: Add proper error reporting.
         console.error(`Failed to merge ${bodyIdOther} onto ${bodyIdMergedOnto}: `, err);
       };
-      dvidMngr.postMerge(bodyIdMergedOnto, bodyIdOther, onCompletion, onError);
+      if (doLiveMerge(assnMngr)) {
+        dvidMngr.postMerge(bodyIdMergedOnto, bodyIdOther, onCompletion, onError);
+      }
     } else {
       dvidMngr.postKeyValue('segmentation_focused', dvidLogKey(taskJsonCopy), dvidLogValue);
     }
