@@ -1,9 +1,5 @@
-import React, {
-  useState,
-  useEffect,
-  Suspense,
-  lazy,
-} from 'react';
+// eslint-disable-next-line object-curly-newline
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Router, Route } from 'react-router-dom';
 import { useSelector, shallowEqual, useDispatch } from 'react-redux';
 import { createBrowserHistory } from 'history';
@@ -170,7 +166,12 @@ function App() {
     // eslint-disable-next-line react/jsx-filename-extension
     <Router history={history}>
       <ThemeProvider theme={theme}>
-        <Navbar history={history} />
+        <Navbar
+          history={history}
+          datasets={datasets}
+          selectedDatasetName={selectedDatasetName}
+          setSelectedDataset={setSelectedDataset}
+        />
         <div className="App">
           <Suspense fallback={<div>Loading Homepage...</div>}>
             <Route path="/" exact component={Home} />
@@ -184,8 +185,8 @@ function App() {
             <Route path="/settings">
               <Settings
                 project={project}
-                datasets={datasets}
                 setProject={setProject}
+                datasets={datasets}
                 selectedDatasetName={selectedDatasetName}
                 setSelectedDataset={setSelectedDataset}
               />

@@ -14,6 +14,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import { makeStyles } from '@material-ui/core/styles';
 import { useTheme } from '@material-ui/styles';
 
+import DataSetSelection from './Settings/DataSetSelection';
 import Login from './Login';
 
 const useStyles = makeStyles((theme) => ({
@@ -23,6 +24,7 @@ const useStyles = makeStyles((theme) => ({
     marginLeft: '2em',
   },
   searchContainer: {
+    display: 'flex',
     flexGrow: 1,
   },
   title: {
@@ -44,18 +46,24 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function Navbar(props) {
-  const { history } = props;
+// eslint-disable-next-line object-curly-newline
+function Navbar({ history, datasets, selectedDatasetName, setSelectedDataset }) {
   const classes = useStyles();
   const theme = useTheme();
   const [isCollapsed, setCollapsed] = useState(false);
   const [selectedWorkspace, setWorkspace] = useState(null);
+  const [showDataset, setShowDataset] = useState(false);
 
   const location = useLocation();
 
   useEffect(() => {
-    if (location.pathname === '/') {
+    if (!location.pathname.match(/^\/ws\//)) {
       setWorkspace(null);
+    }
+    if (location.pathname.match(/clio|image_picker/)) {
+      setShowDataset(true);
+    } else {
+      setShowDataset(false);
     }
   }, [location]);
 
@@ -80,6 +88,9 @@ function Navbar(props) {
 
   Navbar.propTypes = {
     history: PropTypes.object.isRequired,
+    datasets: PropTypes.arrayOf(PropTypes.object).isRequired,
+    selectedDatasetName: PropTypes.string.isRequired,
+    setSelectedDataset: PropTypes.func.isRequired,
   };
 
   const workspaceOptions = [
@@ -132,6 +143,14 @@ function Navbar(props) {
             placeholder="Select a workspace"
             options={workspaceOptions}
           />
+          {showDataset && (
+            <DataSetSelection
+              forNav
+              datasets={datasets}
+              selected={selectedDatasetName}
+              onChange={setSelectedDataset}
+            />
+          )}
         </div>
         <Button onClick={handleCollapse} className={classes.navToggle} size="small">
           Hide Header
