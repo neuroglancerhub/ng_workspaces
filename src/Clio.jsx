@@ -11,13 +11,8 @@ const useStyles = makeStyles({
     height: '500px',
   },
 });
-
-export default function Clio({
-  children,
-  actions,
-  datasets,
-  selectedDatasetName,
-}) {
+// eslint-disable-next-line object-curly-newline
+export default function Clio({ children, actions, datasets, selectedDatasetName }) {
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
   const classes = useStyles();
   const dataset = datasets.filter((ds) => ds.name === selectedDatasetName)[0];
@@ -40,11 +35,22 @@ export default function Clio({
 
   useEffect(() => {
     if (dataset) {
+      const layers = {};
+      layers[dataset.name] = {
+        type: 'image',
+        source: `precomputed://${dataset.location}`,
+      };
+
       actions.initViewer({
-        layers: {
-          grayscale: {
-            type: 'image',
-            source: `precomputed://${dataset.location}`,
+        layers,
+        perspectiveZoom: 20,
+        navigation: {
+          zoomFactor: 8,
+          pose: {
+            position: {
+              voxelSize: [8, 8, 8],
+              voxelCoordinates: [7338.26953125, 7072, 4246.69140625],
+            },
           },
         },
       });
@@ -61,12 +67,16 @@ export default function Clio({
         </p>
       )}
       {dataset && (
-        <p>
-          <b>Dataset:</b>
-          {dataset.name}
-        </p>
+        <>
+          <p>
+            <b>Dataset:</b>
+            {dataset.name}
+          </p>
+          <div className={classes.window} key={dataset.name}>
+            {children}
+          </div>
+        </>
       )}
-      <div className={classes.window}>{children}</div>
     </div>
   );
 }
