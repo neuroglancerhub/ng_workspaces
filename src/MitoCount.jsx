@@ -448,8 +448,8 @@ function MitoCount(props) {
         }
       } else if ((event.key === keyBindings.protocolCompletedAndNextTask1.key)
         || (event.key === keyBindings.protocolCompletedAndNextTask2.key)) {
+        handleTaskCompleted(true);
         if (!nextDisabled) {
-          handleTaskCompleted(true);
           handleNextButton();
         }
       } else if (event.key === keyBindings.mitoCountInitialView.key) {

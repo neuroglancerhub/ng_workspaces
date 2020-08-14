@@ -510,9 +510,11 @@ function FocusedProofreading(props) {
         }
       } else if ((event.key === keyBindings.protocolCompletedAndNextTask1.key)
         || (event.key === keyBindings.protocolCompletedAndNextTask2.key)) {
-        if (usedBirdsEye && !nextDisabled) {
+        if (usedBirdsEye) {
           handleTaskCompleted(true);
-          handleNextButton();
+          if (!nextDisabled) {
+            handleNextButton();
+          }
         }
       } else if (event.key === keyBindings.focusedProofreadingCycleResults.key) {
         const newResult = RESULT_CYCLES_NEXT[result];
