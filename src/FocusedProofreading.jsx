@@ -267,7 +267,7 @@ const storeResults = (bodyIds, result, taskJson, taskStartTime, authMngr, dvidMn
     if (assnMngr.assignmentFile) {
       dvidLogValue = { ...dvidLogValue, assignment: assnMngr.assignmentFile };
     }
-    if (result === RESULTS.MERGE) {
+    if ((result === RESULTS.MERGE) && doLiveMerge(assnMngr)) {
       const onCompletion = (res) => {
         dvidLogValue['mutation ID'] = res.MutationID;
         dvidMngr.postKeyValue('segmentation_focused', dvidLogKey(taskJsonCopy), dvidLogValue);
@@ -278,9 +278,7 @@ const storeResults = (bodyIds, result, taskJson, taskStartTime, authMngr, dvidMn
         // TODO: Add proper error reporting.
         console.error(`Failed to merge ${bodyIdOther} onto ${bodyIdMergedOnto}: `, err);
       };
-      if (doLiveMerge(assnMngr)) {
-        dvidMngr.postMerge(bodyIdMergedOnto, bodyIdOther, onCompletion, onError);
-      }
+      dvidMngr.postMerge(bodyIdMergedOnto, bodyIdOther, onCompletion, onError);
     } else {
       dvidMngr.postKeyValue('segmentation_focused', dvidLogKey(taskJsonCopy), dvidLogValue);
     }
