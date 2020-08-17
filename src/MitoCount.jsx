@@ -119,6 +119,9 @@ const taskDocString = (taskJson, assnMngr) => {
     indexStr += ` (${assnMngr.completedPercentage()}%)`;
     return (`${'\xa0'}Task${indexStr}:${'\xa0'}`);
   }
+  if (Object.keys(assnMngr.assignment).length !== 0) {
+    return (`${'\xa0'}Loading...`);
+  }
   return ('');
 };
 
@@ -217,8 +220,8 @@ const storeResults = (mitoRoiId, result, taskJson, taskStartTime, authMngr, dvid
       'time to complete (ms)': elapsedMs,
       client: CLIENT_INFO.info,
     };
-    if (taskJson.index !== undefined) {
-      dvidLogValue = { ...dvidLogValue, index: taskJson.index };
+    if (taskJsonCopy.index !== undefined) {
+      dvidLogValue = { ...dvidLogValue, index: taskJsonCopy.index };
     }
     if (assnMngr.assignmentFile) {
       dvidLogValue = { ...dvidLogValue, assignment: assnMngr.assignmentFile };
@@ -308,6 +311,10 @@ function MitoCount(props) {
   }, [actions, assnMngr, dvidMngr]);
 
   const setupTask = React.useCallback(() => {
+    // Clearing the task JSON prevents rapid UI activity from starting another task before
+    // this one is done being set up.
+    setTaskJson(undefined);
+
     const onError = (group) => (error) => { actions.addAlert({ group, message: error }); };
     const startTime = Date.now();
     setTaskStartTime(startTime);
@@ -321,8 +328,11 @@ function MitoCount(props) {
       dvidMngr.getKeyValue(RESULTS_INSTANCE, dvidLogKey(json), onError(3))
         .then((prevResult) => {
           if (prevResult) {
-            json.completed = true;
             // Skip a task that has a stored result already.
+            json.completed = true;
+            // If all tasks in the assignment are skipped, let `taskDocString` end up displaying
+            // something better than "Loading..."
+            setTaskJson(json);
             return false;
           }
           const [restoredResult, restoredCompleted] = restoreResults(json);
