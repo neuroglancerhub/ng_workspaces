@@ -21,9 +21,11 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
   const dataset = datasets.filter((ds) => ds.name === selectedDatasetName)[0];
   const classes = useStyles();
   const [pickMode, setPickMode] = useState(0);
+  const [mousePosition, setMousePosition] = useState([]);
 
   useEffect(() => {
     if (dataset) {
+      console.log('reloading neuroglancer');
       actions.initViewer({
         layers: {
           grayscale: {
@@ -31,17 +33,7 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
             source: `precomputed://${dataset.location}`,
           },
         },
-        perspectiveZoom: 20,
-        navigation: {
-          zoomFactor: 8,
-          pose: {
-            position: {
-              voxelSize: [8, 8, 8],
-              voxelCoordinates: [7338.26953125, 7072, 4246.69140625],
-            },
-          },
-        },
-        layout: 'xz',
+        layout: 'xy',
       });
     }
   }, [actions, dataset]);
@@ -49,6 +41,22 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
   const handleChange = (event) => {
     setPickMode(parseInt(event.target.value, 10));
   };
+
+  const callbacks = [
+    {
+      name: 'coords',
+      event: 'click0',
+      function: (e) => {
+        console.log(e.mouseState.position);
+        setMousePosition([...e.mouseState.position]);
+      },
+    },
+  ];
+
+
+  const childrenWithMoreProps = React.Children.map(children, (child) => (
+    React.cloneElement(child, { callbacks }, null)
+  ));
 
   return (
     <div>
@@ -60,12 +68,26 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
           <FormControlLabel value={1} control={<Radio />} label="Apply Transfer Network" />
         </RadioGroup>
       </FormControl>
-      <div className={classes.window}>{children}</div>
+      <div className={classes.window}>
+        {childrenWithMoreProps}
+      </div>
       <p>
         Looking at location:
         {dataset && dataset.location}
       </p>
       <p>Other page content can go here - or use a Grid Layout to add a sidebar, etc.</p>
+      <p>
+        x:
+        {mousePosition[0]}
+      </p>
+      <p>
+        y:
+        {mousePosition[1]}
+      </p>
+      <p>
+        z:
+        {mousePosition[2]}
+      </p>
     </div>
   );
 }
