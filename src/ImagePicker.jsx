@@ -24,15 +24,23 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
   const [mousePosition, setMousePosition] = useState([]);
 
   useEffect(() => {
+    if (mousePosition.length > 0) {
+      console.log(`fetch match data for ${dataset.name} - ${mousePosition}`);
+    }
+  }, [mousePosition, dataset]);
+
+  useEffect(() => {
     if (dataset) {
       console.log('reloading neuroglancer');
-      actions.initViewer({
-        layers: {
-          grayscale: {
-            type: 'image',
-            source: `precomputed://${dataset.location}`,
-          },
+      const layers = {
+        [dataset.name]: {
+          type: 'image',
+          source: `precomputed://${dataset.location}`,
         },
+      };
+
+      actions.initViewer({
+        layers,
         layout: 'xy',
       });
     }
@@ -45,9 +53,8 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
   const callbacks = [
     {
       name: 'coords',
-      event: 'click0',
+      event: 'alt+click0',
       function: (e) => {
-        console.log(e.mouseState.position);
         setMousePosition([...e.mouseState.position]);
       },
     },
@@ -71,11 +78,6 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
       <div className={classes.window}>
         {childrenWithMoreProps}
       </div>
-      <p>
-        Looking at location:
-        {dataset && dataset.location}
-      </p>
-      <p>Other page content can go here - or use a Grid Layout to add a sidebar, etc.</p>
       <p>
         x:
         {mousePosition[0]}
