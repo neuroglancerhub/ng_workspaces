@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector, shallowEqual } from 'react-redux';
 import PropTypes from 'prop-types';
 import Typography from '@material-ui/core/Typography';
 import Radio from '@material-ui/core/Radio';
@@ -7,6 +8,9 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
 import { makeStyles } from '@material-ui/core/styles';
+import Matches from './ImagePicker/Matches';
+import MouseCoordinates from './ImagePicker/MouseCoordinates';
+import { addAlert } from './actions/alerts';
 
 const useStyles = makeStyles({
   window: {
@@ -19,15 +23,46 @@ const useStyles = makeStyles({
 // eslint-disable-next-line object-curly-newline
 export default function ImagePicker({ actions, datasets, selectedDatasetName, children }) {
   const dataset = datasets.filter((ds) => ds.name === selectedDatasetName)[0];
+  const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
+  const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
+  const dispatch = useDispatch();
   const classes = useStyles();
   const [pickMode, setPickMode] = useState(0);
   const [mousePosition, setMousePosition] = useState([]);
+  const [matches, setMatches] = useState([]);
 
   useEffect(() => {
     if (mousePosition.length > 0) {
-      console.log(`fetch match data for ${dataset.name} - ${mousePosition}`);
+      // clear the matches before loading the next set
+      setMatches([]);
+      const options = {
+        headers: {
+          Authorization: `Bearer ${user.getAuthResponse().id_token}`,
+        },
+      };
+
+      const roundedPosition = mousePosition.map((point) => Math.floor(point));
+
+      const signaturesUrl = `${projectUrl}/signatures/likelocation/${dataset.name}?x=${roundedPosition[0]}&y=${roundedPosition[1]}&z=${roundedPosition[2]}`;
+      fetch(signaturesUrl, options)
+        .then((result) => result.json())
+        .then((data) => {
+          if (data.matches) {
+            setMatches(data.matches);
+          }
+          if (data.messsage) {
+            dispatch(
+              addAlert({
+                message: data.messsage,
+                duration: 3000,
+              }),
+            );
+          }
+          console.log(data);
+        })
+        .catch((error) => console.error(error));
     }
-  }, [mousePosition, dataset]);
+  }, [mousePosition, dataset, projectUrl, user, dispatch]);
 
   useEffect(() => {
     if (dataset) {
@@ -78,18 +113,8 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
       <div className={classes.window}>
         {childrenWithMoreProps}
       </div>
-      <p>
-        x:
-        {mousePosition[0]}
-      </p>
-      <p>
-        y:
-        {mousePosition[1]}
-      </p>
-      <p>
-        z:
-        {mousePosition[2]}
-      </p>
+      <MouseCoordinates position={mousePosition} />
+      <Matches matches={matches} />
     </div>
   );
 }
