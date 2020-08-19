@@ -77,6 +77,7 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
       actions.initViewer({
         layers,
         layout: 'xy',
+        showSlices: true,
       });
     }
   }, [actions, dataset]);
