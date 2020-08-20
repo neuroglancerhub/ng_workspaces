@@ -1,0 +1,8 @@
+.mousecoordinates {
+  display: flex;
+  flex-direction: row;
+}
+
+.mousecoordinates p {
+  margin-right: 1em;
+}

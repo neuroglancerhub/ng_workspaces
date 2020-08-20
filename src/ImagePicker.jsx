@@ -12,11 +12,16 @@ import Matches from './ImagePicker/Matches';
 import MouseCoordinates from './ImagePicker/MouseCoordinates';
 import { addAlert } from './actions/alerts';
 
+const imageSliceUrlTemplate = 'https://tensorslice-bmcp5imp6q-uk.a.run.app/slice/<xyz>/256_256_1/jpeg?location=<location>';
+
 const useStyles = makeStyles({
   window: {
     width: '90%',
     margin: 'auto',
     height: '500px',
+  },
+  matches: {
+    margin: '1em',
   },
 });
 
@@ -28,11 +33,11 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
   const dispatch = useDispatch();
   const classes = useStyles();
   const [pickMode, setPickMode] = useState(0);
-  const [mousePosition, setMousePosition] = useState([]);
+  const [mousePosition, setMousePosition] = useState(['18416', '16369', '26467']);
   const [matches, setMatches] = useState([]);
 
   useEffect(() => {
-    if (mousePosition.length > 0) {
+    if (mousePosition.length > 0 && user && dataset && projectUrl) {
       // clear the matches before loading the next set
       setMatches([]);
       const options = {
@@ -101,6 +106,13 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
     React.cloneElement(child, { callbacks }, null)
   ));
 
+  let imageRootUrl = '';
+
+  if (dataset) {
+    imageRootUrl = imageSliceUrlTemplate
+      .replace('<location>', dataset.location.replace('gs://', ''));
+  }
+
   return (
     <div>
       <Typography variant="h5">ImagePicker</Typography>
@@ -114,8 +126,10 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
       <div className={classes.window}>
         {childrenWithMoreProps}
       </div>
-      <MouseCoordinates position={mousePosition} />
-      <Matches matches={matches} />
+      <div className={classes.matches}>
+        <MouseCoordinates position={mousePosition} />
+        <Matches matches={matches} imageRootUrl={imageRootUrl} actions={actions} />
+      </div>
     </div>
   );
 }

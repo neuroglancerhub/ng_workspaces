@@ -1,21 +1,23 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import Typography from '@material-ui/core/Typography';
+import './MouseCoordinates.css';
 
 export default function MouseCoordinates({ position }) {
   return (
-    <div>
-      <p>
+    <div className="mousecoordinates">
+      <Typography variant="body1" component="p">
         x:
         {position[0]}
-      </p>
-      <p>
+      </Typography>
+      <Typography variant="body1" component="p">
         y:
         {position[1]}
-      </p>
-      <p>
+      </Typography>
+      <Typography variant="body1" component="p">
         z:
         {position[2]}
-      </p>
+      </Typography>
     </div>
   );
 }
