@@ -34,9 +34,20 @@ export default function Matches({ matches, imageRootUrl, actions }) {
     );
   });
 
+  const noMatches = (
+    <div>
+      <p>No matches found</p>
+      <p>
+        To locate matches use neuroglancer to navigate to  a region of interest and
+        <span className="kbd"> alt </span>
+        + &apos;click&apos; on the point you are interested in.
+      </p>
+    </div>
+  );
+
   return (
     <Grid container spacing={3}>
-      {matchList}
+      {matchList.length > 0 ? matchList : noMatches}
     </Grid>
   );
 }
