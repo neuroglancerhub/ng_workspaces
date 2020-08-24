@@ -13,7 +13,7 @@ export default function Matches({ matches, imageRootUrl, actions }) {
   }
 
   const matchList = matches.map((match) => {
-    const xyzString = `${match.point[0]}_${match.point[1]}_${match.point[2]}`;
+    const xyzString = `${match.point[0] - 128}_${match.point[1] - 128}_${match.point[2]}`;
     const imageUrl = imageRootUrl.replace('<xyz>', xyzString);
     return (
       <Grid className="matchSlice" item xs={12} md={3} key={match.point}>
