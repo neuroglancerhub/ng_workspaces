@@ -9,6 +9,7 @@ import './Matches.css';
 export default function Matches({ matches, imageRootUrl, actions }) {
   function handleMatchSelect(point) {
     actions.setViewerCameraPosition(point);
+    actions.setViewerCrossSectionScale(0.75);
   }
 
   const matchList = matches.map((match) => {
