@@ -14,9 +14,11 @@ import { addAlert } from './actions/alerts';
 
 const imageSliceUrlTemplate = 'https://tensorslice-bmcp5imp6q-uk.a.run.app/slice/<xyz>/256_256_1/jpeg?location=<location>';
 
+const initialCoordinates = []; // [18416, 16369, 26467];
+
 const useStyles = makeStyles({
   window: {
-    width: '90%',
+    width: '100%',
     margin: 'auto',
     height: '500px',
   },
@@ -33,12 +35,14 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
   const dispatch = useDispatch();
   const classes = useStyles();
   const [pickMode, setPickMode] = useState(0);
-  const [mousePosition, setMousePosition] = useState(['18416', '16369', '26467']);
+  const [mousePosition, setMousePosition] = useState(initialCoordinates);
   const [matches, setMatches] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (mousePosition.length > 0 && user && dataset && projectUrl) {
+    if (mousePosition && mousePosition.length > 0 && user && dataset && projectUrl) {
       // clear the matches before loading the next set
+      setIsLoading(true);
       setMatches([]);
       const options = {
         headers: {
@@ -48,7 +52,9 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
 
       const roundedPosition = mousePosition.map((point) => Math.floor(point));
 
-      const signaturesUrl = `${projectUrl}/signatures/likelocation/${dataset.name}?x=${roundedPosition[0]}&y=${roundedPosition[1]}&z=${roundedPosition[2]}`;
+      const signaturesUrl = `${projectUrl}/signatures/likelocation/${dataset.name}?x=${
+        roundedPosition[0]
+      }&y=${roundedPosition[1]}&z=${roundedPosition[2]}`;
       fetch(signaturesUrl, options)
         .then((result) => result.json())
         .then((data) => {
@@ -63,9 +69,12 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
               }),
             );
           }
-          console.log(data);
+          setIsLoading(false);
         })
-        .catch((error) => console.error(error));
+        .catch((error) => {
+          setIsLoading(false);
+          console.error(error);
+        });
     }
   }, [mousePosition, dataset, projectUrl, user, dispatch]);
 
@@ -85,6 +94,7 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
       };
 
       actions.initViewer({
+        position: initialCoordinates,
         layers,
         layout: 'xy',
         showSlices: true,
@@ -101,21 +111,22 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
       name: 'coords',
       event: 'alt+click0',
       function: (e) => {
+        actions.setViewerCameraPosition([...e.mouseState.position]);
         setMousePosition([...e.mouseState.position]);
       },
     },
   ];
 
-
-  const childrenWithMoreProps = React.Children.map(children, (child) => (
-    React.cloneElement(child, { callbacks }, null)
-  ));
+  const childrenWithMoreProps = React.Children
+    .map(children, (child) => React.cloneElement(child, { callbacks }, null));
 
   let imageRootUrl = '';
 
   if (dataset) {
-    imageRootUrl = imageSliceUrlTemplate
-      .replace('<location>', dataset.location.replace('gs://', ''));
+    imageRootUrl = imageSliceUrlTemplate.replace(
+      '<location>',
+      dataset.location.replace('gs://', ''),
+    );
   }
 
   return (
@@ -123,17 +134,23 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
       <Typography variant="h5">ImagePicker</Typography>
       <FormControl component="fieldset">
         <FormLabel component="legend">Pick Mode</FormLabel>
-        <RadioGroup aria-label="pick_mode" name="pick_mode" value={pickMode} onChange={handleChange}>
+        <RadioGroup
+          row
+          aria-label="pick_mode"
+          name="pick_mode"
+          value={pickMode}
+          onChange={handleChange}
+        >
           <FormControlLabel value={0} control={<Radio />} label="Query by Example" />
           <FormControlLabel value={1} control={<Radio />} label="Apply Transfer Network" />
         </RadioGroup>
       </FormControl>
-      <div className={classes.window}>
-        {childrenWithMoreProps}
-      </div>
+      <div className={classes.window}>{childrenWithMoreProps}</div>
       <div className={classes.matches}>
         <MouseCoordinates position={mousePosition} />
-        <Matches matches={matches} imageRootUrl={imageRootUrl} actions={actions} />
+        { isLoading ? 'Loading' : (
+          <Matches matches={matches} imageRootUrl={imageRootUrl} actions={actions} />
+        )}
       </div>
     </div>
   );

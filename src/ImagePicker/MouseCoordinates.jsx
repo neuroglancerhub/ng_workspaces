@@ -4,6 +4,9 @@ import Typography from '@material-ui/core/Typography';
 import './MouseCoordinates.css';
 
 export default function MouseCoordinates({ position }) {
+  if (!position || position.length < 3) {
+    return '';
+  }
   return (
     <div className="mousecoordinates">
       <Typography variant="body1" component="p">
