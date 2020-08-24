@@ -72,10 +72,15 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
   useEffect(() => {
     if (dataset) {
       console.log('reloading neuroglancer');
+      const annotationsUrl = projectUrl.replace(/\/clio_toplevel$/, '');
       const layers = {
         [dataset.name]: {
           type: 'image',
           source: `precomputed://${dataset.location}`,
+        },
+        annotations: {
+          type: 'annotation',
+          source: `clio://${annotationsUrl}/${dataset.name}?auth=neurohub`,
         },
       };
 
@@ -85,7 +90,7 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
         showSlices: true,
       });
     }
-  }, [actions, dataset]);
+  }, [actions, dataset, projectUrl]);
 
   const handleChange = (event) => {
     setPickMode(parseInt(event.target.value, 10));
