@@ -16,7 +16,7 @@ const imageSliceUrlTemplate = 'https://tensorslice-bmcp5imp6q-uk.a.run.app/slice
 
 const useStyles = makeStyles({
   window: {
-    width: '90%',
+    width: '100%',
     margin: 'auto',
     height: '500px',
   },
