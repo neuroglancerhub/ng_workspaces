@@ -109,7 +109,14 @@ function App() {
 
       const formattedProject = project.toLowerCase().replace(/ /g, '-');
 
-      const datasetUrl = `https://us-east4-${formattedProject}.cloudfunctions.net/clio_toplevel/datasets`;
+      const clioUrl = `https://us-east4-${formattedProject}.cloudfunctions.net/clio_toplevel`;
+
+      const datasetUrl = `${clioUrl}/datasets`;
+
+      dispatch({
+        type: 'CLIO_SET_TOP_LEVEL_FUNC',
+        url: clioUrl,
+      });
 
       fetch(datasetUrl, options)
         .then((result) => result.json())
@@ -123,7 +130,7 @@ function App() {
         })
         .catch((err) => console.log(err));
     }
-  }, [user, project]);
+  }, [user, project, dispatch]);
 
   useEffect(() => {
     // Check for logged in user and save them to state.
