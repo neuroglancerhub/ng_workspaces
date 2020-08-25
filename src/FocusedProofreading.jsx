@@ -475,6 +475,10 @@ function FocusedProofreading(props) {
 
   const handleResultChange = (newResult) => {
     actions.setViewerSegmentColors(bodyColors(bodyIds, newResult));
+    // The special blocking TODO_TYPE is avilable only for the DONT_MERGE result.
+    if (newResult !== RESULTS.DONT_MERGE && todoType === TODO_TYPES[0].value) {
+      handleTodoTypeChange(TODO_TYPES[1].value, taskJson);
+    }
   };
 
   const handleResultRadio = (event) => {
@@ -607,7 +611,11 @@ function FocusedProofreading(props) {
             <FormControl variant="outlined" disabled={noTask}>
               <Select value={todoType} onChange={handleTodoTypeSelect}>
                 {TODO_TYPES.map((x) => (
-                  <MenuItem key={x.value} value={x.value}>
+                  <MenuItem
+                    key={x.value}
+                    value={x.value}
+                    disabled={x.value === TODO_TYPES[0].value && result !== RESULTS.DONT_MERGE}
+                  >
                     {x.label}
                   </MenuItem>
                 ))}
