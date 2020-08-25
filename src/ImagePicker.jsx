@@ -165,14 +165,16 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
           value={pickMode}
           onChange={handleChange}
         >
-          <FormControlLabel value={0} control={<Radio />} label="Query by Example" />
-          <FormControlLabel value={1} control={<Radio />} label="Apply Transfer Network" />
+          <FormControlLabel value={0} control={<Radio color="primary" />} label="Query by Example" />
+          <FormControlLabel value={1} control={<Radio color="primary" />} label="Apply Transfer Network" />
         </RadioGroup>
       </FormControl>
       <div className={classes.window}>{childrenWithMoreProps}</div>
       <div className={classes.matches}>
         <Grid container spacing={3}>
           <Grid item xs={12} md={4}>
+            Viewing Matches for
+            {' '}
             <MouseCoordinates position={mousePosition} />
           </Grid>
           <Grid item xs={12} md={4} className={classes.matchText}>
