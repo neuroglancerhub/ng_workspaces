@@ -7,7 +7,9 @@ import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
+import Grid from '@material-ui/core/Grid';
 import { makeStyles } from '@material-ui/core/styles';
+import Pagination from '@material-ui/lab/Pagination';
 import Matches from './ImagePicker/Matches';
 import MouseCoordinates from './ImagePicker/MouseCoordinates';
 import { addAlert } from './actions/alerts';
@@ -15,6 +17,7 @@ import { addAlert } from './actions/alerts';
 const imageSliceUrlTemplate = 'https://tensorslice-bmcp5imp6q-uk.a.run.app/slice/<xyz>/256_256_1/jpeg?location=<location>';
 
 const initialCoordinates = []; // [18416, 16369, 26467];
+const matchesPerPage = 8;
 
 const useStyles = makeStyles({
   window: {
@@ -24,6 +27,12 @@ const useStyles = makeStyles({
   },
   matches: {
     margin: '1em',
+  },
+  matchText: {
+    textAlign: 'center',
+  },
+  pagination: {
+    textAlign: 'right',
   },
 });
 
@@ -38,12 +47,14 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
   const [mousePosition, setMousePosition] = useState(initialCoordinates);
   const [matches, setMatches] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     if (mousePosition && mousePosition.length > 0 && user && dataset && projectUrl) {
       // clear the matches before loading the next set
       setIsLoading(true);
       setMatches([]);
+      setCurrentPage(1);
       const options = {
         headers: {
           Authorization: `Bearer ${user.getAuthResponse().id_token}`,
@@ -106,6 +117,10 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
     setPickMode(parseInt(event.target.value, 10));
   };
 
+  const handlePageChange = (event, page) => {
+    setCurrentPage(page);
+  };
+
   const callbacks = [
     {
       name: 'coords',
@@ -129,6 +144,15 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
     );
   }
 
+  const pages = Math.ceil(matches.length / matchesPerPage);
+
+  const paginatedList = matches.slice(
+    currentPage * matchesPerPage - matchesPerPage,
+    currentPage * matchesPerPage,
+  );
+  const matchesText = `Matches ${(currentPage * matchesPerPage - matchesPerPage) + 1} - ${Math.min(currentPage * matchesPerPage, matches.length)} of ${matches.length}`;
+
+
   return (
     <div>
       <Typography variant="h5">ImagePicker</Typography>
@@ -147,9 +171,19 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
       </FormControl>
       <div className={classes.window}>{childrenWithMoreProps}</div>
       <div className={classes.matches}>
-        <MouseCoordinates position={mousePosition} />
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={4}>
+            <MouseCoordinates position={mousePosition} />
+          </Grid>
+          <Grid item xs={12} md={4} className={classes.matchText}>
+            {matchesText}
+          </Grid>
+          <Grid item xs={12} md={4} className={classes.pagination}>
+            <Pagination count={pages} page={currentPage} onChange={handlePageChange} size="small" />
+          </Grid>
+        </Grid>
         { isLoading ? 'Loading' : (
-          <Matches matches={matches} imageRootUrl={imageRootUrl} actions={actions} />
+          <Matches matches={paginatedList} imageRootUrl={imageRootUrl} actions={actions} />
         )}
       </div>
     </div>
