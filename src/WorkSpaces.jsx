@@ -25,6 +25,7 @@ import {
   setViewerCameraProjectionOrientation,
   setViewerSegments,
   setViewerSegmentColors,
+  addViewerLayer,
 } from './actions/viewer';
 
 import { setSyncStateNeeded } from './reducers/viewer';
@@ -149,6 +150,9 @@ const WorkSpacesActions = (dispatch) => ({
     },
     setViewerCameraProjectionOrientation: (newState) => {
       dispatch(setViewerCameraProjectionOrientation(newState));
+    },
+    addViewerLayer: (newState) => {
+      dispatch(addViewerLayer(newState));
     },
     addAlert: (newState) => {
       dispatch(addAlert(newState));

@@ -80,6 +80,9 @@ const setInLayerArray = (state, layerName, propPathArray, propValue) => {
   if (i === -1) {
     i = layers.findIndex((value) => (value.type === layerName));
   }
+  if (i === -1) {
+    i = layers.length;
+  }
   return state.setIn(['ngState', 'layers', i, ...propPathArray], propValue);
 };
 
@@ -129,6 +132,10 @@ export default function viewerReducer(state = viewerState, action) {
     }
     case C.SET_VIEWER_CAMERA_PROJECTION_ORIENTATION: {
       return (syncedState(state).setIn(['ngState', 'projectionOrientation'], action.payload));
+    }
+    case C.ADD_VIEWER_LAYER: {
+      const { name } = action.payload;
+      return setInLayerArray(syncedState(state), name, [], action.payload);
     }
     default: {
       return state;

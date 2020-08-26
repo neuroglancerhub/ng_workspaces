@@ -223,6 +223,28 @@ const isDvidSource = (source) => (
   source.toLowerCase().startsWith('dvid')
 );
 
+const bodyPointsLayer = (bodyPt0, bodyPt1, bodyId0, bodyId1) => (
+  {
+    type: 'annotation',
+    name: 'body points',
+    annotations: [
+      { point: bodyPt0, type: 'point', id: bodyId0.toString() },
+      { point: bodyPt1, type: 'point', id: bodyId1.toString() },
+    ],
+    source: {
+      url: 'local://annotations',
+      transform: {
+        // TODO: Query the dimensions, to support 4e-9.
+        outputDimensions: {
+          x: [8e-9, 'm'],
+          y: [8e-9, 'm'],
+          z: [8e-9, 'm'],
+        },
+      },
+    },
+  }
+);
+
 const doLiveMerge = (assnMngr) => {
   const segSrc = assnMngr.assignment[TASK_KEYS.SEGMENTATION_SOURCE];
   if (isDvidSource(segSrc)) {
@@ -427,6 +449,7 @@ function FocusedProofreading(props) {
 
               actions.setViewerSegments(segments);
               actions.setViewerSegmentColors(bodyColors(segments, restoredResult));
+              actions.addViewerLayer(bodyPointsLayer(bodyPts[0], bodyPts[1], bodyId0, bodyId1));
               actions.setViewerCrossSectionScale(0.4);
               actions.setViewerCameraPosition(position);
               actions.setViewerCameraProjectionOrientation(projectionOrientation);
