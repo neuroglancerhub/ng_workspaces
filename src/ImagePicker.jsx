@@ -105,6 +105,11 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
       };
 
       actions.initViewer({
+        dimensions: {
+          x: [4e-9, 'm'],
+          y: [4e-9, 'm'],
+          z: [4e-9, 'm'],
+        },
         position: initialCoordinates,
         layers,
         layout: 'xy',

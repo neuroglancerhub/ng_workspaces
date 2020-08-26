@@ -10,23 +10,7 @@ export default function Clio({ children, actions, datasets, selectedDatasetName 
   const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
 
   useEffect(() => {
-    if (user) {
-      actions.initViewer({
-        dimensions: {
-          x: [8e-9, 'm'],
-          y: [8e-9, 'm'],
-          z: [8e-9, 'm'],
-        },
-        position: [8302.3427734375, 8004.85791015625, 6288.146484375],
-        crossSectionScale: 9.646558752809767,
-        projectionScale: 2600,
-        showSlices: true,
-      });
-    }
-  }, [user, actions]);
-
-  useEffect(() => {
-    if (dataset) {
+    if (dataset && user) {
       const annotationsUrl = projectUrl.replace(/\/clio_toplevel$/, '');
       const layers = {
         annotations: {
@@ -40,12 +24,17 @@ export default function Clio({ children, actions, datasets, selectedDatasetName 
       };
 
       actions.initViewer({
+        dimensions: {
+          x: [4e-9, 'm'],
+          y: [4e-9, 'm'],
+          z: [4e-9, 'm'],
+        },
         layers,
         layout: '4panel',
         showSlices: true,
       });
     }
-  }, [actions, dataset, projectUrl]);
+  }, [user, actions, dataset, projectUrl]);
 
   if (dataset) {
     return (
