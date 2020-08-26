@@ -7,6 +7,7 @@ import './Neuroglancer.css';
 export default function Clio({ children, actions, datasets, selectedDatasetName }) {
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
   const dataset = datasets.filter((ds) => ds.name === selectedDatasetName)[0];
+  const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
 
   useEffect(() => {
     if (user) {
@@ -26,7 +27,13 @@ export default function Clio({ children, actions, datasets, selectedDatasetName 
 
   useEffect(() => {
     if (dataset) {
-      const layers = {};
+      const annotationsUrl = projectUrl.replace(/\/clio_toplevel$/, '');
+      const layers = {
+        annotations: {
+          type: 'annotation',
+          source: `clio://${annotationsUrl}/${dataset.name}?auth=neurohub`,
+        },
+      };
       layers[dataset.name] = {
         type: 'image',
         source: `precomputed://${dataset.location}`,
@@ -38,7 +45,7 @@ export default function Clio({ children, actions, datasets, selectedDatasetName 
         showSlices: true,
       });
     }
-  }, [actions, dataset]);
+  }, [actions, dataset, projectUrl]);
 
   if (dataset) {
     return (
