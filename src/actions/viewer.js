@@ -98,3 +98,10 @@ export function setViewerSegmentColors(payload) {
     payload,
   };
 }
+
+export function addViewerLayer(payload) {
+  return {
+    type: C.ADD_VIEWER_LAYER,
+    payload,
+  };
+}
