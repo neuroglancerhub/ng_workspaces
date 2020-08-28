@@ -332,12 +332,18 @@ const storeResults = (bodyIds, result, taskJson, taskStartTime, authMngr, dvidMn
       'time to complete (ms)': elapsedMs,
       client: CLIENT_INFO.info,
     };
-    if (taskJsonCopy.index !== undefined) {
-      dvidLogValue = { ...dvidLogValue, index: taskJsonCopy.index };
-    }
     if (assnMngr.assignmentFile) {
       dvidLogValue = { ...dvidLogValue, assignment: assnMngr.assignmentFile };
     }
+
+    // Make sure any extra keys from the input are carried over to the output.
+    const omit = ['completed'];
+    Object.keys(taskJsonCopy).forEach((key) => {
+      if (!(key in dvidLogValue) && !omit.includes(key)) {
+        dvidLogValue[key] = taskJsonCopy[key];
+      }
+    });
+
     if ((result === RESULTS.MERGE) && doLiveMerge(assnMngr)) {
       const onCompletion = (res) => {
         dvidLogValue['mutation ID'] = res.MutationID;
