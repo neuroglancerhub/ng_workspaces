@@ -66,6 +66,11 @@ const TASK_KEYS = Object.freeze({
   DVID_SOURCE: 'DVID source',
   BODY_PT1: 'body point 1',
   BODY_PT2: 'body point 2',
+  // Optional keys, needed if the segmentation source does not support DVID commands.
+  BODY_ID1: 'default body ID 1',
+  BODY_ID2: 'default body ID 2',
+  BBOX1: 'default bounding box 1',
+  BBOX2: 'default bounding box 2',
 });
 
 const RESULTS = Object.freeze({
@@ -111,6 +116,46 @@ const bodyPoints = (taskJson) => {
   }
   return (undefined);
 };
+
+const getBodyId = (bodyPt, dvidMngr, taskJson, which, onError) => {
+  let error;
+  return (
+    dvidMngr.getBodyId(bodyPt, (err) => { error = err; })
+      .then((bodyId) => {
+        let id = bodyId;
+        if (!id) {
+          const key = (which === 1) ? TASK_KEYS.BODY_ID1 : TASK_KEYS.BODY_ID2;
+          id = taskJson[key];
+        }
+        if (!id) {
+          onError(error);
+        }
+        return (id);
+      })
+  );
+};
+
+const getBbox = (bodyId, dvidMngr, taskJson, which) => (
+  dvidMngr.getSparseVolSize(bodyId, () => {})
+    .then((bboxData) => {
+      let data = bboxData;
+      if (!data) {
+        const key = (which === 1) ? TASK_KEYS.BBOX1 : TASK_KEYS.BBOX2;
+        data = taskJson[key];
+      }
+      if (!data) {
+        // Lacking any true bounding box, return fixed values that will make the
+        // normal scale be 100, and the bird's eye scale be 10000, values which
+        // are plausible based on some hemibrain data.
+        if (which === 1) {
+          data = { minvoxel: [0, 0, 0], maxvoxel: [0, 200, 0] };
+        } else {
+          data = { minvoxel: [0, 0, 0], maxvoxel: [0, 10000, 0] };
+        }
+      }
+      return (data);
+    })
+);
 
 const taskDocString = (taskJson, assnMngr) => {
   if (taskJson) {
@@ -164,15 +209,15 @@ const cameraPose = (bodyPts) => {
   return ({ position, projectionOrientation });
 };
 
-const cameraProjectionScale = (bodyIds, orientation, dvidMngr) => {
+const cameraProjectionScale = (bodyIds, orientation, taskJson, dvidMngr) => {
   // TODO: Make `onError` an argument, for error handling specific to the 'get' calls here.
   const onError = (err) => {
     console.error('Failed to get body size: ', err);
   };
   return (
-    dvidMngr.getSparseVolSize(bodyIds[0])
+    getBbox(bodyIds[0], dvidMngr, taskJson, 1, onError)
       .then((data0) => (
-        dvidMngr.getSparseVolSize(bodyIds[1]).then((data1) => ([data0, data1]))
+        getBbox(bodyIds[1], dvidMngr, taskJson, 2, onError).then((data1) => ([data0, data1]))
       ))
       .then(([data0, data1]) => {
         // The heuristics here consider the sizes of bounding box dimensions (sides)
@@ -184,8 +229,12 @@ const cameraProjectionScale = (bodyIds, orientation, dvidMngr) => {
         const s = Math.sin(angle);
         // For the normal scale, use the smaller body's bounding box, and pick the
         // scaled dimension that is bigger.
-        const minA = (data0.voxels < data1.voxels) ? data0.minvoxel : data1.minvoxel;
-        const maxA = (data0.voxels < data1.voxels) ? data0.maxvoxel : data1.maxvoxel;
+        const size0 = (data0.maxvoxel[0] - data0.minvoxel[0])
+          * (data0.maxvoxel[1] - data0.minvoxel[1]) * (data0.maxvoxel[2] - data0.minvoxel[2]);
+        const size1 = (data1.maxvoxel[0] - data1.minvoxel[0])
+          * (data1.maxvoxel[1] - data1.minvoxel[1]) * (data1.maxvoxel[2] - data1.minvoxel[2]);
+        const minA = (size0 <= size1) ? data0.minvoxel : data1.minvoxel;
+        const maxA = (size0 <= size1) ? data0.maxvoxel : data1.maxvoxel;
         const dimsA = [maxA[0] - minA[0], maxA[1] - minA[1], maxA[2] - minA[2]];
         const visibleXA = Math.abs(c * dimsA[0]);
         const visibleZA = Math.abs(s * dimsA[2]);
@@ -404,9 +453,9 @@ function FocusedProofreading(props) {
       return new Promise((resolve) => { resolve(false); });
     }
     return (
-      dvidMngr.getBodyId(bodyPts[0], onError(1))
+      getBodyId(bodyPts[0], dvidMngr, json, 1, onError(1))
         .then((bodyId0) => (
-          dvidMngr.getBodyId(bodyPts[1], onError(2)).then((bodyId1) => [bodyId0, bodyId1])
+          getBodyId(bodyPts[1], dvidMngr, json, 2, onError(2)).then((bodyId1) => [bodyId0, bodyId1])
         ))
         .then(([bodyId0, bodyId1]) => (
           dvidMngr.getKeyValue('segmentation_focused', dvidLogKey(json), onError(3))
@@ -433,7 +482,7 @@ function FocusedProofreading(props) {
           }
           const [restoredResult, restoredCompleted] = restoreResults(json);
           const { position, projectionOrientation } = cameraPose(bodyPts);
-          cameraProjectionScale(segments, projectionOrientation, dvidMngr)
+          cameraProjectionScale(segments, projectionOrientation, json, dvidMngr)
             .then(([scale, scaleBirdsEye]) => {
               setTaskJson(json);
               setBodyIds(segments);

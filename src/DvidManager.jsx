@@ -98,7 +98,7 @@ export class DvidManager {
         }
         const error = `Error status ${response.status} '${response.statusText}' ${url}`;
         onError(error);
-        return ({});
+        return (undefined);
       })
       .catch((error) => onError(error)));
   }
