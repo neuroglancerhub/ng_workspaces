@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
+import Typography from '@material-ui/core/Typography';
+import AnnotationsList from './Atlas/AnnotationsList';
 
 const useStyles = makeStyles({
   window: {
@@ -11,37 +13,37 @@ const useStyles = makeStyles({
   matches: {
     margin: '1em',
   },
+  header: {
+    margin: '1em',
+  },
 });
 
 export default function Atlas({ children, actions, datasets }) {
   const classes = useStyles();
 
-  const [annotations, setAnnotations] = useState([]);
   const [selected, setSelected] = useState(null);
 
   console.log(actions, datasets);
 
   useEffect(() => {
-    setAnnotations([]);
-    console.info('loading the annotations list');
-  }, []);
-
-  useEffect(() => {
-    setSelected(null);
-  }, []);
+    if (selected) {
+      // TODO: fetch the annotation information and display it in neuroglancer
+      console.log(`fetching ${selected}`);
+    }
+  }, [selected]);
 
   return (
     <div>
-      <p>EM Atlas</p>
-      <p>Search input to select the annotation to view</p>
-      {annotations.length > 0 && <p>Show annotations list</p>}
+      <div className={classes.header}>
+        <Typography variant="h5">EM Atlas</Typography>
+        <AnnotationsList selected={selected} onChange={setSelected} />
+      </div>
       {selected && (
-        <p>
-          If an annotation is selected, then show the neuroglancer window with the annotation in
-          view
-        </p>
+        <>
+          <p>Showing details for annotation {selected} in the neuroglancer window</p>
+          <div className={classes.window}>{children}</div>
+        </>
       )}
-      <div className={classes.window}>{children}</div>
     </div>
   );
 }
