@@ -85,10 +85,14 @@ export default function ByExampleResults({
     currentPage * matchesPerPage - matchesPerPage,
     currentPage * matchesPerPage,
   );
-  const matchesText = `Matches ${currentPage * matchesPerPage - matchesPerPage + 1} - ${Math.min(
-    currentPage * matchesPerPage,
-    matches.length,
-  )} of ${matches.length}`;
+
+  let matchesText = '';
+  if (matches.length > 0) {
+    matchesText = `Matches ${currentPage * matchesPerPage - matchesPerPage + 1} - ${Math.min(
+      currentPage * matchesPerPage,
+      matches.length,
+    )} of ${matches.length}`;
+  }
 
   let imageRootUrl = '';
 

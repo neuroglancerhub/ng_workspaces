@@ -19,6 +19,9 @@ const useStyles = makeStyles({
     margin: 'auto',
     height: '500px',
   },
+  header: {
+    margin: '1em',
+  },
   matches: {
     margin: '1em',
   },
@@ -81,41 +84,53 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
     (child) => React.cloneElement(child, { callbacks }, null),
   );
 
-  const results = pickMode === 0 ? (
-    <ByExampleResults
-      mousePosition={mousePosition}
-      projectUrl={projectUrl}
-      actions={actions}
-      dataset={dataset}
-    />
-  ) : (
-    <TransferResults mousePosition={mousePosition} dataset={dataset} projectUrl={projectUrl} />
-  );
+  let results = <p>Please select a dataset.</p>;
+
+  if (dataset) {
+    if (pickMode === 0) {
+      results = (
+        <ByExampleResults
+          mousePosition={mousePosition}
+          projectUrl={projectUrl}
+          actions={actions}
+          dataset={dataset}
+        />
+      );
+    } else {
+      results = (
+        <TransferResults mousePosition={mousePosition} dataset={dataset} projectUrl={projectUrl} />
+      );
+    }
+  }
 
   return (
     <div>
-      <Typography variant="h5">ImagePicker</Typography>
-      <FormControl component="fieldset">
-        <FormLabel component="legend">Pick Mode</FormLabel>
-        <RadioGroup
-          row
-          aria-label="pick_mode"
-          name="pick_mode"
-          value={pickMode}
-          onChange={handleChange}
-        >
-          <FormControlLabel
-            value={0}
-            control={<Radio color="primary" />}
-            label="Query by Example"
-          />
-          <FormControlLabel
-            value={1}
-            control={<Radio color="primary" />}
-            label="Apply Transfer Network"
-          />
-        </RadioGroup>
-      </FormControl>
+      <div className={classes.header}>
+        <Typography variant="h5">ImagePicker</Typography>
+        {dataset && dataset.transfer && (
+          <FormControl component="fieldset">
+            <FormLabel component="legend">Pick Mode</FormLabel>
+            <RadioGroup
+              row
+              aria-label="pick_mode"
+              name="pick_mode"
+              value={pickMode}
+              onChange={handleChange}
+            >
+              <FormControlLabel
+                value={0}
+                control={<Radio color="primary" />}
+                label="Query by Example"
+              />
+              <FormControlLabel
+                value={1}
+                control={<Radio color="primary" />}
+                label="Apply Transfer Network"
+              />
+            </RadioGroup>
+          </FormControl>
+        )}
+      </div>
       <div className={classes.window}>{childrenWithMoreProps}</div>
       <div className={classes.matches}>{results}</div>
     </div>
