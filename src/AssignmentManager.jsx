@@ -92,8 +92,7 @@ export class AssignmentManager {
           this.taskIndex = -1;
           this.onAssignmentLoaded().then(() => { this.next(); });
         } catch (exc) {
-          // TODO: Add error processing.
-          console.log(`* Error loading assignment JSON: '${exc}' *`);
+          this.addAlert({ severity: 'error', message: `Assignment parsing failed: '${exc}'` });
         }
       } else {
         // TODO: Add error processing.
