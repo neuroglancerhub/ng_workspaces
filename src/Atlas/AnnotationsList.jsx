@@ -9,6 +9,12 @@ import CardContent from '@material-ui/core/CardContent';
 import CardMedia from '@material-ui/core/CardMedia';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
+
+import Paper from '@material-ui/core/Paper';
+import InputBase from '@material-ui/core/InputBase';
+import IconButton from '@material-ui/core/IconButton';
+import SearchIcon from '@material-ui/icons/Search';
+
 import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles((theme) => ({
@@ -16,6 +22,19 @@ const useStyles = makeStyles((theme) => ({
     border: '2px solid',
     borderColor: theme.palette.primary.main,
     background: 'rgba(143, 170, 143, 0.3)',
+  },
+  filterRoot: {
+    padding: '2px 4px',
+    display: 'flex',
+    alignItems: 'center',
+    width: 400,
+  },
+  filterInput: {
+    marginLeft: theme.spacing(1),
+    flex: 1,
+  },
+  iconButton: {
+    padding: 10,
   },
 }));
 
@@ -85,6 +104,16 @@ export default function AnnotationsList({ selected, onChange }) {
 
   return (
     <>
+      <Paper component="form" className={classes.filterRoot}>
+        <InputBase
+          className={classes.filterInput}
+          placeholder="Filter Annotations"
+          inputProps={{ 'aria-label': 'filter annotations' }}
+        />
+        <IconButton type="button" className={classes.iconButton} aria-label="search">
+          <SearchIcon />
+        </IconButton>
+      </Paper>
       <Pagination count={pages} page={currentPage} onChange={handlePageChange} size="small" />
       <Grid container spacing={3}>
         {annotationSelections}
