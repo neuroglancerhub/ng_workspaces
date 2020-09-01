@@ -7,6 +7,9 @@ import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
+import Select from '@material-ui/core/Select';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
 import { makeStyles } from '@material-ui/core/styles';
 import ByExampleResults from './ImagePicker/ByExampleResults';
 import TransferResults from './ImagePicker/TransferResults';
@@ -33,6 +36,7 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
   const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
   const classes = useStyles();
   const [pickMode, setPickMode] = useState(0);
+  const [transferModel, setTransferModel] = useState(0);
   const [mousePosition, setMousePosition] = useState(initialCoordinates);
 
   useEffect(() => {
@@ -68,6 +72,10 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
     setPickMode(parseInt(event.target.value, 10));
   };
 
+  const handleTransferChange = (event) => {
+    setTransferModel(event.target.value);
+  };
+
   const callbacks = [
     {
       name: 'coords',
@@ -98,9 +106,39 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
       );
     } else {
       results = (
-        <TransferResults mousePosition={mousePosition} dataset={dataset} projectUrl={projectUrl} />
+        <TransferResults
+          model={dataset.transfer[transferModel]}
+          mousePosition={mousePosition}
+          dataset={dataset}
+          projectUrl={projectUrl}
+        />
       );
     }
+  }
+
+  let modelSelect = '';
+
+  if (pickMode === 1 && dataset && dataset.transfer) {
+    const modelSelectItems = dataset.transfer.map((model, i) => (
+      <MenuItem key={model} value={i}>
+        {model}
+      </MenuItem>
+    ));
+
+    modelSelect = (
+      <FormControl variant="outlined" className={classes.formControl}>
+        <InputLabel id="transfer-model-label">Model</InputLabel>
+        <Select
+          labelId="transfer-model-label"
+          id="transfer-model"
+          value={transferModel}
+          onChange={handleTransferChange}
+          label="Model"
+        >
+          {modelSelectItems}
+        </Select>
+      </FormControl>
+    );
   }
 
   return (
@@ -130,6 +168,7 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
             </RadioGroup>
           </FormControl>
         )}
+        {modelSelect}
       </div>
       <div className={classes.window}>{childrenWithMoreProps}</div>
       <div className={classes.matches}>{results}</div>

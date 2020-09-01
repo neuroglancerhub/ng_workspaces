@@ -2,7 +2,12 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useSelector, shallowEqual } from 'react-redux';
 
-export default function TransferResults({ mousePosition, dataset, projectUrl }) {
+export default function TransferResults({
+  mousePosition,
+  dataset,
+  projectUrl,
+  model,
+}) {
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
   const [resultLink, setResultLink] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -20,7 +25,7 @@ export default function TransferResults({ mousePosition, dataset, projectUrl }) 
         method: 'POST',
         body: JSON.stringify({
           dataset: dataset.name,
-          model_name: dataset.transfer[0],
+          model_name: model,
           center: roundedPosition,
         }),
       };
@@ -36,7 +41,7 @@ export default function TransferResults({ mousePosition, dataset, projectUrl }) 
           setIsLoading(false);
         });
     }
-  }, [dataset, mousePosition, projectUrl, user]);
+  }, [dataset, mousePosition, projectUrl, user, model]);
 
   return (
     <div>
@@ -50,4 +55,5 @@ TransferResults.propTypes = {
   mousePosition: PropTypes.arrayOf(PropTypes.number).isRequired,
   dataset: PropTypes.object.isRequired,
   projectUrl: PropTypes.string.isRequired,
+  model: PropTypes.string.isRequired,
 };
