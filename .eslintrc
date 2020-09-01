@@ -21,6 +21,7 @@
         "jsx-a11y/no-static-element-interactions": "off",
         "jsx-a11y/no-noninteractive-tabindex": "off",
         "react/jsx-filename-extension": "off",
+        'react/jsx-one-expression-per-line': 'off',
         "react/forbid-prop-types": [1, {"forbid": ["any", "array"]}]
       }
     }
