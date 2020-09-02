@@ -7,38 +7,34 @@ import './Neuroglancer.css';
 export default function Clio({ children, actions, datasets, selectedDatasetName }) {
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
   const dataset = datasets.filter((ds) => ds.name === selectedDatasetName)[0];
+  const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
 
   useEffect(() => {
-    if (user) {
-      actions.initViewer({
-        dimensions: {
-          x: [8e-9, 'm'],
-          y: [8e-9, 'm'],
-          z: [8e-9, 'm'],
+    if (dataset && user) {
+      const annotationsUrl = projectUrl.replace(/\/clio_toplevel$/, '');
+      const layers = {
+        annotations: {
+          type: 'annotation',
+          source: `clio://${annotationsUrl}/${dataset.name}?auth=neurohub`,
         },
-        position: [8302.3427734375, 8004.85791015625, 6288.146484375],
-        crossSectionScale: 9.646558752809767,
-        projectionScale: 2600,
-        showSlices: true,
-      });
-    }
-  }, [user, actions]);
-
-  useEffect(() => {
-    if (dataset) {
-      const layers = {};
+      };
       layers[dataset.name] = {
         type: 'image',
         source: `precomputed://${dataset.location}`,
       };
 
       actions.initViewer({
+        dimensions: {
+          x: [4e-9, 'm'],
+          y: [4e-9, 'm'],
+          z: [4e-9, 'm'],
+        },
         layers,
         layout: '4panel',
         showSlices: true,
       });
     }
-  }, [actions, dataset]);
+  }, [user, actions, dataset, projectUrl]);
 
   if (dataset) {
     return (

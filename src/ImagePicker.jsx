@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector, shallowEqual } from 'react-redux';
+import { useSelector, shallowEqual } from 'react-redux';
 import PropTypes from 'prop-types';
 import Typography from '@material-ui/core/Typography';
 import Radio from '@material-ui/core/Radio';
@@ -7,20 +7,23 @@ import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
+import Select from '@material-ui/core/Select';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
 import { makeStyles } from '@material-ui/core/styles';
-import Matches from './ImagePicker/Matches';
-import MouseCoordinates from './ImagePicker/MouseCoordinates';
-import { addAlert } from './actions/alerts';
+import ByExampleResults from './ImagePicker/ByExampleResults';
+import TransferResults from './ImagePicker/TransferResults';
 
-const imageSliceUrlTemplate = 'https://tensorslice-bmcp5imp6q-uk.a.run.app/slice/<xyz>/256_256_1/jpeg?location=<location>';
-
-const initialCoordinates = []; // [18416, 16369, 26467];
+const initialCoordinates = [24646, 15685, 17376];
 
 const useStyles = makeStyles({
   window: {
     width: '100%',
     margin: 'auto',
     height: '500px',
+  },
+  header: {
+    margin: '1em',
   },
   matches: {
     margin: '1em',
@@ -31,52 +34,10 @@ const useStyles = makeStyles({
 export default function ImagePicker({ actions, datasets, selectedDatasetName, children }) {
   const dataset = datasets.filter((ds) => ds.name === selectedDatasetName)[0];
   const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
-  const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
-  const dispatch = useDispatch();
   const classes = useStyles();
   const [pickMode, setPickMode] = useState(0);
+  const [transferModel, setTransferModel] = useState(0);
   const [mousePosition, setMousePosition] = useState(initialCoordinates);
-  const [matches, setMatches] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    if (mousePosition && mousePosition.length > 0 && user && dataset && projectUrl) {
-      // clear the matches before loading the next set
-      setIsLoading(true);
-      setMatches([]);
-      const options = {
-        headers: {
-          Authorization: `Bearer ${user.getAuthResponse().id_token}`,
-        },
-      };
-
-      const roundedPosition = mousePosition.map((point) => Math.floor(point));
-
-      const signaturesUrl = `${projectUrl}/signatures/likelocation/${dataset.name}?x=${
-        roundedPosition[0]
-      }&y=${roundedPosition[1]}&z=${roundedPosition[2]}`;
-      fetch(signaturesUrl, options)
-        .then((result) => result.json())
-        .then((data) => {
-          if (data.matches) {
-            setMatches(data.matches);
-          }
-          if (data.messsage) {
-            dispatch(
-              addAlert({
-                message: data.messsage,
-                duration: 3000,
-              }),
-            );
-          }
-          setIsLoading(false);
-        })
-        .catch((error) => {
-          setIsLoading(false);
-          console.error(error);
-        });
-    }
-  }, [mousePosition, dataset, projectUrl, user, dispatch]);
 
   useEffect(() => {
     if (dataset) {
@@ -94,6 +55,11 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
       };
 
       actions.initViewer({
+        dimensions: {
+          x: [4e-9, 'm'],
+          y: [4e-9, 'm'],
+          z: [4e-9, 'm'],
+        },
         position: initialCoordinates,
         layers,
         layout: 'xy',
@@ -104,6 +70,10 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
 
   const handleChange = (event) => {
     setPickMode(parseInt(event.target.value, 10));
+  };
+
+  const handleTransferChange = (event) => {
+    setTransferModel(event.target.value);
   };
 
   const callbacks = [
@@ -117,41 +87,91 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
     },
   ];
 
-  const childrenWithMoreProps = React.Children
-    .map(children, (child) => React.cloneElement(child, { callbacks }, null));
+  const childrenWithMoreProps = React.Children.map(
+    children,
+    (child) => React.cloneElement(child, { callbacks }, null),
+  );
 
-  let imageRootUrl = '';
+  let results = <p>Please select a dataset.</p>;
 
   if (dataset) {
-    imageRootUrl = imageSliceUrlTemplate.replace(
-      '<location>',
-      dataset.location.replace('gs://', ''),
+    if (pickMode === 0) {
+      results = (
+        <ByExampleResults
+          mousePosition={mousePosition}
+          projectUrl={projectUrl}
+          actions={actions}
+          dataset={dataset}
+        />
+      );
+    } else {
+      results = (
+        <TransferResults
+          model={dataset.transfer[transferModel]}
+          mousePosition={mousePosition}
+          dataset={dataset}
+          projectUrl={projectUrl}
+        />
+      );
+    }
+  }
+
+  let modelSelect = '';
+
+  if (pickMode === 1 && dataset && dataset.transfer) {
+    const modelSelectItems = dataset.transfer.map((model, i) => (
+      <MenuItem key={model} value={i}>
+        {model}
+      </MenuItem>
+    ));
+
+    modelSelect = (
+      <FormControl variant="outlined" className={classes.formControl}>
+        <InputLabel id="transfer-model-label">Model</InputLabel>
+        <Select
+          labelId="transfer-model-label"
+          id="transfer-model"
+          value={transferModel}
+          onChange={handleTransferChange}
+          label="Model"
+        >
+          {modelSelectItems}
+        </Select>
+      </FormControl>
     );
   }
 
   return (
     <div>
-      <Typography variant="h5">ImagePicker</Typography>
-      <FormControl component="fieldset">
-        <FormLabel component="legend">Pick Mode</FormLabel>
-        <RadioGroup
-          row
-          aria-label="pick_mode"
-          name="pick_mode"
-          value={pickMode}
-          onChange={handleChange}
-        >
-          <FormControlLabel value={0} control={<Radio />} label="Query by Example" />
-          <FormControlLabel value={1} control={<Radio />} label="Apply Transfer Network" />
-        </RadioGroup>
-      </FormControl>
-      <div className={classes.window}>{childrenWithMoreProps}</div>
-      <div className={classes.matches}>
-        <MouseCoordinates position={mousePosition} />
-        { isLoading ? 'Loading' : (
-          <Matches matches={matches} imageRootUrl={imageRootUrl} actions={actions} />
+      <div className={classes.header}>
+        <Typography variant="h5">ImagePicker</Typography>
+        {dataset && dataset.transfer && (
+          <FormControl component="fieldset">
+            <FormLabel component="legend">Pick Mode</FormLabel>
+            <RadioGroup
+              row
+              aria-label="pick_mode"
+              name="pick_mode"
+              value={pickMode}
+              onChange={handleChange}
+            >
+              <FormControlLabel
+                value={0}
+                control={<Radio color="primary" />}
+                label="Query by Example"
+              />
+              <FormControlLabel
+                value={1}
+                control={<Radio color="primary" />}
+                label="Apply Transfer Network"
+              />
+            </RadioGroup>
+          </FormControl>
         )}
+        {modelSelect}
       </div>
+      <div className={classes.window}>{childrenWithMoreProps}</div>
+      <div className={classes.matches}>{results}</div>
     </div>
   );
 }

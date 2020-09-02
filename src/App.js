@@ -87,6 +87,11 @@ const theme = createMuiTheme({
         fontSize: 12,
       },
     },
+    MuiPagination: {
+      root: {
+        display: 'inline-block',
+      },
+    },
   },
 });
 
