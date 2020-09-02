@@ -28,8 +28,10 @@ export default function AnnotationsList({ selected, onChange, filterBy }) {
   const classes = useStyles();
 
   useEffect(() => {
+    // TODO: load the annotations from an end point
+    // sort them so that the newest ones are first in the list.
+    // (will there be a date added field?)
     setAnnotations([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
-    console.info('loading the annotations list');
   }, []);
 
   const handleClick = (name) => {
@@ -43,6 +45,9 @@ export default function AnnotationsList({ selected, onChange, filterBy }) {
 
   let filteredAnnotations = annotations;
   if (filterBy) {
+    // TODO: improve the regex creation so that people can use the filter
+    // box in the same way they would expect it to work. This could generate
+    // a lot of errors, so need to wrap in an ErrorBoundary.
     const re = new RegExp(filterBy, 'g');
     filteredAnnotations = annotations.filter((annotation) => re.test(annotation));
     console.log(`filter annotations by ${filterBy}`);
