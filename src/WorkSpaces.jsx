@@ -37,6 +37,7 @@ const ImagePicker = lazy(() => import('./ImagePicker'));
 const FocusedProofreading = lazy(() => import('./FocusedProofreading'));
 const MitoCount = lazy(() => import('./MitoCount'));
 const Clio = lazy(() => import('./Clio'));
+const Atlas = lazy(() => import('./Atlas'));
 
 function WorkSpaces(props) {
   const match = useRouteMatch('/ws/:ws');
@@ -66,6 +67,9 @@ function WorkSpaces(props) {
       break;
     case 'clio':
       RenderedComponent = Clio;
+      break;
+    case 'atlas':
+      RenderedComponent = Atlas;
       break;
     default:
       RenderedComponent = ImagePicker;

@@ -94,11 +94,12 @@ function Navbar({ history, datasets, selectedDatasetName, setSelectedDataset }) 
   };
 
   const workspaceOptions = [
-    'neuroglancer',
+    'clio',
     'image picker',
     'focused proofreading',
     'mitochondria count',
-    'clio',
+    'atlas',
+    'neuroglancer',
   ].map((dataset) => ({
     value: `ws/${dataset.replace(/ /, '_')}`,
     label: dataset,
