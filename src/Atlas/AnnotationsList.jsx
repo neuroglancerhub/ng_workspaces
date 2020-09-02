@@ -48,7 +48,7 @@ export default function AnnotationsList({ selected, onChange, filterBy }) {
     // TODO: improve the regex creation so that people can use the filter
     // box in the same way they would expect it to work. This could generate
     // a lot of errors, so need to wrap in an ErrorBoundary.
-    const re = new RegExp(filterBy, 'g');
+    const re = new RegExp(filterBy);
     filteredAnnotations = annotations.filter((annotation) => re.test(annotation));
     console.log(`filter annotations by ${filterBy}`);
   }
