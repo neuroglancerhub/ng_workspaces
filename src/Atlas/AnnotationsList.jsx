@@ -10,11 +10,6 @@ import CardMedia from '@material-ui/core/CardMedia';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 
-import Paper from '@material-ui/core/Paper';
-import InputBase from '@material-ui/core/InputBase';
-import IconButton from '@material-ui/core/IconButton';
-import SearchIcon from '@material-ui/icons/Search';
-
 import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles((theme) => ({
@@ -23,24 +18,11 @@ const useStyles = makeStyles((theme) => ({
     borderColor: theme.palette.primary.main,
     background: 'rgba(143, 170, 143, 0.3)',
   },
-  filterRoot: {
-    padding: '2px 4px',
-    display: 'flex',
-    alignItems: 'center',
-    width: 400,
-  },
-  filterInput: {
-    marginLeft: theme.spacing(1),
-    flex: 1,
-  },
-  iconButton: {
-    padding: 10,
-  },
 }));
 
 const annotationsPerPage = 4;
 
-export default function AnnotationsList({ selected, onChange }) {
+export default function AnnotationsList({ selected, onChange, filterBy }) {
   const [annotations, setAnnotations] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const classes = useStyles();
@@ -50,8 +32,6 @@ export default function AnnotationsList({ selected, onChange }) {
     console.info('loading the annotations list');
   }, []);
 
-  console.log(annotations);
-
   const handleClick = (name) => {
     onChange(name);
   };
@@ -60,9 +40,16 @@ export default function AnnotationsList({ selected, onChange }) {
     setCurrentPage(page);
   };
 
-  const pages = Math.ceil(annotations.length / annotationsPerPage);
 
-  const paginatedAnnotations = annotations.slice(
+  let filteredAnnotations = annotations;
+  if (filterBy) {
+    const re = new RegExp(filterBy, 'g');
+    filteredAnnotations = annotations.filter((annotation) => re.test(annotation));
+    console.log(`filter annotations by ${filterBy}`);
+  }
+
+  const pages = Math.ceil(filteredAnnotations.length / annotationsPerPage);
+  const paginatedAnnotations = filteredAnnotations.slice(
     currentPage * annotationsPerPage - annotationsPerPage,
     currentPage * annotationsPerPage,
   );
@@ -104,16 +91,6 @@ export default function AnnotationsList({ selected, onChange }) {
 
   return (
     <>
-      <Paper component="form" className={classes.filterRoot}>
-        <InputBase
-          className={classes.filterInput}
-          placeholder="Filter Annotations"
-          inputProps={{ 'aria-label': 'filter annotations' }}
-        />
-        <IconButton type="button" className={classes.iconButton} aria-label="search">
-          <SearchIcon />
-        </IconButton>
-      </Paper>
       <Pagination count={pages} page={currentPage} onChange={handlePageChange} size="small" />
       <Grid container spacing={3}>
         {annotationSelections}
@@ -125,4 +102,9 @@ export default function AnnotationsList({ selected, onChange }) {
 AnnotationsList.propTypes = {
   selected: PropTypes.number.isRequired,
   onChange: PropTypes.func.isRequired,
+  filterBy: PropTypes.string,
+};
+
+AnnotationsList.defaultProps = {
+  filterBy: null,
 };

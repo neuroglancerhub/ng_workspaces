@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
+import Grid from '@material-ui/core/Grid';
 import AnnotationsList from './Atlas/AnnotationsList';
+import AnnotationsFilter from './Atlas/AnnotationsFilter';
 
 const useStyles = makeStyles({
   window: {
@@ -15,6 +17,10 @@ const useStyles = makeStyles({
   },
   header: {
     margin: '1em',
+    flexGrow: 1,
+  },
+  list: {
+    marginTop: '1em',
   },
 });
 
@@ -22,6 +28,7 @@ export default function Atlas({ children, actions, datasets }) {
   const classes = useStyles();
 
   const [selected, setSelected] = useState(null);
+  const [filterTerm, setFilterTerm] = useState(null);
 
   console.log(actions, datasets);
 
@@ -35,8 +42,18 @@ export default function Atlas({ children, actions, datasets }) {
   return (
     <div>
       <div className={classes.header}>
-        <Typography variant="h5">EM Atlas</Typography>
-        <AnnotationsList selected={selected} onChange={setSelected} />
+        <Grid container spacing={0}>
+          <Grid item xs={12} sm={2}>
+            <Typography variant="h5">EM Atlas</Typography>
+          </Grid>
+          <Grid item xs={12} sm={8}>
+            <AnnotationsFilter onChange={setFilterTerm} />
+          </Grid>
+          <Grid item xs={12} sm={2} />
+          <Grid item xs={12} className={classes.list}>
+            <AnnotationsList selected={selected} onChange={setSelected} filterBy={filterTerm} />
+          </Grid>
+        </Grid>
       </div>
       {selected && (
         <>
