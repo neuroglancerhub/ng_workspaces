@@ -72,6 +72,8 @@ export default function TransferResults({
     }
   }, [dataset, mousePosition, projectUrl, user, model]);
 
+  // TODO: make this look nice, like the other interfaces, using the
+  // card component.
   const linksList = resultLinks.map((link) => (
     <li key={link.addr}>
       <MouseCoordinates position={link.coordinates} />
