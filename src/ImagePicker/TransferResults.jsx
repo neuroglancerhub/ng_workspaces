@@ -2,6 +2,14 @@ import React, { useEffect, useState, useReducer } from 'react';
 import PropTypes from 'prop-types';
 import { useSelector, shallowEqual } from 'react-redux';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import Grid from '@material-ui/core/Grid';
+import Card from '@material-ui/core/Card';
+import CardActionArea from '@material-ui/core/CardActionArea';
+import CardActions from '@material-ui/core/CardActions';
+import CardContent from '@material-ui/core/CardContent';
+import CardMedia from '@material-ui/core/CardMedia';
+import Button from '@material-ui/core/Button';
+import Typography from '@material-ui/core/Typography';
 
 import MouseCoordinates from './MouseCoordinates';
 
@@ -11,11 +19,13 @@ const noMatches = (
     <p>No matches found</p>
     <p>
       To locate matches use neuroglancer to navigate to a region of interest and
-      <span className="kbd">{keyboardText}</span>+ &apos;click&apos; on the point you are
-      interested in.
+      <span className="kbd">{keyboardText}</span>+ &apos;click&apos; on the point you are interested
+      in.
     </p>
   </div>
 );
+
+const imageSliceUrlTemplate = 'https://tensorslice-bmcp5imp6q-uk.a.run.app/slice/<xyz>/256_256_1/jpeg?location=<location>';
 
 export default function TransferResults({
   mousePosition,
@@ -72,21 +82,76 @@ export default function TransferResults({
     }
   }, [dataset, mousePosition, projectUrl, user, model]);
 
-  // TODO: make this look nice, like the other interfaces, using the
-  // card component.
-  const linksList = resultLinks.map((link) => (
-    <li key={link.addr}>
-      <MouseCoordinates position={link.coordinates} />
-      <a href={link.addr}>View in Neuroglancer</a>
-    </li>
-  ));
+  let imageRootUrl = '';
+
+  if (dataset) {
+    imageRootUrl = imageSliceUrlTemplate.replace(
+      '<location>',
+      dataset.location.replace('gs://', ''),
+    );
+  }
+
+  const linksList = resultLinks.map((link) => {
+    const { coordinates: coords } = link;
+    const xyzString = `${coords[0] - 128}_${coords[1] - 128}_${coords[2]}`;
+    const imageUrl = imageRootUrl.replace('<xyz>', xyzString);
+    return (
+      <Grid item xs={12} md={3} key={link.addr}>
+        <Card raised>
+          <CardActionArea
+            href={link.addr}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <CardMedia
+              component="img"
+              alt="transfer preview"
+              height="256"
+              image={imageUrl}
+              title="transfer preview"
+            />
+            <CardContent>
+              <MouseCoordinates position={coords} />
+            </CardContent>
+          </CardActionArea>
+          <CardActions>
+            <Button
+              variant="outlined"
+              color="primary"
+              href={link.addr}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              View in Neuroglancer
+            </Button>
+          </CardActions>
+        </Card>
+      </Grid>
+    );
+  });
+
+  const loadingList = [];
+  for (let i = 0; i < isLoading; i += 1) {
+    const loadingCard = (
+      <Grid item xs={12} md={3} key={i}>
+        <Card raised style={{ minHeight: '350px' }}>
+          <CardContent style={{ textAlign: 'center', paddingTop: '150px' }}>
+            <CircularProgress />
+          </CardContent>
+        </Card>
+      </Grid>
+    );
+    loadingList.push(loadingCard);
+  }
 
   return (
     <div>
-      <p>Transfer Results</p>
+      <Typography variant="h6">Transfer Results</Typography>
       {isLoading === 0 && linksList.length === 0 && noMatches}
-      {isLoading > 0 && <CircularProgress />}
-      <ul>{linksList}</ul>
+      <Grid container spacing={3}>
+        {loadingList}
+        {linksList}
+      </Grid>
     </div>
   );
 }
