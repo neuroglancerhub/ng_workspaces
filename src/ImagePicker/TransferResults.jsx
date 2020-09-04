@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useReducer } from 'react';
+import React, { useEffect, useReducer } from 'react';
 import PropTypes from 'prop-types';
 import { useSelector, shallowEqual } from 'react-redux';
 import CircularProgress from '@material-ui/core/CircularProgress';
@@ -34,15 +34,21 @@ export default function TransferResults({
   model,
 }) {
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
-  const [isLoading, setIsLoading] = useState(0);
   const [resultLinks, dispatch] = useReducer((searchList, { type, value }) => {
     switch (type) {
       case 'init':
         return value;
       case 'add':
         return [...searchList, value];
+      case 'update':
+        return searchList.map((search) => {
+          if (search.coords === value.coords) {
+            return value;
+          }
+          return search;
+        });
       case 'remove':
-        return searchList.filter((item) => item.id !== value);
+        return searchList.filter((item) => item.coords !== value);
       default:
         return searchList;
     }
@@ -52,7 +58,7 @@ export default function TransferResults({
     if (mousePosition && mousePosition.length > 0 && user && dataset && projectUrl) {
       const roundedPosition = mousePosition.map((point) => Math.floor(point));
 
-      setIsLoading((i) => i + 1);
+      dispatch({ type: 'add', value: { coords: roundedPosition, loading: true } });
 
       const options = {
         headers: {
@@ -72,12 +78,11 @@ export default function TransferResults({
         .then((result) => {
           if ('addr' in result) {
             const modifiedResult = {
-              coordinates: roundedPosition,
+              coords: roundedPosition,
               ...result,
             };
-            dispatch({ type: 'add', value: modifiedResult });
+            dispatch({ type: 'update', value: modifiedResult });
           }
-          setIsLoading((i) => i - 1);
         });
     }
   }, [dataset, mousePosition, projectUrl, user, model]);
@@ -92,16 +97,17 @@ export default function TransferResults({
   }
 
   const linksList = resultLinks.map((link) => {
-    const { coordinates: coords } = link;
+    const { coords } = link;
     const xyzString = `${coords[0] - 128}_${coords[1] - 128}_${coords[2]}`;
     const imageUrl = imageRootUrl.replace('<xyz>', xyzString);
     return (
-      <Grid item xs={12} md={3} key={link.addr}>
-        <Card raised>
+      <Grid item xs={12} md={3} key={link.coords}>
+        <Card raised={!link.loading}>
           <CardActionArea
             href={link.addr}
             target="_blank"
             rel="noopener noreferrer"
+            disabled={link.loading}
           >
             <CardMedia
               component="img"
@@ -119,7 +125,9 @@ export default function TransferResults({
               variant="outlined"
               color="primary"
               href={link.addr}
+              disabled={link.loading}
               target="_blank"
+              startIcon={link.loading && <CircularProgress size={18} />}
               rel="noopener noreferrer"
             >
               View in Neuroglancer
@@ -130,26 +138,13 @@ export default function TransferResults({
     );
   });
 
-  const loadingList = [];
-  for (let i = 0; i < isLoading; i += 1) {
-    const loadingCard = (
-      <Grid item xs={12} md={3} key={i}>
-        <Card raised style={{ minHeight: '350px' }}>
-          <CardContent style={{ textAlign: 'center', paddingTop: '150px' }}>
-            <CircularProgress />
-          </CardContent>
-        </Card>
-      </Grid>
-    );
-    loadingList.push(loadingCard);
-  }
+  const isLoading = Boolean(resultLinks.filter((item) => item.loading).length);
 
   return (
     <div>
       <Typography variant="h6">Transfer Results</Typography>
       {isLoading === 0 && linksList.length === 0 && noMatches}
       <Grid container spacing={3}>
-        {loadingList}
         {linksList}
       </Grid>
     </div>
