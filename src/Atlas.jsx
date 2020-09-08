@@ -5,6 +5,7 @@ import { useSelector, shallowEqual } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
+import Button from '@material-ui/core/Button';
 import AnnotationsList from './Atlas/AnnotationsList';
 import AnnotationsFilter from './Atlas/AnnotationsFilter';
 
@@ -96,7 +97,12 @@ export default function Atlas(props) {
       </div>
       {selectedAnnotation && (
         <>
-          <p>Showing details for annotation {selectedAnnotation.title} in neuroglancer</p>
+          <p>
+            Showing details for annotation {selectedAnnotation.title} in neuroglancer{' '}
+            <Button variant="contained" color="primary" onClick={() => setSelected(null)}>
+              Clear Selection
+            </Button>
+          </p>
           <div className={classes.window}>{children}</div>
         </>
       )}
