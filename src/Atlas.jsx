@@ -67,6 +67,7 @@ export default function Atlas(props) {
           z: [4e-9, 'm'],
         },
         position: selectedAnnotation.location,
+        crossSectionScale: 2,
         layers,
         layout: 'xy',
         showSlices: true,
