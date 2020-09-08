@@ -11,9 +11,9 @@ import AnnotationsFilter from './Atlas/AnnotationsFilter';
 
 const useStyles = makeStyles({
   window: {
-    width: '100%',
-    margin: 'auto',
-    height: '500px',
+    display: 'flex',
+    flexFlow: 'column',
+    height: '100%',
   },
   matches: {
     margin: '1em',
@@ -24,6 +24,11 @@ const useStyles = makeStyles({
   },
   list: {
     marginTop: '1em',
+  },
+  expand: {
+    display: 'flex',
+    flexFlow: 'column',
+    height: '100%',
   },
 });
 
@@ -76,7 +81,7 @@ export default function Atlas(props) {
   }, [actions, selectedAnnotation, projectUrl, dsLookup]);
 
   return (
-    <div>
+    <div className={classes.expand}>
       <div className={classes.header}>
         <Grid container spacing={0}>
           <Grid item xs={12} sm={2}>
