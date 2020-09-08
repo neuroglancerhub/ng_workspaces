@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
+import { useSelector, shallowEqual } from 'react-redux';
+
 import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
@@ -24,20 +26,52 @@ const useStyles = makeStyles({
   },
 });
 
-export default function Atlas({ children, actions, datasets }) {
+export default function Atlas(props) {
+  const { children, actions, datasets } = props;
   const classes = useStyles();
 
-  const [selected, setSelected] = useState(null);
+  const [selectedAnnotation, setSelected] = useState(null);
   const [filterTerm, setFilterTerm] = useState(null);
-
-  console.log(actions, datasets);
+  const [dsLookup, setDsLookup] = useState({});
 
   useEffect(() => {
-    if (selected) {
-      // TODO: fetch the annotation information and display it in neuroglancer
-      console.log(`fetching ${selected}`);
+    const datasetLookup = {};
+    datasets.forEach((dataset) => {
+      datasetLookup[dataset.name] = dataset;
+    });
+    setDsLookup(datasetLookup);
+  }, [datasets]);
+
+  const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
+
+  useEffect(() => {
+    if (selectedAnnotation) {
+      const selectedDataset = dsLookup[selectedAnnotation.dataset];
+      const annotationsUrl = projectUrl.replace(/\/clio_toplevel$/, '');
+      const layers = {
+        [selectedDataset.name]: {
+          type: 'image',
+          source: `precomputed://${selectedDataset.location}`,
+        },
+        annotations: {
+          type: 'annotation',
+          source: `clio://${annotationsUrl}/${selectedDataset.name}?auth=neurohub`,
+        },
+      };
+
+      actions.initViewer({
+        dimensions: {
+          x: [4e-9, 'm'],
+          y: [4e-9, 'm'],
+          z: [4e-9, 'm'],
+        },
+        position: selectedAnnotation.location,
+        layers,
+        layout: 'xy',
+        showSlices: true,
+      });
     }
-  }, [selected]);
+  }, [actions, selectedAnnotation, projectUrl, dsLookup]);
 
   return (
     <div>
@@ -51,13 +85,18 @@ export default function Atlas({ children, actions, datasets }) {
           </Grid>
           <Grid item xs={12} sm={2} />
           <Grid item xs={12} className={classes.list}>
-            <AnnotationsList selected={selected} onChange={setSelected} filterBy={filterTerm} />
+            <AnnotationsList
+              selected={selectedAnnotation ? selectedAnnotation.title : ''}
+              onChange={setSelected}
+              filterBy={filterTerm}
+              datasets={dsLookup}
+            />
           </Grid>
         </Grid>
       </div>
-      {selected && (
+      {selectedAnnotation && (
         <>
-          <p>Showing details for annotation {selected} in the neuroglancer window</p>
+          <p>Showing details for annotation {selectedAnnotation.title} in neuroglancer</p>
           <div className={classes.window}>{children}</div>
         </>
       )}
