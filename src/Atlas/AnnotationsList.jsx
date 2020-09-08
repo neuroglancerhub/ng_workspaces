@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import { useSelector, shallowEqual } from 'react-redux';
 import Grid from '@material-ui/core/Grid';
 import Pagination from '@material-ui/lab/Pagination';
 import Card from '@material-ui/core/Card';
@@ -20,21 +21,42 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function AnnotationsList({ selected, onChange, filterBy }) {
+const imageSliceUrlTemplate = 'https://tensorslice-bmcp5imp6q-uk.a.run.app/slice/<xyz>/256_256_1/jpeg?location=<location>';
+
+export default function AnnotationsList({
+  selected,
+  onChange,
+  filterBy,
+  datasets,
+}) {
   const [annotations, setAnnotations] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const classes = useStyles();
+  const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
+  const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
 
   const annotationsPerPage = selected ? 4 : 12;
   useEffect(() => {
-    // TODO: load the annotations from an end point
-    // sort them so that the newest ones are first in the list.
-    // (will there be a date added field?)
-    setAnnotations([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
-  }, []);
+    // load the annotations from an end point
+    if (projectUrl) {
+      const annotationsUrl = `${projectUrl}/atlas/all`;
 
-  const handleClick = (name) => {
-    onChange(name);
+      const options = {
+        headers: {
+          Authorization: `Bearer ${user.getAuthResponse().id_token}`,
+        },
+      };
+
+      fetch(annotationsUrl, options)
+        .then((result) => result.json())
+        .then((data) => {
+          setAnnotations(data);
+        });
+    }
+  }, [projectUrl, user]);
+
+  const handleClick = (annotation) => {
+    onChange(annotation);
   };
 
   const handlePageChange = (event, page) => {
@@ -47,8 +69,7 @@ export default function AnnotationsList({ selected, onChange, filterBy }) {
     // box in the same way they would expect it to work. This could generate
     // a lot of errors, so need to wrap in an ErrorBoundary.
     const re = new RegExp(filterBy);
-    filteredAnnotations = annotations.filter((annotation) => re.test(annotation));
-    console.log(`filter annotations by ${filterBy}`);
+    filteredAnnotations = annotations.filter((annotation) => re.test(annotation.title));
   }
 
   const pages = Math.ceil(filteredAnnotations.length / annotationsPerPage);
@@ -57,40 +78,60 @@ export default function AnnotationsList({ selected, onChange, filterBy }) {
     currentPage * annotationsPerPage,
   );
 
-  const annotationSelections = paginatedAnnotations.map((annotation) => {
-    const name = annotation;
-    return (
-      <Grid key={name} item xs={12} sm={3}>
-        <Card raised={selected === name} className={selected === name ? classes.selected : ''}>
-          <CardActionArea onClick={() => handleClick(name)}>
-            <CardMedia
-              component="img"
-              alt="Contemplative Reptile"
-              height="128"
-              image="https://tensorslice-bmcp5imp6q-uk.a.run.app/slice/24344_16024_16728/256_128_1/jpeg?location=clio_mb20_raw_ng_r2_oldalign_7f8fc04a0929_v3/neuroglancer/jpeg"
-              title="Contemplative Reptile"
-            />
-            <CardContent>
-              <Typography gutterBottom variant="h5" component="h2">
-                Annotation {name}
-              </Typography>
-              <Typography variant="body2" color="textSecondary" component="p">
-                Description text goes here.
-              </Typography>
-              <Typography variant="body2" color="textSecondary" component="p">
-                Data set.
-              </Typography>
-            </CardContent>
-          </CardActionArea>
-          <CardActions>
-            <Button size="small" color="primary" onClick={() => handleClick(name)}>
-              View
-            </Button>
-          </CardActions>
-        </Card>
-      </Grid>
-    );
-  });
+  const annotationSelections = paginatedAnnotations
+    // sort them so that the newest ones are first in the list.
+    .sort((a, b) => b.timestamp - a.timestamp)
+    .map((annotation) => {
+      const {
+        title: name,
+        dataset: dataSet,
+        description,
+        timestamp,
+        location,
+      } = annotation;
+
+      let thumbnailUrl = '';
+      const selectedDataSet = datasets[dataSet] || {};
+      if (selectedDataSet && 'location' in selectedDataSet) {
+        const datasetLocation = selectedDataSet.location.replace('gs://', '');
+        const xyzString = `${location[0] - 128}_${location[1] - 128}_${location[2]}`;
+
+        thumbnailUrl = imageSliceUrlTemplate.replace('<location>', datasetLocation).replace('<xyz>', xyzString);
+      }
+
+      const key = `${name}_${timestamp}`;
+      return (
+        <Grid key={key} item xs={12} sm={3}>
+          <Card raised={selected === name} className={selected === name ? classes.selected : ''}>
+            <CardActionArea onClick={() => handleClick(annotation)}>
+              <CardMedia
+                component="img"
+                alt="x y slice around annotation"
+                height="256"
+                image={thumbnailUrl}
+                title="x y slice around annotation"
+              />
+              <CardContent>
+                <Typography gutterBottom variant="h5" component="h2">
+                  {name}
+                </Typography>
+                <Typography variant="body2" color="textSecondary" component="p">
+                  {description || 'No description provided'}
+                </Typography>
+                <Typography variant="body2" color="textSecondary" component="p">
+                  Dataset: {selectedDataSet.description}
+                </Typography>
+              </CardContent>
+            </CardActionArea>
+            <CardActions>
+              <Button size="small" color="primary" onClick={() => handleClick(annotation)}>
+                View
+              </Button>
+            </CardActions>
+          </Card>
+        </Grid>
+      );
+    });
 
   return (
     <>
@@ -103,9 +144,10 @@ export default function AnnotationsList({ selected, onChange, filterBy }) {
 }
 
 AnnotationsList.propTypes = {
-  selected: PropTypes.number.isRequired,
+  selected: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
   filterBy: PropTypes.string,
+  datasets: PropTypes.object.isRequired,
 };
 
 AnnotationsList.defaultProps = {
