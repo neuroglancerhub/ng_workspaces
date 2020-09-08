@@ -14,7 +14,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import ByExampleResults from './ImagePicker/ByExampleResults';
 import TransferResults from './ImagePicker/TransferResults';
 
-const initialCoordinates = [24646, 15685, 17376];
+const initialCoordinates = []; // [24646, 15685, 17376];
 
 const useStyles = makeStyles({
   window: {

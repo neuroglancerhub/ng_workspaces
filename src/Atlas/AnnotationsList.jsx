@@ -20,13 +20,12 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const annotationsPerPage = 4;
-
 export default function AnnotationsList({ selected, onChange, filterBy }) {
   const [annotations, setAnnotations] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const classes = useStyles();
 
+  const annotationsPerPage = selected ? 4 : 12;
   useEffect(() => {
     // TODO: load the annotations from an end point
     // sort them so that the newest ones are first in the list.
@@ -41,7 +40,6 @@ export default function AnnotationsList({ selected, onChange, filterBy }) {
   const handlePageChange = (event, page) => {
     setCurrentPage(page);
   };
-
 
   let filteredAnnotations = annotations;
   if (filterBy) {
@@ -68,7 +66,7 @@ export default function AnnotationsList({ selected, onChange, filterBy }) {
             <CardMedia
               component="img"
               alt="Contemplative Reptile"
-              height="140"
+              height="128"
               image="https://tensorslice-bmcp5imp6q-uk.a.run.app/slice/24344_16024_16728/256_128_1/jpeg?location=clio_mb20_raw_ng_r2_oldalign_7f8fc04a0929_v3/neuroglancer/jpeg"
               title="Contemplative Reptile"
             />
