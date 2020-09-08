@@ -88,7 +88,7 @@ export default function Atlas(props) {
           <Grid item xs={12} sm={2} />
           <Grid item xs={12} className={classes.list}>
             <AnnotationsList
-              selected={selectedAnnotation ? selectedAnnotation.title : ''}
+              selected={selectedAnnotation || {}}
               onChange={setSelected}
               filterBy={filterTerm}
               datasets={dsLookup}
