@@ -5,14 +5,15 @@ import { useSelector, shallowEqual } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
+import Button from '@material-ui/core/Button';
 import AnnotationsList from './Atlas/AnnotationsList';
 import AnnotationsFilter from './Atlas/AnnotationsFilter';
 
 const useStyles = makeStyles({
   window: {
-    width: '100%',
-    margin: 'auto',
-    height: '500px',
+    display: 'flex',
+    flexFlow: 'column',
+    height: '100%',
   },
   matches: {
     margin: '1em',
@@ -23,6 +24,11 @@ const useStyles = makeStyles({
   },
   list: {
     marginTop: '1em',
+  },
+  expand: {
+    display: 'flex',
+    flexFlow: 'column',
+    height: '100%',
   },
 });
 
@@ -66,6 +72,7 @@ export default function Atlas(props) {
           z: [4e-9, 'm'],
         },
         position: selectedAnnotation.location,
+        crossSectionScale: 2,
         layers,
         layout: 'xy',
         showSlices: true,
@@ -74,7 +81,7 @@ export default function Atlas(props) {
   }, [actions, selectedAnnotation, projectUrl, dsLookup]);
 
   return (
-    <div>
+    <div className={classes.expand}>
       <div className={classes.header}>
         <Grid container spacing={0}>
           <Grid item xs={12} sm={2}>
@@ -86,7 +93,7 @@ export default function Atlas(props) {
           <Grid item xs={12} sm={2} />
           <Grid item xs={12} className={classes.list}>
             <AnnotationsList
-              selected={selectedAnnotation ? selectedAnnotation.title : ''}
+              selected={selectedAnnotation || {}}
               onChange={setSelected}
               filterBy={filterTerm}
               datasets={dsLookup}
@@ -96,7 +103,12 @@ export default function Atlas(props) {
       </div>
       {selectedAnnotation && (
         <>
-          <p>Showing details for annotation {selectedAnnotation.title} in neuroglancer</p>
+          <p>
+            Showing details for annotation {selectedAnnotation.title} in neuroglancer{' '}
+            <Button variant="contained" color="primary" onClick={() => setSelected(null)}>
+              Clear Selection
+            </Button>
+          </p>
           <div className={classes.window}>{children}</div>
         </>
       )}

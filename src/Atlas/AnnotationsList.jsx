@@ -10,6 +10,7 @@ import CardContent from '@material-ui/core/CardContent';
 import CardMedia from '@material-ui/core/CardMedia';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -31,14 +32,16 @@ export default function AnnotationsList({
 }) {
   const [annotations, setAnnotations] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isLoading, setLoading] = useState(false);
   const classes = useStyles();
   const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
 
-  const annotationsPerPage = selected ? 4 : 12;
+  const annotationsPerPage = 'title' in selected ? 4 : 12;
   useEffect(() => {
     // load the annotations from an end point
     if (projectUrl) {
+      setLoading(true);
       const annotationsUrl = `${projectUrl}/atlas/all`;
 
       const options = {
@@ -50,7 +53,10 @@ export default function AnnotationsList({
       fetch(annotationsUrl, options)
         .then((result) => result.json())
         .then((data) => {
-          setAnnotations(data);
+          // sort them so that the newest ones are first in the list.
+          const sorted = data.sort((a, b) => b.timestamp - a.timestamp);
+          setAnnotations(sorted);
+          setLoading(false);
         });
     }
   }, [projectUrl, user]);
@@ -62,6 +68,10 @@ export default function AnnotationsList({
   const handlePageChange = (event, page) => {
     setCurrentPage(page);
   };
+
+  if (isLoading) {
+    return <CircularProgress />;
+  }
 
   let filteredAnnotations = annotations;
   if (filterBy) {
@@ -79,8 +89,6 @@ export default function AnnotationsList({
   );
 
   const annotationSelections = paginatedAnnotations
-    // sort them so that the newest ones are first in the list.
-    .sort((a, b) => b.timestamp - a.timestamp)
     .map((annotation) => {
       const {
         title: name,
@@ -100,9 +108,12 @@ export default function AnnotationsList({
       }
 
       const key = `${name}_${timestamp}`;
+
+      const isSelected = key === `${selected.title}_${selected.timestamp}`;
+
       return (
         <Grid key={key} item xs={12} sm={3}>
-          <Card raised={selected === name} className={selected === name ? classes.selected : ''}>
+          <Card raised={isSelected} className={isSelected ? classes.selected : ''}>
             <CardActionArea onClick={() => handleClick(annotation)}>
               <CardMedia
                 component="img"
@@ -144,7 +155,7 @@ export default function AnnotationsList({
 }
 
 AnnotationsList.propTypes = {
-  selected: PropTypes.string.isRequired,
+  selected: PropTypes.object.isRequired,
   onChange: PropTypes.func.isRequired,
   filterBy: PropTypes.string,
   datasets: PropTypes.object.isRequired,
