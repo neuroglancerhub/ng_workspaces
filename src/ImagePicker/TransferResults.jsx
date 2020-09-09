@@ -96,7 +96,7 @@ export default function TransferResults({
     );
   }
 
-  const linksList = resultLinks.map((link) => {
+  const linksList = resultLinks.reverse().map((link) => {
     const { coords } = link;
     const xyzString = `${coords[0] - 128}_${coords[1] - 128}_${coords[2]}`;
     const imageUrl = imageRootUrl.replace('<xyz>', xyzString);
