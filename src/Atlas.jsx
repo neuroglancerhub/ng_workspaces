@@ -61,7 +61,7 @@ export default function Atlas(props) {
         },
         annotations: {
           type: 'annotation',
-          source: `clio://${annotationsUrl}/${selectedDataset.name}?auth=neurohub`,
+          source: `clio://${annotationsUrl}/${selectedDataset.name}?auth=neurohub&kind=atlas`,
         },
       };
 
