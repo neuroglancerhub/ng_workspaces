@@ -60,7 +60,7 @@ function Navbar({ history, datasets, selectedDatasetName, setSelectedDataset }) 
     if (!location.pathname.match(/^\/ws\//)) {
       setWorkspace(null);
     }
-    if (location.pathname.match(/clio|image_picker/)) {
+    if (location.pathname.match(/clio|image_search/)) {
       setShowDataset(true);
     } else {
       setShowDataset(false);
@@ -95,7 +95,7 @@ function Navbar({ history, datasets, selectedDatasetName, setSelectedDataset }) 
 
   const workspaceOptions = [
     'clio',
-    'image picker',
+    'image search',
     'focused proofreading',
     'mitochondria count',
     'atlas',
