@@ -40,6 +40,34 @@ export default function Atlas(props) {
   const [filterTerm, setFilterTerm] = useState('');
   const [dsLookup, setDsLookup] = useState({});
   const [showList, setShowList] = useState(true);
+  const [annotations, setAnnotations] = useState([]);
+  const [isLoading, setLoading] = useState(false);
+  const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
+  const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
+
+  useEffect(() => {
+    // load the annotations from an end point
+    if (projectUrl) {
+      setLoading(true);
+      const annotationsUrl = `${projectUrl}/atlas/all`;
+
+      const options = {
+        headers: {
+          Authorization: `Bearer ${user.getAuthResponse().id_token}`,
+        },
+      };
+
+      fetch(annotationsUrl, options)
+        .then((result) => result.json())
+        .then((data) => {
+          // sort them so that the newest ones are first in the list.
+          const sorted = data.sort((a, b) => b.timestamp - a.timestamp);
+          setAnnotations(sorted);
+          setLoading(false);
+        });
+    }
+  }, [projectUrl, user]);
+
 
   useEffect(() => {
     const datasetLookup = {};
@@ -48,8 +76,6 @@ export default function Atlas(props) {
     });
     setDsLookup(datasetLookup);
   }, [datasets]);
-
-  const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
 
   useEffect(() => {
     if (selectedAnnotation) {
@@ -101,6 +127,8 @@ export default function Atlas(props) {
               <Grid item xs={12} sm={2} />
               <Grid item xs={12} className={classes.list}>
                 <AnnotationsList
+                  annotations={annotations}
+                  loading={isLoading}
                   selected={selectedAnnotation || {}}
                   onChange={setSelected}
                   filterBy={filterTerm}

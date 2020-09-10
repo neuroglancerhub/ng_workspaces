@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { useSelector, shallowEqual } from 'react-redux';
 import Grid from '@material-ui/core/Grid';
 import Pagination from '@material-ui/lab/Pagination';
 import Card from '@material-ui/core/Card';
@@ -25,41 +24,17 @@ const useStyles = makeStyles((theme) => ({
 const imageSliceUrlTemplate = 'https://tensorslice-bmcp5imp6q-uk.a.run.app/slice/<xyz>/256_256_1/jpeg?location=<location>';
 
 export default function AnnotationsList({
+  annotations,
   selected,
   onChange,
   filterBy,
   datasets,
+  loading,
 }) {
-  const [annotations, setAnnotations] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [isLoading, setLoading] = useState(false);
   const classes = useStyles();
-  const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
-  const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
 
   const annotationsPerPage = 'title' in selected ? 4 : 12;
-  useEffect(() => {
-    // load the annotations from an end point
-    if (projectUrl) {
-      setLoading(true);
-      const annotationsUrl = `${projectUrl}/atlas/all`;
-
-      const options = {
-        headers: {
-          Authorization: `Bearer ${user.getAuthResponse().id_token}`,
-        },
-      };
-
-      fetch(annotationsUrl, options)
-        .then((result) => result.json())
-        .then((data) => {
-          // sort them so that the newest ones are first in the list.
-          const sorted = data.sort((a, b) => b.timestamp - a.timestamp);
-          setAnnotations(sorted);
-          setLoading(false);
-        });
-    }
-  }, [projectUrl, user]);
 
   const handleClick = (annotation) => {
     onChange(annotation);
@@ -69,7 +44,7 @@ export default function AnnotationsList({
     setCurrentPage(page);
   };
 
-  if (isLoading) {
+  if (loading) {
     return <CircularProgress />;
   }
 
@@ -159,6 +134,8 @@ AnnotationsList.propTypes = {
   onChange: PropTypes.func.isRequired,
   filterBy: PropTypes.string,
   datasets: PropTypes.object.isRequired,
+  annotations: PropTypes.arrayOf(PropTypes.object).isRequired,
+  loading: PropTypes.bool.isRequired,
 };
 
 AnnotationsList.defaultProps = {
