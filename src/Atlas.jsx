@@ -37,7 +37,7 @@ export default function Atlas(props) {
   const classes = useStyles();
 
   const [selectedAnnotation, setSelected] = useState(null);
-  const [filterTerm, setFilterTerm] = useState(null);
+  const [filterTerm, setFilterTerm] = useState('');
   const [dsLookup, setDsLookup] = useState({});
   const [showList, setShowList] = useState(true);
 
@@ -96,7 +96,7 @@ export default function Atlas(props) {
           {showList && (
             <>
               <Grid item xs={12} sm={8}>
-                <AnnotationsFilter onChange={setFilterTerm} />
+                <AnnotationsFilter term={filterTerm} onChange={setFilterTerm} />
               </Grid>
               <Grid item xs={12} sm={2} />
               <Grid item xs={12} className={classes.list}>
@@ -109,26 +109,27 @@ export default function Atlas(props) {
               </Grid>
             </>
           )}
+          {selectedAnnotation && (
+            <Grid item xs={12} sm={10}>
+              <p>
+                Showing details for annotation {selectedAnnotation.title} in neuroglancer{' '}
+                <Button variant="contained" color="primary" onClick={handleClearSelection}>
+                  Clear Selection
+                </Button>{' '}
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => setShowList((current) => !current)}
+                >
+                  Toggle Annotation List
+                </Button>
+              </p>
+            </Grid>
+          )}
         </Grid>
       </div>
-      {selectedAnnotation && (
-        <>
-          <p>
-            Showing details for annotation {selectedAnnotation.title} in neuroglancer{' '}
-            <Button variant="contained" color="primary" onClick={handleClearSelection}>
-              Clear Selection
-            </Button>{' '}
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => setShowList((current) => !current)}
-            >
-              Toggle Annotation List
-            </Button>
-          </p>
-          <div className={classes.window}>{children}</div>
-        </>
-      )}
+
+      {selectedAnnotation && <div className={classes.window}>{children}</div>}
     </div>
   );
 }
