@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import Paper from '@material-ui/core/Paper';
 import InputBase from '@material-ui/core/InputBase';
@@ -24,17 +24,15 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function AnnotationsFilter({ onChange }) {
+export default function AnnotationsFilter({ term, onChange }) {
   const classes = useStyles();
-  const [filterText, setFilterText] = useState('');
 
   const handleClick = (event) => {
     event.preventDefault();
-    onChange(filterText);
   };
 
   const handleChange = (event) => {
-    setFilterText(event.target.value);
+    onChange(event.target.value);
   };
 
   return (
@@ -44,7 +42,7 @@ export default function AnnotationsFilter({ onChange }) {
         placeholder="Filter Annotations"
         inputProps={{ 'aria-label': 'filter annotations' }}
         onChange={handleChange}
-        value={filterText}
+        value={term}
       />
       <IconButton
         type="button"
@@ -60,4 +58,5 @@ export default function AnnotationsFilter({ onChange }) {
 
 AnnotationsFilter.propTypes = {
   onChange: PropTypes.func.isRequired,
+  term: PropTypes.string.isRequired,
 };
