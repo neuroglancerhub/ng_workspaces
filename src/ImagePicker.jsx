@@ -144,7 +144,7 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
   return (
     <div>
       <div className={classes.header}>
-        <Typography variant="h5">ImagePicker</Typography>
+        <Typography variant="h5">Image Search</Typography>
         {dataset && dataset.transfer && (
           <FormControl component="fieldset">
             <FormLabel component="legend">Pick Mode</FormLabel>

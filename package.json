@@ -1,6 +1,6 @@
 {
   "name": "neurohub",
-  "version": "0.13.1",
+  "version": "0.13.2",
   "private": true,
   "dependencies": {
     "@babel/core": "7.4.3",
