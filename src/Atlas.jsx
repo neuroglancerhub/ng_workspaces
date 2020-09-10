@@ -39,6 +39,7 @@ export default function Atlas(props) {
   const [selectedAnnotation, setSelected] = useState(null);
   const [filterTerm, setFilterTerm] = useState(null);
   const [dsLookup, setDsLookup] = useState({});
+  const [showList, setShowList] = useState(true);
 
   useEffect(() => {
     const datasetLookup = {};
@@ -80,6 +81,11 @@ export default function Atlas(props) {
     }
   }, [actions, selectedAnnotation, projectUrl, dsLookup]);
 
+  const handleClearSelection = () => {
+    setSelected(null);
+    setShowList(true);
+  };
+
   return (
     <div className={classes.expand}>
       <div className={classes.header}>
@@ -87,26 +93,37 @@ export default function Atlas(props) {
           <Grid item xs={12} sm={2}>
             <Typography variant="h5">EM Atlas</Typography>
           </Grid>
-          <Grid item xs={12} sm={8}>
-            <AnnotationsFilter onChange={setFilterTerm} />
-          </Grid>
-          <Grid item xs={12} sm={2} />
-          <Grid item xs={12} className={classes.list}>
-            <AnnotationsList
-              selected={selectedAnnotation || {}}
-              onChange={setSelected}
-              filterBy={filterTerm}
-              datasets={dsLookup}
-            />
-          </Grid>
+          {showList && (
+            <>
+              <Grid item xs={12} sm={8}>
+                <AnnotationsFilter onChange={setFilterTerm} />
+              </Grid>
+              <Grid item xs={12} sm={2} />
+              <Grid item xs={12} className={classes.list}>
+                <AnnotationsList
+                  selected={selectedAnnotation || {}}
+                  onChange={setSelected}
+                  filterBy={filterTerm}
+                  datasets={dsLookup}
+                />
+              </Grid>
+            </>
+          )}
         </Grid>
       </div>
       {selectedAnnotation && (
         <>
           <p>
             Showing details for annotation {selectedAnnotation.title} in neuroglancer{' '}
-            <Button variant="contained" color="primary" onClick={() => setSelected(null)}>
+            <Button variant="contained" color="primary" onClick={handleClearSelection}>
               Clear Selection
+            </Button>{' '}
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => setShowList((current) => !current)}
+            >
+              Toggle Annotation List
             </Button>
           </p>
           <div className={classes.window}>{children}</div>
