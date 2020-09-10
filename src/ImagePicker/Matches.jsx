@@ -9,6 +9,7 @@ import CardActionArea from '@material-ui/core/CardActionArea';
 import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import CardMedia from '@material-ui/core/CardMedia';
+import { Alert } from '@material-ui/lab';
 
 import MouseCoordinates from './MouseCoordinates';
 import './Matches.css';
@@ -62,14 +63,11 @@ export default function Matches({ matches, imageRootUrl, actions }) {
   const keyboardText = navigator.appVersion.indexOf('Mac') ? 'option' : 'alt';
 
   const noMatches = (
-    <div>
-      <p>No matches found</p>
-      <p>
-        To locate matches use neuroglancer to navigate to a region of interest and
-        <span className="kbd">{keyboardText}</span>+ &apos;click&apos; on the point you are
-        interested in.
-      </p>
-    </div>
+    <Alert severity="info" style={{ width: '100%' }}>
+      No matches found - To locate matches use neuroglancer to navigate to a region
+      of interest and <span className="kbd">{keyboardText}</span>+ &apos;click&apos;
+      on the point you are interested in.
+    </Alert>
   );
 
   return (

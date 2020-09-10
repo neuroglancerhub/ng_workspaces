@@ -103,28 +103,29 @@ export default function ByExampleResults({
     );
   }
 
-
   return (
-    <>
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={4}>
-          Viewing Matches for
-          {' '}
-          <MouseCoordinates position={mousePosition} />
-        </Grid>
-        <Grid item xs={12} md={4} className={classes.matchText}>
-          {matchesText}
-        </Grid>
-        <Grid item xs={12} md={4} className={classes.pagination}>
-          <Pagination count={pages} page={currentPage} onChange={handlePageChange} size="small" />
-        </Grid>
-      </Grid>
-      {isLoading ? (
-        'Loading'
-      ) : (
-        <Matches matches={paginatedList} imageRootUrl={imageRootUrl} actions={actions} />
+    <Grid container spacing={3}>
+      {mousePosition && mousePosition.length > 0 && (
+        <>
+          <Grid item xs={12} md={4}>
+            Viewing Matches for <MouseCoordinates position={mousePosition} />
+          </Grid>
+          <Grid item xs={12} md={4} className={classes.matchText}>
+            {matchesText}
+          </Grid>
+          <Grid item xs={12} md={4} className={classes.pagination}>
+            <Pagination count={pages} page={currentPage} onChange={handlePageChange} size="small" />
+          </Grid>
+        </>
       )}
-    </>
+      <Grid item xs={12}>
+        {isLoading ? (
+          'Loading'
+        ) : (
+          <Matches matches={paginatedList} imageRootUrl={imageRootUrl} actions={actions} />
+        )}
+      </Grid>
+    </Grid>
   );
 }
 
