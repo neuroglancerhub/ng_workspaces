@@ -92,18 +92,28 @@ export default function Atlas(props) {
         },
       };
 
-      actions.initViewer({
-        dimensions: {
-          x: [4e-9, 'm'],
-          y: [4e-9, 'm'],
-          z: [4e-9, 'm'],
-        },
+      const viewerOptions = {
         position: selectedAnnotation.location,
         crossSectionScale: 2,
         layers,
         layout: 'xy',
         showSlices: true,
-      });
+      };
+
+      // because the initViewer action makes some assumptions about the dimensions
+      // of the dataset, we have to check for the mb20 dataset and change the
+      // dimensions used. This should ideally be fixed in the initViewer action or
+      // the dimensions should be passed as part of the dataset object from the clio
+      // backend.
+      if (selectedDataset.name === 'mb20') {
+        viewerOptions.dimensions = {
+          x: [4e-9, 'm'],
+          y: [4e-9, 'm'],
+          z: [4e-9, 'm'],
+        };
+      }
+
+      actions.initViewer(viewerOptions);
     }
   }, [actions, selectedAnnotation, projectUrl, dsLookup]);
 

@@ -23,16 +23,25 @@ export default function Clio({ children, actions, datasets, selectedDatasetName 
         source: `precomputed://${dataset.location}`,
       };
 
-      actions.initViewer({
-        dimensions: {
-          x: [4e-9, 'm'],
-          y: [4e-9, 'm'],
-          z: [4e-9, 'm'],
-        },
+      const viewerOptions = {
         layers,
         layout: '4panel',
         showSlices: true,
-      });
+      };
+      // because the initViewer action makes some assumptions about the dimensions
+      // of the dataset, we have to check for the mb20 dataset and change the
+      // dimensions used. This should ideally be fixed in the initViewer action or
+      // the dimensions should be passed as part of the dataset object from the clio
+      // backend.
+      if (dataset.name === 'mb20') {
+        viewerOptions.dimensions = {
+          x: [4e-9, 'm'],
+          y: [4e-9, 'm'],
+          z: [4e-9, 'm'],
+        };
+      }
+
+      actions.initViewer(viewerOptions);
     }
   }, [user, actions, dataset, projectUrl]);
 
