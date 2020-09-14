@@ -81,16 +81,22 @@ export default function Atlas(props) {
     if (selectedAnnotation) {
       const selectedDataset = dsLookup[selectedAnnotation.dataset];
       const annotationsUrl = projectUrl.replace(/\/clio_toplevel$/, '');
-      const layers = {
-        [selectedDataset.name]: {
+      const layers = [
+        {
+          name: selectedDataset.name,
           type: 'image',
-          source: `precomputed://${selectedDataset.location}`,
+          source: {
+            url: `precomputed://${selectedDataset.location}`,
+          },
         },
-        annotations: {
+        {
+          name: 'annotations',
           type: 'annotation',
-          source: `clio://${annotationsUrl}/${selectedDataset.name}?auth=neurohub&kind=atlas`,
+          source: {
+            url: `clio://${annotationsUrl}/${selectedDataset.name}?auth=neurohub&kind=atlas`,
+          },
         },
-      };
+      ];
 
       if ('layers' in selectedDataset) {
         selectedDataset.layers.forEach((layer) => {
@@ -98,7 +104,7 @@ export default function Atlas(props) {
             name: layer.name,
             type: layer.type,
             source: {
-              url: layer.location,
+              url: `precomputed://${layer.location}`,
             },
           });
         });

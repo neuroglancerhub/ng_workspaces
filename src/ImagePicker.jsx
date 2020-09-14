@@ -43,16 +43,22 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
     if (dataset) {
       console.log('reloading neuroglancer');
       const annotationsUrl = projectUrl.replace(/\/clio_toplevel$/, '');
-      const layers = {
-        [dataset.name]: {
+      const layers = [
+        {
+          name: dataset.name,
           type: 'image',
-          source: `precomputed://${dataset.location}`,
+          source: {
+            url: `precomputed://${dataset.location}`,
+          },
         },
-        annotations: {
+        {
+          name: 'annotations',
           type: 'annotation',
-          source: `clio://${annotationsUrl}/${dataset.name}?auth=neurohub`,
+          source: {
+            url: `clio://${annotationsUrl}/${dataset.name}?auth=neurohub`,
+          },
         },
-      };
+      ];
 
       if ('layers' in dataset) {
         dataset.layers.forEach((layer) => {
@@ -60,7 +66,7 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
             name: layer.name,
             type: layer.type,
             source: {
-              url: layer.location,
+              url: `precomputed://${layer.location}`,
             },
           });
         });

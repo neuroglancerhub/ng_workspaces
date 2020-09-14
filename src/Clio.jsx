@@ -12,16 +12,22 @@ export default function Clio({ children, actions, datasets, selectedDatasetName 
   useEffect(() => {
     if (dataset && user) {
       const annotationsUrl = projectUrl.replace(/\/clio_toplevel$/, '');
-      const layers = {
-        annotations: {
-          type: 'annotation',
-          source: `clio://${annotationsUrl}/${dataset.name}?auth=neurohub`,
+      const layers = [
+        {
+          name: dataset.name,
+          type: 'image',
+          source: {
+            url: `precomputed://${dataset.location}`,
+          },
         },
-      };
-      layers[dataset.name] = {
-        type: 'image',
-        source: `precomputed://${dataset.location}`,
-      };
+        {
+          name: 'annotations',
+          type: 'annotation',
+          source: {
+            url: `clio://${annotationsUrl}/${dataset.name}?auth=neurohub`,
+          },
+        },
+      ];
 
       if ('layers' in dataset) {
         dataset.layers.forEach((layer) => {
@@ -29,7 +35,7 @@ export default function Clio({ children, actions, datasets, selectedDatasetName 
             name: layer.name,
             type: layer.type,
             source: {
-              url: layer.location,
+              url: `precomputed://${layer.location}`,
             },
           });
         });
