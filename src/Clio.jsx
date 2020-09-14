@@ -23,6 +23,18 @@ export default function Clio({ children, actions, datasets, selectedDatasetName 
         source: `precomputed://${dataset.location}`,
       };
 
+      if ('layers' in dataset) {
+        dataset.layers.forEach((layer) => {
+          layers.push({
+            name: layer.name,
+            type: layer.type,
+            source: {
+              url: layer.location,
+            },
+          });
+        });
+      }
+
       const viewerOptions = {
         layers,
         layout: '4panel',

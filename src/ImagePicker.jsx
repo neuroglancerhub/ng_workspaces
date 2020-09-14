@@ -54,6 +54,18 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
         },
       };
 
+      if ('layers' in dataset) {
+        dataset.layers.forEach((layer) => {
+          layers.push({
+            name: layer.name,
+            type: layer.type,
+            source: {
+              url: layer.location,
+            },
+          });
+        });
+      }
+
       const viewerOptions = {
         position: initialCoordinates,
         layers,
