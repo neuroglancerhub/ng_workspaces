@@ -97,10 +97,16 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
   }, [actions, dataset, projectUrl]);
 
   const handleChange = (event) => {
+    // make sure the mouse position gets cleared out so that we don't
+    // try to load the data at that point when switching pick modes
+    setMousePosition([]);
     setPickMode(parseInt(event.target.value, 10));
   };
 
   const handleTransferChange = (event) => {
+    // make sure the mouse position gets cleared out so that we don't
+    // try to load the data at that point when switching transfer models
+    setMousePosition([]);
     setTransferModel(event.target.value);
   };
 

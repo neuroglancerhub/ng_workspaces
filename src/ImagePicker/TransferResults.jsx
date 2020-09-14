@@ -58,7 +58,10 @@ export default function TransferResults({
     if (mousePosition && mousePosition.length > 0 && user && dataset && projectUrl) {
       const roundedPosition = mousePosition.map((point) => Math.floor(point));
 
-      dispatch({ type: 'add', value: { coords: roundedPosition, loading: true } });
+      dispatch({
+        type: 'add',
+        value: { coords: roundedPosition, model, loading: true },
+      });
 
       const options = {
         headers: {
@@ -96,7 +99,9 @@ export default function TransferResults({
     );
   }
 
-  const linksList = resultLinks.reverse().map((link) => {
+  // take a slice of the array before reversing it so that we don't change the
+  // stored value of resultLinks.
+  const linksList = resultLinks.slice().reverse().map((link) => {
     const { coords } = link;
     const xyzString = `${coords[0] - 128}_${coords[1] - 128}_${coords[2]}`;
     const imageUrl = imageRootUrl.replace('<xyz>', xyzString);
@@ -118,6 +123,9 @@ export default function TransferResults({
             />
             <CardContent>
               <MouseCoordinates position={coords} />
+              <Typography variant="body2" color="textSecondary" component="p">
+                Model: {link.model}
+              </Typography>
             </CardContent>
           </CardActionArea>
           <CardActions>
