@@ -43,7 +43,7 @@ export default function TransferResults({
       case 'update':
         return searchList.map((search) => {
           if (search.coords === value.coords) {
-            return value;
+            return { ...search, ...value };
           }
           return search;
         });
@@ -82,6 +82,7 @@ export default function TransferResults({
           if ('addr' in result) {
             const modifiedResult = {
               coords: roundedPosition,
+              loading: false,
               ...result,
             };
             dispatch({ type: 'update', value: modifiedResult });
