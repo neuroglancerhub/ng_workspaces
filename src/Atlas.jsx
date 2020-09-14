@@ -92,6 +92,18 @@ export default function Atlas(props) {
         },
       };
 
+      if ('layers' in selectedDataset) {
+        selectedDataset.layers.forEach((layer) => {
+          layers.push({
+            name: layer.name,
+            type: layer.type,
+            source: {
+              url: layer.location,
+            },
+          });
+        });
+      }
+
       const viewerOptions = {
         position: selectedAnnotation.location,
         crossSectionScale: 2,
