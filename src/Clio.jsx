@@ -42,6 +42,7 @@ export default function Clio({ children, actions, datasets, selectedDatasetName 
       }
 
       const viewerOptions = {
+        position: [],
         layers,
         layout: '4panel',
         showSlices: true,
@@ -64,11 +65,7 @@ export default function Clio({ children, actions, datasets, selectedDatasetName 
   }, [user, actions, dataset, projectUrl]);
 
   if (dataset) {
-    return (
-      <div className="ng-container">
-        {children}
-      </div>
-    );
+    return <div className="ng-container">{children}</div>;
   }
   return <div />;
 }
