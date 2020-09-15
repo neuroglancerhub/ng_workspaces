@@ -129,16 +129,7 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
   let results = <p>Please select a dataset.</p>;
 
   if (dataset) {
-    if (pickMode === 0) {
-      results = (
-        <ByExampleResults
-          mousePosition={mousePosition}
-          projectUrl={projectUrl}
-          actions={actions}
-          dataset={dataset}
-        />
-      );
-    } else {
+    if (pickMode === 1 && dataset && 'transfer' in dataset) {
       results = (
         <TransferResults
           model={dataset.transfer[transferModel]}
@@ -147,12 +138,21 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
           projectUrl={projectUrl}
         />
       );
+    } else {
+      results = (
+        <ByExampleResults
+          mousePosition={mousePosition}
+          projectUrl={projectUrl}
+          actions={actions}
+          dataset={dataset}
+        />
+      );
     }
   }
 
   let modelSelect = '';
 
-  if (pickMode === 1 && dataset && dataset.transfer) {
+  if (pickMode === 1 && dataset && 'transfer' in dataset) {
     const modelSelectItems = dataset.transfer.map((model, i) => (
       <MenuItem key={model} value={i}>
         {model}
