@@ -53,12 +53,41 @@ export default function AnnotationsList({
     // TODO: improve the regex creation so that people can use the filter
     // box in the same way they would expect it to work. This could generate
     // a lot of errors, so need to wrap in an ErrorBoundary.
-    const re = new RegExp(filterBy, 'i');
-    filteredAnnotations = annotations.filter(
-      (annotation) => re.test(annotation.title)
-      || re.test(annotation.description)
-      || re.test(annotation.dataset),
-    );
+
+    let category = null;
+    let searchTerm = filterBy;
+    // check to see if there is a : in the string. If there is split the string
+    // and use the first part to determine the category and the second part as
+    // the search term.
+    const split = filterBy.match(/([^:]*):?(.*)/);
+    if (split[2] !== '') {
+      [, category, searchTerm] = split;
+    } else {
+      [, searchTerm] = split;
+    }
+
+    console.log({ searchTerm });
+
+    const re = new RegExp(searchTerm, 'i');
+
+    if (category) {
+      const categories = ['title', 'description', 'dataset'];
+      if (categories.includes(category)) {
+        if (category === 'dataset') {
+          filteredAnnotations = annotations.filter(
+            (annotation) => re.test(datasets[annotation.dataset].description),
+          );
+        } else {
+          filteredAnnotations = annotations.filter((annotation) => re.test(annotation[category]));
+        }
+      }
+    } else {
+      filteredAnnotations = annotations.filter(
+        (annotation) => re.test(annotation.title)
+        || re.test(annotation.description)
+        || re.test(datasets[annotation.dataset].description),
+      );
+    }
   }
 
   const pages = Math.ceil(filteredAnnotations.length / annotationsPerPage);
