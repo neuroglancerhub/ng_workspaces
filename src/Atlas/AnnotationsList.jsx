@@ -53,8 +53,41 @@ export default function AnnotationsList({
     // TODO: improve the regex creation so that people can use the filter
     // box in the same way they would expect it to work. This could generate
     // a lot of errors, so need to wrap in an ErrorBoundary.
-    const re = new RegExp(filterBy);
-    filteredAnnotations = annotations.filter((annotation) => re.test(annotation.title));
+
+    let category = null;
+    let searchTerm = filterBy;
+    // check to see if there is a : in the string. If there is split the string
+    // and use the first part to determine the category and the second part as
+    // the search term.
+    const split = filterBy.match(/([^:]*):?(.*)/);
+    if (split[2] !== '') {
+      [, category, searchTerm] = split;
+    } else {
+      [, searchTerm] = split;
+    }
+
+    console.log({ searchTerm });
+
+    const re = new RegExp(searchTerm, 'i');
+
+    if (category) {
+      const categories = ['title', 'description', 'dataset'];
+      if (categories.includes(category)) {
+        if (category === 'dataset') {
+          filteredAnnotations = annotations.filter(
+            (annotation) => re.test(datasets[annotation.dataset].description),
+          );
+        } else {
+          filteredAnnotations = annotations.filter((annotation) => re.test(annotation[category]));
+        }
+      }
+    } else {
+      filteredAnnotations = annotations.filter(
+        (annotation) => re.test(annotation.title)
+        || re.test(annotation.description)
+        || re.test(datasets[annotation.dataset].description),
+      );
+    }
   }
 
   const pages = Math.ceil(filteredAnnotations.length / annotationsPerPage);
@@ -63,61 +96,62 @@ export default function AnnotationsList({
     currentPage * annotationsPerPage,
   );
 
-  const annotationSelections = paginatedAnnotations
-    .map((annotation) => {
-      const {
-        title: name,
-        dataset: dataSet,
-        description,
-        timestamp,
-        location,
-      } = annotation;
+  const annotationSelections = paginatedAnnotations.map((annotation) => {
+    const {
+      title: name,
+      dataset: dataSet,
+      description,
+      timestamp,
+      location,
+    } = annotation;
 
-      let thumbnailUrl = '';
-      const selectedDataSet = datasets[dataSet] || {};
-      if (selectedDataSet && 'location' in selectedDataSet) {
-        const datasetLocation = selectedDataSet.location.replace('gs://', '');
-        const xyzString = `${location[0] - 128}_${location[1] - 128}_${location[2]}`;
+    let thumbnailUrl = '';
+    const selectedDataSet = datasets[dataSet] || {};
+    if (selectedDataSet && 'location' in selectedDataSet) {
+      const datasetLocation = selectedDataSet.location.replace('gs://', '');
+      const xyzString = `${location[0] - 128}_${location[1] - 128}_${location[2]}`;
 
-        thumbnailUrl = imageSliceUrlTemplate.replace('<location>', datasetLocation).replace('<xyz>', xyzString);
-      }
+      thumbnailUrl = imageSliceUrlTemplate
+        .replace('<location>', datasetLocation)
+        .replace('<xyz>', xyzString);
+    }
 
-      const key = `${name}_${timestamp}`;
+    const key = `${name}_${timestamp}`;
 
-      const isSelected = key === `${selected.title}_${selected.timestamp}`;
+    const isSelected = key === `${selected.title}_${selected.timestamp}`;
 
-      return (
-        <Grid key={key} item xs={12} sm={3}>
-          <Card raised={isSelected} className={isSelected ? classes.selected : ''}>
-            <CardActionArea onClick={() => handleClick(annotation)}>
-              <CardMedia
-                component="img"
-                alt="x y slice around annotation"
-                height="256"
-                image={thumbnailUrl}
-                title="x y slice around annotation"
-              />
-              <CardContent>
-                <Typography gutterBottom variant="h5" component="h2">
-                  {name}
-                </Typography>
-                <Typography variant="body2" color="textSecondary" component="p">
-                  {description || 'No description provided'}
-                </Typography>
-                <Typography variant="body2" color="textSecondary" component="p">
-                  Dataset: {selectedDataSet.description}
-                </Typography>
-              </CardContent>
-            </CardActionArea>
-            <CardActions>
-              <Button size="small" color="primary" onClick={() => handleClick(annotation)}>
-                View
-              </Button>
-            </CardActions>
-          </Card>
-        </Grid>
-      );
-    });
+    return (
+      <Grid key={key} item xs={12} sm={3}>
+        <Card raised={isSelected} className={isSelected ? classes.selected : ''}>
+          <CardActionArea onClick={() => handleClick(annotation)}>
+            <CardMedia
+              component="img"
+              alt="x y slice around annotation"
+              height="256"
+              image={thumbnailUrl}
+              title="x y slice around annotation"
+            />
+            <CardContent>
+              <Typography gutterBottom variant="h5" component="h2">
+                {name}
+              </Typography>
+              <Typography variant="body2" color="textSecondary" component="p">
+                {description || 'No description provided'}
+              </Typography>
+              <Typography variant="body2" color="textSecondary" component="p">
+                Dataset: {selectedDataSet.description}
+              </Typography>
+            </CardContent>
+          </CardActionArea>
+          <CardActions>
+            <Button size="small" color="primary" onClick={() => handleClick(annotation)}>
+              View
+            </Button>
+          </CardActions>
+        </Card>
+      </Grid>
+    );
+  });
 
   return (
     <>
