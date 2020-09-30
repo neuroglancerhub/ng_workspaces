@@ -41,6 +41,8 @@ const viewerState = Immutable.Map({
             hint: '',
           },
         },
+        // Limiting to "recent" prevents a slowdown as the assignment proceeds.
+        tableFilterByTime: 'recent',
       },
     ],
     projectionScale: 2600,
