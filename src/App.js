@@ -3,6 +3,8 @@ import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Router, Route } from 'react-router-dom';
 import { useSelector, shallowEqual, useDispatch } from 'react-redux';
 import { createBrowserHistory } from 'history';
+import PropTypes from 'prop-types';
+import { ErrorBoundary } from 'react-error-boundary';
 
 import { ThemeProvider } from '@material-ui/styles';
 import { createMuiTheme } from '@material-ui/core/styles';
@@ -95,6 +97,23 @@ const theme = createMuiTheme({
   },
 });
 
+function ErrorFallback(props) {
+  const { error } = props;
+  return (
+    <div role="alert">
+      <p>
+        Neurohub has produced an internal error.
+        Please send the following error information to the FlyEM software team.
+      </p>
+      <pre>{error.stack}</pre>
+    </div>
+  );
+}
+
+ErrorFallback.propTypes = {
+  error: PropTypes.object.isRequired,
+};
+
 function App() {
   const dispatch = useDispatch();
 
@@ -174,40 +193,46 @@ function App() {
     };
   }, [dispatch]);
 
+  // The inner ErrorBoundary should catch most errors, and will keep the Navbar with the
+  // Neurohub branding.  The outer ErrorBoundary is a last resort, in case there is an
+  // error in the Navbar itself.
   return (
-    // eslint-disable-next-line react/jsx-filename-extension
-    <Router history={history}>
-      <ThemeProvider theme={theme}>
-        <Navbar
-          history={history}
-          datasets={datasets}
-          selectedDatasetName={selectedDatasetName}
-          setSelectedDataset={setSelectedDataset}
-        />
-        <div className="App">
-          <Suspense fallback={<div>Loading Homepage...</div>}>
-            <Route path="/" exact component={Home} />
-          </Suspense>
-          <Suspense fallback={<div>Loading...</div>}>
-            <Route path="/ws/:ws">
-              <WorkSpaces datasets={datasets} selectedDatasetName={selectedDatasetName} />
-            </Route>
-            <Route path="/about" component={About} />
-            <Route path="/auth_test" component={AuthTest} />
-            <Route path="/settings">
-              <Settings
-                project={project}
-                setProject={setProject}
-                datasets={datasets}
-                selectedDatasetName={selectedDatasetName}
-                setSelectedDataset={setSelectedDataset}
-              />
-            </Route>
-          </Suspense>
-        </div>
-        <Alerts />
-      </ThemeProvider>
-    </Router>
+    <ErrorBoundary FallbackComponent={ErrorFallback}>
+      <Router history={history}>
+        <ThemeProvider theme={theme}>
+          <Navbar
+            history={history}
+            datasets={datasets}
+            selectedDatasetName={selectedDatasetName}
+            setSelectedDataset={setSelectedDataset}
+          />
+          <ErrorBoundary FallbackComponent={ErrorFallback}>
+            <div className="App">
+              <Suspense fallback={<div>Loading Homepage...</div>}>
+                <Route path="/" exact component={Home} />
+              </Suspense>
+              <Suspense fallback={<div>Loading...</div>}>
+                <Route path="/ws/:ws">
+                  <WorkSpaces datasets={datasets} selectedDatasetName={selectedDatasetName} />
+                </Route>
+                <Route path="/about" component={About} />
+                <Route path="/auth_test" component={AuthTest} />
+                <Route path="/settings">
+                  <Settings
+                    project={project}
+                    setProject={setProject}
+                    datasets={datasets}
+                    selectedDatasetName={selectedDatasetName}
+                    setSelectedDataset={setSelectedDataset}
+                  />
+                </Route>
+              </Suspense>
+            </div>
+            <Alerts />
+          </ErrorBoundary>
+        </ThemeProvider>
+      </Router>
+    </ErrorBoundary>
   );
 }
 
