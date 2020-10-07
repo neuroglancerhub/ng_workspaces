@@ -100,7 +100,7 @@ export class DvidManager {
         onError(error);
         return (undefined);
       })
-      .catch((error) => onError(error)));
+      .catch((error) => onError(error.message)));
   }
 
   // Returns a promise, whose value is accessible with `.then((id) => { ... })`.
@@ -120,8 +120,9 @@ export class DvidManager {
         return ({});
       })
       .then((json) => (json.Label))
-      .catch((error) => onError(error)));
+      .catch((error) => onError(error.message)));
   };
+
 
   // TODO: Update to return a promise.
   postMerge = (bodyIdMergedOnto, bodyIdOther,
@@ -136,7 +137,7 @@ export class DvidManager {
       body: JSON.stringify(body),
     };
     fetch(url, options).then((response) => response.json()).then((data) => onCompletion(data))
-      .catch((error) => onError(error));
+      .catch((error) => onError(error.message));
   }
 
   // TODO: Update to return a promise.
@@ -151,7 +152,7 @@ export class DvidManager {
       body: JSON.stringify(value),
     };
     fetch(url, options).then((response) => response).then((data) => onCompletion(data))
-      .catch((error) => onError(error));
+      .catch((error) => onError(error.message));
   }
 
   // Returns a promise, whose value is accessible with `.then((data) => { ... })`.
@@ -170,7 +171,7 @@ export class DvidManager {
         onError(error);
         return ({});
       })
-      .catch((error) => onError(error)));
+      .catch((error) => onError(error.message)));
   }
 
   //
