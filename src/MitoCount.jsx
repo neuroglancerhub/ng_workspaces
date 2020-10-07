@@ -313,6 +313,7 @@ function MitoCount(props) {
   const setupTask = React.useCallback(() => {
     // Clearing the task JSON prevents rapid UI activity from starting another task before
     // this one is done being set up.
+    const taskJsonOld = taskJson;
     setTaskJson(undefined);
 
     const onError = (group) => (error) => { actions.addAlert({ group, message: error }); };
@@ -322,11 +323,15 @@ function MitoCount(props) {
     const roiId = neighborhoodId(json);
     const pt = topPoint(json);
     if (!roiId || !pt) {
-      return new Promise((resolve) => { resolve(false); });
+      return new Promise((resolve) => { resolve(AssignmentManager.TASK_SKIP); });
     }
     return (
       dvidMngr.getKeyValue(RESULTS_INSTANCE, dvidLogKey(json), onError(3))
         .then((prevResult) => {
+          if (prevResult === DvidManager.NO_INTERNET) {
+            setTaskJson(taskJsonOld);
+            return (AssignmentManager.TASK_RETRY);
+          }
           if (prevResult) {
             // Skip a task that has a stored result already.
             json.completed = true;
@@ -359,7 +364,7 @@ function MitoCount(props) {
           return true;
         })
     );
-  }, [actions, handleTodoTypeChange, assnMngr, dvidMngr]);
+  }, [actions, handleTodoTypeChange, taskJson, assnMngr, dvidMngr]);
 
   const noTask = (taskJson === undefined);
   const prevDisabled = noTask || assnMngr.prevButtonDisabled();

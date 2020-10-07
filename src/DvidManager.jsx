@@ -14,6 +14,8 @@ const KEY_GRAYSCALE_SOURCE = 'NG_WORKSPACES-FOCUSED-PROOFREADING-GRAYSCALE-SOURC
 const KEY_SEGMENTATION_SOURCE = 'NG_WORKSPACES-FOCUSED-PROOFREADING-SEGMENTATION-SOURCE';
 const KEY_DVID_SOURCE = 'NG_WORKSPACES-FOCUSED-PROOFREADING-DVID-SOURCE';
 
+const noInternet = (error) => ((error instanceof TypeError) && (error.message === 'Failed to fetch'));
+
 export class DvidManager {
   onInitCompleted = undefined;
 
@@ -88,6 +90,8 @@ export class DvidManager {
     return (undefined);
   }
 
+  static get NO_INTERNET() { return (0); }
+
   // Returns a promise, whose value is accessible with `.then((data) => { ... })`.
   getSparseVolSize = (bodyId, onError = this.defaultOnError) => {
     const url = `${this.segmentationApiURL()}/sparsevol-size/${bodyId}`;
@@ -100,7 +104,10 @@ export class DvidManager {
         onError(error);
         return (undefined);
       })
-      .catch((error) => onError(error.message)));
+      .catch((error) => {
+        onError(error.message);
+        return ((noInternet(error)) ? DvidManager.NO_INTERNET : undefined);
+      }));
   }
 
   // Returns a promise, whose value is accessible with `.then((id) => { ... })`.
@@ -120,7 +127,10 @@ export class DvidManager {
         return ({});
       })
       .then((json) => (json.Label))
-      .catch((error) => onError(error.message)));
+      .catch((error) => {
+        onError(error.message);
+        return ((noInternet(error)) ? DvidManager.NO_INTERNET : undefined);
+      }));
   };
 
 
@@ -171,7 +181,10 @@ export class DvidManager {
         onError(error);
         return ({});
       })
-      .catch((error) => onError(error.message)));
+      .catch((error) => {
+        onError(error.message);
+        return ((noInternet(error)) ? DvidManager.NO_INTERNET : undefined);
+      }));
   }
 
   //

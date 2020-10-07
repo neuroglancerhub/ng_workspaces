@@ -33,9 +33,19 @@ export class AssignmentManager {
 
   // Public API
 
+  static get TASK_OK() { return ('OK'); }
+
+  static get TASK_SKIP() { return ('SKIP'); }
+
+  static get TASK_RETRY() { return ('RETRY'); }
+
+
   // The `onTaskLoaded` function should return a promise, which evaluates to
-  // `false` if the task specified by `taskJson()` should be skipped due to
-  // protocol-specific reasons, or `true` if that task should proceed normally.
+  // one of the following:
+  // TASK_OK: the task specified by `taskJson()` has been loaded normally
+  // TASK_SKIP: the task should be skipped for protocol-specific reasons
+  // TASK_RETRY: an error occurred so the task has not been loaded but it
+  // should be retried the next time the protocol asks for a task
   init = (onAssignmentLoaded, onTaskLoaded, addAlert) => {
     this.onAssignmentLoaded = onAssignmentLoaded;
     this.onTaskLoaded = onTaskLoaded;
@@ -120,22 +130,26 @@ export class AssignmentManager {
 
   nextOrPrev = async (doNext) => {
     this.noValidTasks = false;
-    const oldTaskIndex = this.taskIndex;
+    const startingTaskIndex = this.taskIndex;
     do {
+      const oldTaskIndex = this.taskIndex;
       this.taskIndex = doNext ? this.nextValidTaskIndex() : this.prevValidTaskIndex();
       if (this.taskIndex !== undefined) {
         // Disable the eslint error because `await` here is not for concurrency.
         // eslint-disable-next-line no-await-in-loop
-        const valid = await this.onTaskLoaded(this);
-        if (valid) {
+        const status = await this.onTaskLoaded(this);
+        if (status !== AssignmentManager.TASK_SKIP) {
+          if (status === AssignmentManager.TASK_RETRY) {
+            this.taskIndex = oldTaskIndex;
+          }
           return;
         }
         this.skippedTaskIndices.add(this.taskIndex);
       } else {
-        this.taskIndex = oldTaskIndex;
+        this.taskIndex = startingTaskIndex;
         break;
       }
-    } while (this.taskIndex !== oldTaskIndex);
+    } while (this.taskIndex !== startingTaskIndex);
     this.noValidTasks = true;
     this.addAlert({ severity: 'info', message: 'All tasks have been completed.' });
   }
