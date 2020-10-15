@@ -448,6 +448,7 @@ function FocusedProofreading(props) {
   const setupTask = React.useCallback(() => {
     // Clearing the task JSON prevents rapid UI activity from starting another task before
     // this one is done being set up.
+    const taskJsonOld = taskJson;
     setTaskJson(undefined);
 
     const onError = (group) => (error) => { actions.addAlert({ group, message: error }); };
@@ -456,7 +457,7 @@ function FocusedProofreading(props) {
     const json = assnMngr.taskJson();
     const bodyPts = bodyPoints(json);
     if (!bodyPts) {
-      return new Promise((resolve) => { resolve(false); });
+      return new Promise((resolve) => { resolve(AssignmentManager.TASK_SKIP); });
     }
     return (
       getBodyId(bodyPts[0], dvidMngr, json, 1, onError(1))
@@ -469,14 +470,19 @@ function FocusedProofreading(props) {
         ))
         .then(([bodyId0, bodyId1, prevResult]) => {
           const segments = [bodyId0, bodyId1];
+          if ((bodyId0 === DvidManager.NO_INTERNET) || (bodyId1 === DvidManager.NO_INTERNET)
+            || (prevResult === DvidManager.NO_INTERNET)) {
+            setTaskJson(taskJsonOld);
+            return (AssignmentManager.TASK_RETRY);
+          }
           if (!bodyId0 || !bodyId1) {
             storeResults(segments, 'skip (missing body ID)', json, startTime, authMngr, dvidMngr, assnMngr);
-            return false;
+            return (AssignmentManager.TASK_SKIP);
           }
           if (bodyId0 === bodyId1) {
             // Skip a task involving bodies that have been merged already.
             storeResults(segments, 'skip (same body ID)', json, startTime, authMngr, dvidMngr, assnMngr);
-            return false;
+            return (AssignmentManager.TASK_SKIP);
           }
           if (prevResult) {
             json.completed = true;
@@ -484,7 +490,7 @@ function FocusedProofreading(props) {
             // something better than "Loading..."
             setTaskJson(json);
             // Skip a task that has a stored result already.
-            return false;
+            return (AssignmentManager.TASK_SKIP);
           }
           const [restoredResult, restoredCompleted] = restoreResults(json);
           const { position, projectionOrientation } = cameraPose(bodyPts);
@@ -510,10 +516,10 @@ function FocusedProofreading(props) {
               actions.setViewerCameraProjectionOrientation(projectionOrientation);
               actions.setViewerCameraProjectionScale(scale);
             });
-          return true;
+          return (AssignmentManager.TASK_OK);
         })
     );
-  }, [actions, handleTodoTypeChange, authMngr, assnMngr, dvidMngr]);
+  }, [actions, handleTodoTypeChange, taskJson, authMngr, assnMngr, dvidMngr]);
 
   const noTask = (taskJson === undefined);
   const prevDisabled = noTask || assnMngr.prevButtonDisabled();
