@@ -71,23 +71,27 @@ const TASK_KEYS = Object.freeze({
   BODY_ID2: 'default body ID 2',
   BBOX1: 'default bounding box 1',
   BBOX2: 'default bounding box 2',
+  EXTRA_BODY_IDS: 'extra body IDs',
 });
 
 const RESULTS = Object.freeze({
   DONT_MERGE: 'dontMerge',
   MERGE: 'merge',
+  MERGE_EXTRA: 'mergeExtra',
   DONT_KNOW: 'dontKnow',
 });
 
 const RESULT_LABELS = Object.freeze({
   DONT_MERGE: "Don't Merge",
   MERGE: 'Merge',
+  MERGE_EXTRA: 'Merge Extra',
   DONT_KNOW: "Don't Know",
 });
 
 const RESULT_CYCLES_NEXT = Object.freeze({
   [RESULTS.DONT_MERGE]: RESULTS.MERGE,
-  [RESULTS.MERGE]: RESULTS.DONT_KNOW,
+  [RESULTS.MERGE]: RESULTS.MERGE_EXTRA,
+  [RESULTS.MERGE_EXTRA]: RESULTS.DONT_KNOW,
   [RESULTS.DONT_KNOW]: RESULTS.DONT_MERGE,
 });
 
@@ -157,6 +161,16 @@ const getBbox = (bodyId, dvidMngr, taskJson, which) => (
     })
 );
 
+const getExtraBodyIds = (taskJson, bodyIds) => {
+  if (TASK_KEYS.EXTRA_BODY_IDS in taskJson) {
+    const extra = taskJson[TASK_KEYS.EXTRA_BODY_IDS];
+    const result = extra.filter((id) => !bodyIds.includes(id));
+    return (result);
+  }
+  return ([]);
+};
+
+
 const taskDocString = (taskJson, assnMngr) => {
   if (taskJson) {
     let indexStr = ` ${taskJson.index + 1}`;
@@ -169,16 +183,19 @@ const taskDocString = (taskJson, assnMngr) => {
   return ('');
 };
 
-const taskDocTooltip = (taskJson) => (
-  taskJson ? `[${taskJson[TASK_KEYS.BODY_PT1]}] + [${taskJson[TASK_KEYS.BODY_PT2]}]` : ''
+const taskDocTooltip = (taskJson, assnMngr) => (
+  taskJson ? `${assnMngr.assignmentFile} [${taskJson[TASK_KEYS.BODY_PT1]}] + [${taskJson[TASK_KEYS.BODY_PT2]}]` : ''
 );
 
-const bodyColors = (bodyIds, result) => {
+const bodyColors = (bodyIds, selection, result) => {
   if (result === RESULTS.MERGE) {
     return ({
       [bodyIds[0]]: COLOR_PRIMARY_BODY,
       [bodyIds[1]]: COLOR_PRIMARY_BODY,
     });
+  }
+  if (result === RESULTS.MERGE_EXTRA) {
+    return (selection.reduce((a, c) => ({ ...a, [c]: COLOR_PRIMARY_BODY }), {}));
   }
   return ({
     [bodyIds[0]]: COLOR_PRIMARY_BODY,
@@ -306,7 +323,8 @@ const doLiveMerge = (assnMngr) => {
   return false;
 };
 
-const storeResults = (bodyIds, result, taskJson, taskStartTime, authMngr, dvidMngr, assnMngr) => {
+const storeResults = (bodyIds, selection, result, taskJson, taskStartTime, actions,
+  authMngr, dvidMngr, assnMngr) => {
   const bodyIdMergedOnto = bodyIds[0];
   const bodyIdOther = bodyIds[1];
   const time = (new Date()).toISOString();
@@ -326,6 +344,7 @@ const storeResults = (bodyIds, result, taskJson, taskStartTime, authMngr, dvidMn
       [TASK_KEYS.BODY_PT2]: taskJsonCopy[TASK_KEYS.BODY_PT2],
       'body ID 1': bodyIdMergedOnto,
       'body ID 2': bodyIdOther,
+      'selected body IDs': selection,
       result,
       time,
       user,
@@ -343,6 +362,12 @@ const storeResults = (bodyIds, result, taskJson, taskStartTime, authMngr, dvidMn
         dvidLogValue[key] = taskJsonCopy[key];
       }
     });
+
+    // TODO: Add live merging for MERGE_EXTRA.
+    if ((result === RESULTS.MERGE_EXTRA) && doLiveMerge(assnMngr)) {
+      const message = 'Live merging for "merge extra" is not yet supported';
+      actions.addAlert({ severity: 'warning', message });
+    }
 
     if ((result === RESULTS.MERGE) && doLiveMerge(assnMngr)) {
       const onCompletion = (res) => {
@@ -390,6 +415,8 @@ function FocusedProofreading(props) {
   const [taskJson, setTaskJson] = React.useState(undefined);
   const [taskStartTime, setTaskStartTime] = React.useState(0);
   const [bodyIds, setBodyIds] = React.useState([]);
+  const [extraBodyIds, setExtraBodyIds] = React.useState([]);
+  const [promptToAddExtra, setPromptToAddExtra] = React.useState(true);
   const [initialPosition, setInitialPosition] = React.useState(undefined);
   const [initialOrientation, setInitialOrientation] = React.useState(undefined);
   const [initialScale, setInitialScale] = React.useState(undefined);
@@ -402,6 +429,10 @@ function FocusedProofreading(props) {
   const [completed, setCompleted] = React.useState(false);
 
   const [helpOpen, setHelpOpen] = React.useState(false);
+
+  // Not state, because changes occur during event processing and should not trigger rendering.
+  const selection = React.useRef([]);
+  const [bodyIdsAreSelected, setBodyIdsAreSelected] = React.useState(true);
 
   React.useEffect(() => {
     const handleNotLoggedIn = () => { setAuthMngrDialogOpen(true); };
@@ -476,12 +507,12 @@ function FocusedProofreading(props) {
             return (AssignmentManager.TASK_RETRY);
           }
           if (!bodyId0 || !bodyId1) {
-            storeResults(segments, 'skip (missing body ID)', json, startTime, authMngr, dvidMngr, assnMngr);
+            storeResults(segments, [], 'skip (missing body ID)', json, startTime, actions, authMngr, dvidMngr, assnMngr);
             return (AssignmentManager.TASK_SKIP);
           }
           if (bodyId0 === bodyId1) {
             // Skip a task involving bodies that have been merged already.
-            storeResults(segments, 'skip (same body ID)', json, startTime, authMngr, dvidMngr, assnMngr);
+            storeResults(segments, [], 'skip (same body ID)', json, startTime, actions, authMngr, dvidMngr, assnMngr);
             return (AssignmentManager.TASK_SKIP);
           }
           if (prevResult) {
@@ -492,12 +523,14 @@ function FocusedProofreading(props) {
             // Skip a task that has a stored result already.
             return (AssignmentManager.TASK_SKIP);
           }
+          setExtraBodyIds(getExtraBodyIds(json, segments));
           const [restoredResult, restoredCompleted] = restoreResults(json);
           const { position, projectionOrientation } = cameraPose(bodyPts);
           cameraProjectionScale(segments, projectionOrientation, json, dvidMngr)
             .then(([scale, scaleBirdsEye]) => {
               setTaskJson(json);
               setBodyIds(segments);
+              setBodyIdsAreSelected(true);
               setNormalScale(scale);
               setBirdsEyeScale(scaleBirdsEye);
               setInitialPosition(position);
@@ -506,10 +539,12 @@ function FocusedProofreading(props) {
               setResult(restoredResult);
               setCompleted(restoredCompleted);
 
+              selection.current = segments;
               handleTodoTypeChange(TODO_TYPES[0].value, json);
 
               actions.setViewerSegments(segments);
-              actions.setViewerSegmentColors(bodyColors(segments, restoredResult));
+              actions.setViewerSegmentColors(bodyColors(segments, selection.current,
+                restoredResult));
               actions.addViewerLayer(bodyPointsLayer(bodyPts[0], bodyPts[1], bodyId0, bodyId1));
               actions.setViewerCrossSectionScale(0.4);
               actions.setViewerCameraPosition(position);
@@ -519,7 +554,7 @@ function FocusedProofreading(props) {
           return (AssignmentManager.TASK_OK);
         })
     );
-  }, [actions, handleTodoTypeChange, taskJson, authMngr, assnMngr, dvidMngr]);
+  }, [actions, handleTodoTypeChange, taskJson, selection, authMngr, assnMngr, dvidMngr]);
 
   const noTask = (taskJson === undefined);
   const prevDisabled = noTask || assnMngr.prevButtonDisabled();
@@ -558,7 +593,8 @@ function FocusedProofreading(props) {
   };
 
   const handleResultChange = (newResult) => {
-    actions.setViewerSegmentColors(bodyColors(bodyIds, newResult));
+    actions.setViewerSegmentColors(bodyColors(bodyIds, selection.current, newResult));
+
     // The special blocking TODO_TYPE is avilable only for the DONT_MERGE result.
     if (newResult !== RESULTS.DONT_MERGE && todoType === TODO_TYPES[0].value) {
       handleTodoTypeChange(TODO_TYPES[1].value, taskJson);
@@ -570,6 +606,22 @@ function FocusedProofreading(props) {
     handleResultChange(event.target.value);
   };
 
+  const handleExtraButton = () => {
+    if (promptToAddExtra) {
+      selection.current = selection.current.concat(extraBodyIds);
+    } else {
+      const difference = [];
+      selection.current.forEach((id) => {
+        if (!extraBodyIds.includes(id)) {
+          difference.push(id);
+        }
+      });
+      selection.current = difference;
+    }
+    setPromptToAddExtra(!promptToAddExtra);
+    actions.setViewerSegments(selection.current);
+  };
+
   const handleTodoTypeSelect = (event) => {
     handleTodoTypeChange(event.target.value, taskJson);
   };
@@ -578,7 +630,8 @@ function FocusedProofreading(props) {
     setCompleted(isCompleted);
     taskJson.completed = isCompleted;
     if (isCompleted) {
-      storeResults(bodyIds, result, taskJson, taskStartTime, authMngr, dvidMngr, assnMngr);
+      storeResults(bodyIds, selection.current, result, taskJson, taskStartTime, actions,
+        authMngr, dvidMngr, assnMngr);
     }
   };
 
@@ -632,25 +685,39 @@ function FocusedProofreading(props) {
     }
   };
 
-  // eslint-disable-next-line no-unused-vars
-  const onMeshLoaded = (id, layer, mesh) => {
-    // TODO: If `id` is one of the task's bodies, use the vertices of `mesh` to compute
-    // the bird's eye view camera scale.
-    const normal = 1000;
-    const birdsEye = normal;
-    setNormalScale(normal);
-    setBirdsEyeScale(birdsEye);
+  // Neuroglancer's notion of "visible" corresponds to other applications' notion of "selected".
+  const onVisibleChanged = (segments, layer) => {
+    if (layer.name === 'segmentation') {
+      const selectionStrings = segments.toJSON();
+      selection.current = selectionStrings.map((s) => parseInt(s, 10));
+      setBodyIdsAreSelected(bodyIds.every((id) => selection.current.includes(id)));
+      if ((result === RESULTS.MERGE) || (result === RESULTS.MERGE_EXTRA)) {
+        if (result === RESULTS.MERGE_EXTRA) {
+          actions.setViewerSegmentColors(bodyColors(bodyIds, selection.current, result));
+        }
+      }
+    }
   };
 
   const eventBindingsToUpdate = Object.entries(keyBindings).map((e) => [`key${e[1].key}`, `control+key${e[1].key}`]);
 
-  // Add `onMeshLoaded` to the props of the child, which is a react-neuroglancer viewer.
-  // TODO: Add support for `onMeshLoaded` to `react-neurogloancer`.
+  // Add `onVisibleChanged` to the props of the child, which is a react-neuroglancer viewer.
   const childrenWithMoreProps = React.Children.map(children, (child) => (
-    React.cloneElement(child, { eventBindingsToUpdate, onMeshLoaded }, null)
+    React.cloneElement(child, { eventBindingsToUpdate, onVisibleChanged }, null)
   ));
 
-  const tooltip = `Use bird's eye view (key "${keyBindings.focusedProofreadingToggleBirdsEyeView.key}") to enable "Completed"`;
+  const noExtra = (extraBodyIds.length === 0);
+
+  const enableCompleted = usedBirdsEye && bodyIdsAreSelected;
+  let tooltip = '';
+  if (!usedBirdsEye) {
+    tooltip = `use bird's eye view (key "${keyBindings.focusedProofreadingToggleBirdsEyeView.key}")`;
+  }
+  if (!bodyIdsAreSelected) {
+    tooltip += (!usedBirdsEye) ? '; and ' : '';
+    tooltip += 'select the task\'s two original bodies';
+  }
+  tooltip = `To enable "Completed": ${tooltip}`;
 
   return (
     <div
@@ -670,7 +737,7 @@ function FocusedProofreading(props) {
             Next
           </Button>
         </ButtonGroup>
-        <Tooltip title={taskDocTooltip(taskJson)}>
+        <Tooltip title={taskDocTooltip(taskJson, assnMngr)}>
           <Typography color="inherit">
             {taskDocString(taskJson, assnMngr)}
           </Typography>
@@ -688,10 +755,18 @@ function FocusedProofreading(props) {
               value={RESULTS.MERGE}
             />
             <FormControlLabel
+              label={RESULT_LABELS.MERGE_EXTRA}
+              control={<Radio />}
+              value={RESULTS.MERGE_EXTRA}
+            />
+            <FormControlLabel
               label={RESULT_LABELS.DONT_KNOW}
               control={<Radio />}
               value={RESULTS.DONT_KNOW}
             />
+            <Button color="primary" variant="contained" onClick={handleExtraButton} disabled={noTask || noExtra}>
+              {promptToAddExtra ? 'Suggest Extra' : 'Unsuggest Extra'}
+            </Button>
             <FormControl variant="outlined" disabled={noTask}>
               <Select value={todoType} onChange={handleTodoTypeSelect}>
                 {TODO_TYPES.map((x) => (
@@ -705,10 +780,10 @@ function FocusedProofreading(props) {
                 ))}
               </Select>
             </FormControl>
-            <Tooltip title={(noTask || usedBirdsEye) ? '' : tooltip}>
+            <Tooltip title={(noTask || enableCompleted) ? '' : tooltip}>
               <FormControlLabel
                 label="Completed"
-                control={<Checkbox disabled={!usedBirdsEye} checked={completed} onChange={handleCompletedCheckbox} name="completed" />}
+                control={<Checkbox disabled={!enableCompleted} checked={completed} onChange={handleCompletedCheckbox} name="completed" />}
               />
             </Tooltip>
           </RadioGroup>
