@@ -77,7 +77,8 @@
     "build": "node scripts/build.js",
     "test": "node scripts/test.js",
     "lint": "eslint src --ext .js --ext .jsx",
-    "deploy": "node scripts/build.js && gsutil rsync -dr build/ gs://neurohub.janelia.org"
+    "deploy": "node scripts/build.js && gsutil rsync -dr build/ gs://neurohub.janelia.org",
+    "deploy:dev": "PUBLIC_URL=https://storage.googleapis.com/neurohub-janelia-org/ node scripts/build.js && gsutil cp -r build/* gs://neurohub-janelia-org/"
   },
   "eslintConfig": {
     "extends": "react-app"
