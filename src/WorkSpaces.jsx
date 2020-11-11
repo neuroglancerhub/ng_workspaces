@@ -32,10 +32,7 @@ import { setSyncStateNeeded } from './reducers/viewer';
 
 import './Neuroglancer.css';
 
-const Neuroglancer = lazy(() => import('./Neuroglancer'));
 const ImagePicker = lazy(() => import('./ImagePicker'));
-const FocusedProofreading = lazy(() => import('./FocusedProofreading'));
-const MitoCount = lazy(() => import('./MitoCount'));
 const Clio = lazy(() => import('./Clio'));
 const Atlas = lazy(() => import('./Atlas'));
 
@@ -53,17 +50,8 @@ function WorkSpaces(props) {
   let RenderedComponent = null;
 
   switch (match.params.ws) {
-    case 'neuroglancer':
-      RenderedComponent = Neuroglancer;
-      break;
     case 'image_picker':
       RenderedComponent = ImagePicker;
-      break;
-    case 'focused_proofreading':
-      RenderedComponent = FocusedProofreading;
-      break;
-    case 'mitochondria_count':
-      RenderedComponent = MitoCount;
       break;
     case 'clio':
       RenderedComponent = Clio;
