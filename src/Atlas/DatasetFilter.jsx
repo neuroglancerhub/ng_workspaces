@@ -14,11 +14,11 @@ export default function DatasetFilter({ datasets, selected, onChange }) {
 
   return (
     <div>
-      <FormControl>
-        <InputLabel id="demo-mutiple-name-label">Name</InputLabel>
+      <FormControl style={{ width: '300px' }}>
+        <InputLabel id="datasetFilter-label">Dataset Filter</InputLabel>
         <Select
-          labelId="demo-mutiple-name-label"
-          id="demo-mutiple-name"
+          labelId="datasetFilter-label"
+          id="datasetFilter"
           multiple
           value={selected}
           onChange={handleChange}
