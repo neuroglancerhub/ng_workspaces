@@ -1,11 +1,12 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { useDispatch, useSelector, shallowEqual } from 'react-redux';
 import Button from '@material-ui/core/Button';
 import Avatar from '@material-ui/core/Avatar';
 
 import loadScript from './utils/load-script';
 
-export default function Login() {
+export default function Login({ fullWidth }) {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
 
@@ -66,8 +67,16 @@ export default function Login() {
   }
 
   return (
-    <Button color="inherit" onClick={() => handleLogin()}>
+    <Button fullWidth={fullWidth} color="inherit" onClick={() => handleLogin()}>
       Login
     </Button>
   );
 }
+
+Login.propTypes = {
+  fullWidth: PropTypes.bool,
+};
+
+Login.defaultProps = {
+  fullWidth: false,
+};

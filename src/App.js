@@ -11,6 +11,7 @@ import { createMuiTheme } from '@material-ui/core/styles';
 
 import Navbar from './Navbar';
 import Alerts from './Alerts';
+import UnauthenticatedApp from './UnauthenticatedApp';
 import loadScript from './utils/load-script';
 import removeScript from './utils/remove-script';
 import { useLocalStorage } from './utils/hooks';
@@ -102,8 +103,8 @@ function ErrorFallback(props) {
   return (
     <div role="alert">
       <p>
-        Neurohub has produced an internal error.
-        Please send the following error information to the FlyEM software team.
+        Neurohub has produced an internal error. Please send the following error information to the
+        FlyEM software team.
       </p>
       <pre>{error.stack}</pre>
     </div>
@@ -194,6 +195,12 @@ function App() {
     };
   }, [dispatch]);
 
+  // if not logged in then show the login page for all routes.
+  if (!user) {
+    return (
+      <UnauthenticatedApp history={history} theme={theme} />
+    );
+  }
   // The inner ErrorBoundary should catch most errors, and will keep the Navbar with the
   // Neurohub branding.  The outer ErrorBoundary is a last resort, in case there is an
   // error in the Navbar itself.
