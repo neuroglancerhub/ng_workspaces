@@ -24,7 +24,6 @@ const Home = lazy(() => import('./Home'));
 const About = lazy(() => import('./About'));
 const WorkSpaces = lazy(() => import('./WorkSpaces'));
 const AuthTest = lazy(() => import('./AuthTest'));
-const Settings = lazy(() => import('./Settings'));
 
 const theme = createMuiTheme({
   palette: {
@@ -219,15 +218,6 @@ function App() {
                 </Route>
                 <Route path="/about" component={About} />
                 <Route path="/auth_test" component={AuthTest} />
-                <Route path="/settings">
-                  <Settings
-                    project={project}
-                    setProject={setProject}
-                    datasets={datasets}
-                    selectedDatasetName={selectedDatasetName}
-                    setSelectedDataset={setSelectedDataset}
-                  />
-                </Route>
               </Suspense>
             </div>
             <Alerts />
