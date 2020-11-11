@@ -92,14 +92,7 @@ function Navbar({ history, datasets, selectedDatasetName, setSelectedDataset }) 
     setSelectedDataset: PropTypes.func.isRequired,
   };
 
-  const workspaceOptions = [
-    'clio',
-    'image search',
-    'focused proofreading',
-    'mitochondria count',
-    'atlas',
-    'neuroglancer',
-  ].map((dataset) => ({
+  const workspaceOptions = ['clio', 'image search', 'atlas'].map((dataset) => ({
     value: `ws/${dataset.replace(/ /, '_')}`,
     label: dataset,
   }));
@@ -131,19 +124,21 @@ function Navbar({ history, datasets, selectedDatasetName, setSelectedDataset }) 
       <Toolbar>
         <Link to="/" className={classes.title}>
           <Typography variant="h6" color="inherit">
-            neurohub
+            clio
           </Typography>
         </Link>
         <div className={classes.searchContainer}>
-          <Select
-            className={classes.search}
-            styles={selectStyles}
-            onChange={handleChange}
-            value={selectedWorkspace}
-            placeholder="Select a workspace"
-            options={workspaceOptions}
-          />
-          {showDataset && (
+          {datasets && (
+            <Select
+              className={classes.search}
+              styles={selectStyles}
+              onChange={handleChange}
+              value={selectedWorkspace}
+              placeholder="Select a workspace"
+              options={workspaceOptions}
+            />
+          )}
+          {datasets && showDataset && (
             <DataSetSelection
               forNav
               datasets={datasets}
