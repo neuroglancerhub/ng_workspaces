@@ -179,13 +179,7 @@ function App() {
       const g = window.gapi;
       g.load('auth2', () => {
         g.auth2
-          .init({
-            client_id: '833853795110-2eu65hnvthhcibk64ibftemb0i1tlu97.apps.googleusercontent.com',
-            fetch_basic_profile: true,
-            // need this scope to access google cloud storage buckets
-            scope: 'https://www.googleapis.com/auth/devstorage.read_only',
-            ux_mode: 'pop-up',
-          })
+          .init(config.google_auth)
           .then(onInit);
       });
     });
