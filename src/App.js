@@ -14,6 +14,7 @@ import Alerts from './Alerts';
 import loadScript from './utils/load-script';
 import removeScript from './utils/remove-script';
 import { useLocalStorage } from './utils/hooks';
+import config from './config';
 
 import './App.css';
 
@@ -114,10 +115,11 @@ ErrorFallback.propTypes = {
   error: PropTypes.object.isRequired,
 };
 
+const { project } = config;
+
 function App() {
   const dispatch = useDispatch();
 
-  const [project, setProject] = useLocalStorage('project_name', '');
   const [selectedDatasetName, setSelectedDataset] = useLocalStorage('dataset', null);
 
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
@@ -154,7 +156,7 @@ function App() {
         })
         .catch((err) => console.log(err));
     }
-  }, [user, project, dispatch]);
+  }, [user, dispatch]);
 
   useEffect(() => {
     // Check for logged in user and save them to state.
