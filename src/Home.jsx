@@ -51,11 +51,10 @@ function Home() {
         <Hidden smDown>
           <Grid item xs={12} md={4} className={classes.heroTextContainer}>
             <div className={classes.heroText}>
-              <Typography variant="h2">Neurohub</Typography>
+              <Typography variant="h2">Clio</Typography>
               <hr className={classes.heroDivider} />
               <Typography variant="body1" className={classes.heroBody}>
-                Custom workspaces that work with and enhance the Google neuroglancer tool for volume
-                visualization and annotation.
+                Clio website description.
               </Typography>
             </div>
           </Grid>
@@ -65,8 +64,7 @@ function Home() {
             <Typography variant="h2">Neurohub</Typography>
             <hr className={classes.heroDivider} />
             <Typography variant="body1">
-              Custom workspaces that work with and enhance the Google neuroglancer tool for volume
-              visualization and annotation.
+              Clio website description.
             </Typography>
           </Grid>
         </Hidden>
