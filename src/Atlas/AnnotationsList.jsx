@@ -29,6 +29,7 @@ export default function AnnotationsList({
   onChange,
   filterBy,
   datasets,
+  datasetFilter,
   loading,
 }) {
   const [currentPage, setCurrentPage] = useState(1);
@@ -49,6 +50,12 @@ export default function AnnotationsList({
   }
 
   let filteredAnnotations = annotations;
+
+  if (datasetFilter && datasetFilter.length > 0) {
+    /* eslint-disable-next-line max-len */
+    filteredAnnotations = annotations.filter((annotation) => datasetFilter.includes(annotation.dataset));
+  }
+
   if (filterBy) {
     // TODO: improve the regex creation so that people can use the filter
     // box in the same way they would expect it to work. This could generate
@@ -66,26 +73,22 @@ export default function AnnotationsList({
       [, searchTerm] = split;
     }
 
-    console.log({ searchTerm });
-
     const re = new RegExp(searchTerm, 'i');
 
     if (category) {
       const categories = ['title', 'description', 'dataset'];
       if (categories.includes(category)) {
         if (category === 'dataset') {
-          filteredAnnotations = annotations.filter(
-            (annotation) => re.test(datasets[annotation.dataset].description),
-          );
+          /* eslint-disable-next-line max-len */
+          filteredAnnotations = annotations.filter((annotation) => re.test(datasets[annotation.dataset].description));
         } else {
           filteredAnnotations = annotations.filter((annotation) => re.test(annotation[category]));
         }
       }
     } else {
       filteredAnnotations = annotations.filter(
-        (annotation) => re.test(annotation.title)
-        || re.test(annotation.description)
-        || re.test(datasets[annotation.dataset].description),
+        /* eslint-disable-next-line max-len */
+        (annotation) => re.test(annotation.title) || re.test(annotation.description) || re.test(datasets[annotation.dataset].description),
       );
     }
   }
@@ -167,6 +170,7 @@ AnnotationsList.propTypes = {
   selected: PropTypes.object.isRequired,
   onChange: PropTypes.func.isRequired,
   filterBy: PropTypes.string,
+  datasetFilter: PropTypes.arrayOf(PropTypes.string).isRequired,
   datasets: PropTypes.object.isRequired,
   annotations: PropTypes.arrayOf(PropTypes.object).isRequired,
   loading: PropTypes.bool.isRequired,

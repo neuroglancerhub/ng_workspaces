@@ -8,6 +8,7 @@ import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 import AnnotationsList from './Atlas/AnnotationsList';
 import AnnotationsFilter from './Atlas/AnnotationsFilter';
+import DatasetFilter from './Atlas/DatasetFilter';
 
 const useStyles = makeStyles({
   window: {
@@ -38,6 +39,7 @@ export default function Atlas(props) {
 
   const [selectedAnnotation, setSelected] = useState(null);
   const [filterTerm, setFilterTerm] = useState('');
+  const [datasetFilter, setDataSetFilter] = useState([]);
   const [dsLookup, setDsLookup] = useState({});
   const [showList, setShowList] = useState(true);
   const [annotations, setAnnotations] = useState([]);
@@ -67,7 +69,6 @@ export default function Atlas(props) {
         });
     }
   }, [projectUrl, user]);
-
 
   useEffect(() => {
     const datasetLookup = {};
@@ -150,6 +151,11 @@ export default function Atlas(props) {
           {showList && (
             <>
               <Grid item xs={12} sm={8}>
+                <DatasetFilter
+                  datasets={datasets.map((dataset) => dataset.name)}
+                  selected={datasetFilter}
+                  onChange={setDataSetFilter}
+                />
                 <AnnotationsFilter term={filterTerm} onChange={setFilterTerm} />
               </Grid>
               <Grid item xs={12} sm={2} />
@@ -160,6 +166,7 @@ export default function Atlas(props) {
                   selected={selectedAnnotation || {}}
                   onChange={setSelected}
                   filterBy={filterTerm}
+                  datasetFilter={datasetFilter}
                   datasets={dsLookup}
                 />
               </Grid>
