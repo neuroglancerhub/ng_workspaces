@@ -66,6 +66,10 @@ export default function Atlas(props) {
           const sorted = data.sort((a, b) => b.timestamp - a.timestamp);
           setAnnotations(sorted);
           setLoading(false);
+        })
+        .catch((error) => {
+          console.log(error);
+          setLoading(false);
         });
     }
   }, [projectUrl, user]);
