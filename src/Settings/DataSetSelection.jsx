@@ -58,6 +58,7 @@ export default function DataSetSelection({ datasets, onChange, selected, forNav 
         className={classes.select}
         styles={selectStyles}
         options={altOptions}
+        noOptionsMessage={() => 'You are not authorized to view any datasets in this project'}
         placeholder="Select a dataset..."
       />
     );
