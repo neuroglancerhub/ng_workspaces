@@ -178,9 +178,7 @@ function App() {
     loadScript(document, 'script', 'google-login', jsSrc, () => {
       const g = window.gapi;
       g.load('auth2', () => {
-        g.auth2
-          .init(config.google_auth)
-          .then(onInit);
+        g.auth2.init(config.google_auth).then(onInit);
       });
     });
 
@@ -191,9 +189,7 @@ function App() {
 
   // if not logged in then show the login page for all routes.
   if (!user) {
-    return (
-      <UnauthenticatedApp history={history} theme={theme} />
-    );
+    return <UnauthenticatedApp history={history} theme={theme} />;
   }
   // The inner ErrorBoundary should catch most errors, and will keep the Navbar with the
   // Neurohub branding.  The outer ErrorBoundary is a last resort, in case there is an
