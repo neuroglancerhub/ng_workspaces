@@ -5,7 +5,7 @@ export default {
     client_id: '464281314980-qlc4o2ce8htnhhgdb0g0j681de2l3980.apps.googleusercontent.com',
     fetch_basic_profile: true,
     // need this scope to access google cloud storage buckets
-    scope: 'https://www.googleapis.com/auth/devstorage.read_only',
+    // scope: 'https://www.googleapis.com/auth/devstorage.read_only',
     ux_mode: 'pop-up',
   },
 };
