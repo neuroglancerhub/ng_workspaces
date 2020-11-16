@@ -61,7 +61,7 @@ function Home() {
         </Hidden>
         <Hidden mdUp>
           <Grid item xs={12} className={classes.smallScreen}>
-            <Typography variant="h2">Neurohub</Typography>
+            <Typography variant="h2">Clio</Typography>
             <hr className={classes.heroDivider} />
             <Typography variant="body1">
               Clio website description.
