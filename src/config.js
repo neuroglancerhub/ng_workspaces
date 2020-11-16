@@ -1,4 +1,5 @@
 export default {
+  // project: 'FlyEM Private',
   project: 'Clio',
   google_auth: {
     // client_id: '833853795110-2eu65hnvthhcibk64ibftemb0i1tlu97.apps.googleusercontent.com',

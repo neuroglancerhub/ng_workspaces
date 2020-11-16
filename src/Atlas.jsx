@@ -43,14 +43,14 @@ export default function Atlas(props) {
   const [dsLookup, setDsLookup] = useState({});
   const [showList, setShowList] = useState(true);
   const [annotations, setAnnotations] = useState([]);
-  const [isLoading, setLoading] = useState(false);
+  const [loading, setLoading] = useState('preload');
   const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
 
   useEffect(() => {
     // load the annotations from an end point
     if (projectUrl) {
-      setLoading(true);
+      setLoading('fetching');
       const annotationsUrl = `${projectUrl}/atlas/all`;
 
       const options = {
@@ -65,11 +65,11 @@ export default function Atlas(props) {
           // sort them so that the newest ones are first in the list.
           const sorted = data.sort((a, b) => b.timestamp - a.timestamp);
           setAnnotations(sorted);
-          setLoading(false);
+          setLoading('success');
         })
         .catch((error) => {
           console.log(error);
-          setLoading(false);
+          setLoading('failed');
         });
     }
   }, [projectUrl, user]);
@@ -145,6 +145,26 @@ export default function Atlas(props) {
     setShowList(true);
   };
 
+  if (loading === 'failed') {
+    return (
+      <Typography variant="h5">Failed to load EM Atlas Annotations</Typography>
+    );
+  }
+
+  if (loading !== 'success') {
+    return (
+      <div className={classes.expand}>
+        <div className={classes.header}>
+          <Grid container spacing={0}>
+            <Grid item xs={12} sm={2}>
+              <Typography variant="h5">EM Atlas</Typography>
+            </Grid>
+          </Grid>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={classes.expand}>
       <div className={classes.header}>
@@ -168,7 +188,7 @@ export default function Atlas(props) {
               <Grid item xs={12} className={classes.list}>
                 <AnnotationsList
                   annotations={annotations}
-                  loading={isLoading}
+                  loading={!(loading === 'success')}
                   selected={selectedAnnotation || {}}
                   onChange={setSelected}
                   filterBy={filterTerm}
