@@ -54,7 +54,7 @@ function Home() {
               <Typography variant="h2">Clio</Typography>
               <hr className={classes.heroDivider} />
               <Typography variant="body1" className={classes.heroBody}>
-                Clio website description.
+                A platform for discovery in large image volumes.
               </Typography>
             </div>
           </Grid>
@@ -64,7 +64,7 @@ function Home() {
             <Typography variant="h2">Clio</Typography>
             <hr className={classes.heroDivider} />
             <Typography variant="body1">
-              Clio website description.
+              A platform for discovery in large image volumes.
             </Typography>
           </Grid>
         </Hidden>
