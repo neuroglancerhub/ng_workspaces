@@ -135,7 +135,7 @@ function App() {
 
       const formattedProject = project.toLowerCase().replace(/ /g, '-');
 
-      const clioUrl = `https://us-east4-${formattedProject}.cloudfunctions.net/clio_toplevel`;
+      const clioUrl = `https://us-east4-${formattedProject}.cloudfunctions.net/${config.top_level_function}`;
 
       const datasetUrl = `${clioUrl}/datasets`;
 

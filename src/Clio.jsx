@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useSelector, shallowEqual } from 'react-redux';
+import config from './config';
+
 import './Neuroglancer.css';
 
 // eslint-disable-next-line object-curly-newline
@@ -11,7 +13,8 @@ export default function Clio({ children, actions, datasets, selectedDatasetName 
 
   useEffect(() => {
     if (dataset && user) {
-      const annotationsUrl = projectUrl.replace(/\/clio_toplevel$/, '');
+      const replaceRegex = new RegExp(`/${config.top_level_function}$`);
+      const annotationsUrl = projectUrl.replace(replaceRegex, '');
       const layers = [
         {
           name: dataset.name,

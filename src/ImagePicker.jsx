@@ -13,6 +13,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import { makeStyles } from '@material-ui/core/styles';
 import ByExampleResults from './ImagePicker/ByExampleResults';
 import TransferResults from './ImagePicker/TransferResults';
+import config from './config';
 
 const initialCoordinates = []; // [24646, 15685, 17376];
 
@@ -42,7 +43,8 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
   useEffect(() => {
     if (dataset) {
       console.log('reloading neuroglancer');
-      const annotationsUrl = projectUrl.replace(/\/clio_toplevel$/, '');
+      const replaceRegex = new RegExp(`/${config.top_level_function}$`);
+      const annotationsUrl = projectUrl.replace(replaceRegex, '');
       const layers = [
         {
           name: dataset.name,

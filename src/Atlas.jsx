@@ -9,6 +9,7 @@ import Button from '@material-ui/core/Button';
 import AnnotationsList from './Atlas/AnnotationsList';
 import AnnotationsFilter from './Atlas/AnnotationsFilter';
 import DatasetFilter from './Atlas/DatasetFilter';
+import config from './config';
 
 const useStyles = makeStyles({
   window: {
@@ -85,7 +86,8 @@ export default function Atlas(props) {
   useEffect(() => {
     if (selectedAnnotation) {
       const selectedDataset = dsLookup[selectedAnnotation.dataset];
-      const annotationsUrl = projectUrl.replace(/\/clio_toplevel$/, '');
+      const replaceRegex = new RegExp(`/${config.top_level_function}$`);
+      const annotationsUrl = projectUrl.replace(replaceRegex, '');
       const layers = [
         {
           name: selectedDataset.name,
@@ -146,9 +148,7 @@ export default function Atlas(props) {
   };
 
   if (loading === 'failed') {
-    return (
-      <Typography variant="h5">Failed to load EM Atlas Annotations</Typography>
-    );
+    return <Typography variant="h5">Failed to load EM Atlas Annotations</Typography>;
   }
 
   if (loading !== 'success') {
