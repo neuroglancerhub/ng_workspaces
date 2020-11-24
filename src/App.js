@@ -23,6 +23,7 @@ const history = createBrowserHistory();
 
 const Home = lazy(() => import('./Home'));
 const About = lazy(() => import('./About'));
+const UserAdmin = lazy(() => import('./UserAdmin'));
 const WorkSpaces = lazy(() => import('./WorkSpaces'));
 const AuthTest = lazy(() => import('./AuthTest'));
 
@@ -214,6 +215,7 @@ function App() {
                   <WorkSpaces datasets={datasets} selectedDatasetName={selectedDatasetName} />
                 </Route>
                 <Route path="/about" component={About} />
+                <Route path="/users" component={UserAdmin} />
                 <Route path="/auth_test" component={AuthTest} />
               </Suspense>
             </div>
