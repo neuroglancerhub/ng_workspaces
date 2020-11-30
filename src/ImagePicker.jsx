@@ -29,6 +29,11 @@ const useStyles = makeStyles({
   matches: {
     margin: '1em',
   },
+  alpha: {
+    fontSize: '0.8em',
+    color: '#aaa',
+    verticalAlign: 'super',
+  },
 });
 
 // eslint-disable-next-line object-curly-newline
@@ -180,7 +185,7 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
   return (
     <div>
       <div className={classes.header}>
-        <Typography variant="h5">Image Search</Typography>
+        <Typography variant="h5">Image Search <span className={classes.alpha}>alpha</span></Typography>
         {dataset && dataset.transfer && (
           <FormControl component="fieldset">
             <FormLabel component="legend">Pick Mode</FormLabel>
