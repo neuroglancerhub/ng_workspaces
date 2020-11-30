@@ -33,7 +33,7 @@ import { setSyncStateNeeded } from './reducers/viewer';
 import './Neuroglancer.css';
 
 const ImagePicker = lazy(() => import('./ImagePicker'));
-const Clio = lazy(() => import('./Clio'));
+const Annotate = lazy(() => import('./Annotate'));
 const Atlas = lazy(() => import('./Atlas'));
 
 function WorkSpaces(props) {
@@ -53,8 +53,8 @@ function WorkSpaces(props) {
     case 'image_picker':
       RenderedComponent = ImagePicker;
       break;
-    case 'clio':
-      RenderedComponent = Clio;
+    case 'annotate':
+      RenderedComponent = Annotate;
       break;
     case 'atlas':
       RenderedComponent = Atlas;

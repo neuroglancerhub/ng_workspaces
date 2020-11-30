@@ -6,7 +6,7 @@ import config from './config';
 import './Neuroglancer.css';
 
 // eslint-disable-next-line object-curly-newline
-export default function Clio({ children, actions, datasets, selectedDatasetName }) {
+export default function Annotate({ children, actions, datasets, selectedDatasetName }) {
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
   const dataset = datasets.filter((ds) => ds.name === selectedDatasetName)[0];
   const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
@@ -73,7 +73,7 @@ export default function Clio({ children, actions, datasets, selectedDatasetName 
   return <div />;
 }
 
-Clio.propTypes = {
+Annotate.propTypes = {
   children: PropTypes.object.isRequired,
   actions: PropTypes.object.isRequired,
   datasets: PropTypes.arrayOf(PropTypes.object).isRequired,

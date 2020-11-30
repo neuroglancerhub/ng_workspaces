@@ -59,7 +59,7 @@ function Navbar({ history, datasets, selectedDatasetName, setSelectedDataset }) 
     if (!location.pathname.match(/^\/ws\//)) {
       setWorkspace(null);
     }
-    if (location.pathname.match(/clio|image_search/)) {
+    if (location.pathname.match(/annotate|image_search/)) {
       setShowDataset(true);
     } else {
       setShowDataset(false);
@@ -92,7 +92,7 @@ function Navbar({ history, datasets, selectedDatasetName, setSelectedDataset }) 
     setSelectedDataset: PropTypes.func.isRequired,
   };
 
-  const workspaceOptions = ['clio', 'image search', 'atlas'].map((dataset) => ({
+  const workspaceOptions = ['annotate', 'image search', 'atlas'].map((dataset) => ({
     value: `ws/${dataset.replace(/ /, '_')}`,
     label: dataset,
   }));
