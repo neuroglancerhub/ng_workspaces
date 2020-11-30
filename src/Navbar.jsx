@@ -124,7 +124,7 @@ function Navbar({ history, datasets, selectedDatasetName, setSelectedDataset }) 
       <Toolbar>
         <Link to="/" className={classes.title}>
           <Typography variant="h6" color="inherit">
-            clio
+            Clio
           </Typography>
         </Link>
         <div className={classes.searchContainer}>
