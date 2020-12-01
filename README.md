@@ -1,8 +1,8 @@
-# Neuroglancer Workspaces
+# Clio Website
 
 ## Development
 * Clone the repository
-#### `git clone git@github.com:neuroglancerhub/ng_workspaces.git`
+#### `git clone git@github.com:clio-janelia/clio_website.git`
 * install dependencies
 #### `npm install`
 * start the development server
