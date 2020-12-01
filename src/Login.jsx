@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { useDispatch, useSelector, shallowEqual } from 'react-redux';
 import Button from '@material-ui/core/Button';
 import Avatar from '@material-ui/core/Avatar';
+import Tooltip from '@material-ui/core/Tooltip';
 
 import loadScript from './utils/load-script';
 
@@ -21,9 +22,14 @@ export default function Login({ fullWidth }) {
   // TODO: if logged in, return logout button? user profile image.
   if (user) {
     return (
-      <Button color="inherit" onClick={() => handleLogout()}>
-        <Avatar alt={user.getBasicProfile().getName()} src={user.getBasicProfile().getImageUrl()} />
-      </Button>
+      <Tooltip title="logout">
+        <Button color="inherit" onClick={() => handleLogout()}>
+          <Avatar
+            alt={user.getBasicProfile().getName()}
+            src={user.getBasicProfile().getImageUrl()}
+          />
+        </Button>
+      </Tooltip>
     );
   }
 
