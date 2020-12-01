@@ -4,6 +4,7 @@ import { useDispatch, useSelector, shallowEqual } from 'react-redux';
 import Button from '@material-ui/core/Button';
 import Avatar from '@material-ui/core/Avatar';
 import Tooltip from '@material-ui/core/Tooltip';
+import { loginGoogleUser } from './actions/user';
 
 import loadScript from './utils/load-script';
 
@@ -19,7 +20,7 @@ export default function Login({ fullWidth }) {
     });
   }
 
-  // TODO: if logged in, return logout button? user profile image.
+  // if logged in, return logout button? user profile image.
   if (user) {
     return (
       <Tooltip title="logout">
@@ -34,20 +35,14 @@ export default function Login({ fullWidth }) {
   }
 
   function handleLoggedIn(googleUser) {
-    dispatch({
-      type: 'LOGIN_GOOGLE_USER',
-      user: googleUser,
-    });
+    dispatch(loginGoogleUser(googleUser));
   }
 
   function signIn() {
     const ga = window.gapi.auth2.getAuthInstance();
 
     if (ga.isSignedIn.get()) {
-      dispatch({
-        type: 'LOGIN_GOOGLE_USER',
-        user: ga.currentUser.get(),
-      });
+      dispatch(loginGoogleUser(ga.currentUser.get()));
     } else {
       const result = ga.signIn();
       result.then(

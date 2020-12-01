@@ -23,7 +23,7 @@ const clioUrl = `https://us-east4-${formattedProject}.cloudfunctions.net/${
 const usersUrl = `${clioUrl}/users`;
 
 const useStyles = makeStyles((theme) => ({
-  error: {
+  alert: {
     width: '90%',
     margin: `${theme.spacing(2)}px auto`,
   },
@@ -35,13 +35,16 @@ const useStyles = makeStyles((theme) => ({
 function UserAdmin() {
   const classes = useStyles();
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
+  const roles = useSelector((state) => state.user.get('roles'), shallowEqual);
   const [userList, setUserList] = useState({});
   const [errorMsg, setErrorMsg] = useState(null);
   const [loadState, setLoadState] = useState('preload');
 
+  const isAdmin = roles.clio_global && roles.clio_global.includes('admin');
+
   useEffect(() => {
     setLoadState('loading');
-    if (user) {
+    if (user && isAdmin) {
       const options = {
         headers: {
           Authorization: `Bearer ${user.getAuthResponse().id_token}`,
@@ -67,7 +70,7 @@ function UserAdmin() {
           setLoadState('failed');
         });
     }
-  }, [user]);
+  }, [user, isAdmin]);
 
   const handleDelete = (userName) => {
     const options = {
@@ -97,6 +100,14 @@ function UserAdmin() {
     });
   }
 
+  if (!isAdmin) {
+    return (
+      <div className={classes.alert}>
+        <Alert severity="info">You must be an administrator to see this page.</Alert>
+      </div>
+    );
+  }
+
   if (loadState === 'loading') {
     return (
       <div className="userAdmin">
@@ -107,7 +118,7 @@ function UserAdmin() {
 
   if (loadState === 'failed') {
     return (
-      <div className={classes.error}>
+      <div className={classes.alert}>
         <Alert severity="error">Failed to load users list. {errorMsg}</Alert>
       </div>
     );

@@ -6,7 +6,6 @@ import TextField from '@material-ui/core/TextField';
 import config from '../config';
 
 const { project } = config;
-
 const formattedProject = project.toLowerCase().replace(/ /g, '-');
 
 export default function NewUserForm({ onUpdate }) {

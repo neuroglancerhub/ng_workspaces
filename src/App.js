@@ -15,6 +15,7 @@ import UnauthenticatedApp from './UnauthenticatedApp';
 import loadScript from './utils/load-script';
 import removeScript from './utils/remove-script';
 import { useLocalStorage } from './utils/hooks';
+import { loginGoogleUser } from './actions/user';
 import config from './config';
 
 import './App.css';
@@ -168,10 +169,7 @@ function App() {
         window.neurohub = {};
         window.neurohub.clio = {};
         window.neurohub.clio.auth = googleAuth.currentUser.get();
-        dispatch({
-          type: 'LOGIN_GOOGLE_USER',
-          user: googleAuth.currentUser.get(),
-        });
+        dispatch(loginGoogleUser(googleAuth.currentUser.get()));
       }
     }
 
