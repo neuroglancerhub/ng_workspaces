@@ -16,6 +16,7 @@ import loadScript from './utils/load-script';
 import removeScript from './utils/remove-script';
 import { useLocalStorage } from './utils/hooks';
 import { loginGoogleUser } from './actions/user';
+import setTopLevelFunction from './actions/clio';
 import config from './config';
 
 import './App.css';
@@ -126,6 +127,15 @@ function App() {
 
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
   const [datasets, setDatasets] = useState([]);
+  const formattedProject = project.toLowerCase().replace(/ /g, '-');
+
+  // Set the top level function when first mounting the application.
+  // This is done here as it needs to be done before a lot of other functions
+  // that use it are executed.
+  const clioUrl = `https://us-east4-${formattedProject}.cloudfunctions.net/${
+    config.top_level_function
+  }`;
+  dispatch(setTopLevelFunction(clioUrl));
 
   useEffect(() => {
     if (user) {
@@ -135,17 +145,7 @@ function App() {
         },
       };
 
-      const formattedProject = project.toLowerCase().replace(/ /g, '-');
-
-      const clioUrl = `https://us-east4-${formattedProject}.cloudfunctions.net/${config.top_level_function}`;
-
       const datasetUrl = `${clioUrl}/datasets`;
-
-      dispatch({
-        type: 'CLIO_SET_TOP_LEVEL_FUNC',
-        url: clioUrl,
-      });
-
       fetch(datasetUrl, options)
         .then((result) => result.json())
         .then((res) => {
@@ -158,7 +158,7 @@ function App() {
         })
         .catch((err) => console.log(err));
     }
-  }, [user, dispatch]);
+  }, [user, dispatch, clioUrl]);
 
   useEffect(() => {
     // Check for logged in user and save them to state.

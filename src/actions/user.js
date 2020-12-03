@@ -1,15 +1,9 @@
 import C from '../reducers/constants';
-import config from '../config';
-
-const { project } = config;
-const formattedProject = project.toLowerCase().replace(/ /g, '-');
-const clioUrl = `https://us-east4-${formattedProject}.cloudfunctions.net/${
-  config.top_level_function
-}`;
-const rolesUrl = `${clioUrl}/roles`;
 
 export default function setUserRoles(user) {
-  return (dispatch) => {
+  return (dispatch, getState) => {
+    const clioUrl = getState().clio.get('projectUrl');
+    const rolesUrl = `${clioUrl}/roles`;
     const options = {
       headers: {
         Authorization: `Bearer ${user.getAuthResponse().id_token}`,

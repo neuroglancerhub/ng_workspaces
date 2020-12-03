@@ -3,13 +3,10 @@ import PropTypes from 'prop-types';
 import { useSelector, shallowEqual } from 'react-redux';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
-import config from '../config';
-
-const { project } = config;
-const formattedProject = project.toLowerCase().replace(/ /g, '-');
 
 export default function NewUserForm({ onUpdate }) {
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
+  const clioUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
   const [userName, setUserName] = useState('');
   const [permissions, setPermissions] = useState('');
 
@@ -23,10 +20,6 @@ export default function NewUserForm({ onUpdate }) {
   const handleSubmit = () => {
     // TODO: validation
     // submit the data to the clio_toplevel/users end point.
-    const clioUrl = `https://us-east4-${formattedProject}.cloudfunctions.net/${
-      config.top_level_function
-    }`;
-
     const usersUrl = `${clioUrl}/users`;
 
     const userSettings = {};
@@ -48,8 +41,6 @@ export default function NewUserForm({ onUpdate }) {
         console.log(data);
         onUpdate(userSettings);
       });
-
-    console.log('submitting the data');
   };
 
   return (
