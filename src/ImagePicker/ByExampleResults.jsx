@@ -3,12 +3,15 @@ import PropTypes from 'prop-types';
 import { useDispatch, useSelector, shallowEqual } from 'react-redux';
 
 import Grid from '@material-ui/core/Grid';
+import Button from '@material-ui/core/Button';
 import Pagination from '@material-ui/lab/Pagination';
 import { makeStyles } from '@material-ui/core/styles';
 import { addAlert } from '../actions/alerts';
 
 import Matches from './Matches';
 import MouseCoordinates from './MouseCoordinates';
+
+import config from '../config';
 
 const useStyles = makeStyles({
   matchText: {
@@ -19,7 +22,6 @@ const useStyles = makeStyles({
   },
 });
 
-const imageSliceUrlTemplate = 'https://tensorslice-bmcp5imp6q-uk.a.run.app/slice/<xyz>/256_256_1/jpeg?location=<location>';
 const matchesPerPage = 8;
 
 export default function ByExampleResults({
@@ -33,6 +35,7 @@ export default function ByExampleResults({
   const [matches, setMatches] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
+  const clioUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -79,6 +82,24 @@ export default function ByExampleResults({
     setCurrentPage(page);
   };
 
+  const handleSaveSearch = () => {
+    const roundedPos = mousePosition.map((point) => Math.floor(point));
+    const xyz = `x=${roundedPos[0]}&y=${roundedPos[1]}&z=${roundedPos[2]}`;
+    const savedSearchUrl = `${clioUrl}/savedsearches/${dataset.name}?${xyz}`;
+    const body = { note: 'saved from clio image search' };
+    const options = {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${user.getAuthResponse().id_token}`,
+      },
+      body: JSON.stringify(body),
+    };
+    fetch(savedSearchUrl, options)
+      .then((response) => response.text())
+      .then((res) => console.log(res))
+      .catch((error) => console.log(error));
+  };
+
   const pages = Math.ceil(matches.length / matchesPerPage);
 
   const paginatedList = matches.slice(
@@ -97,7 +118,7 @@ export default function ByExampleResults({
   let imageRootUrl = '';
 
   if (dataset) {
-    imageRootUrl = imageSliceUrlTemplate.replace(
+    imageRootUrl = config.imageSliceUrlTemplate.replace(
       '<location>',
       dataset.location.replace('gs://', ''),
     );
@@ -109,6 +130,9 @@ export default function ByExampleResults({
         <>
           <Grid item xs={12} md={4}>
             Viewing Matches for <MouseCoordinates position={mousePosition} />
+            <Button variant="outlined" color="primary" onClick={handleSaveSearch}>
+              Save
+            </Button>
           </Grid>
           <Grid item xs={12} md={4} className={classes.matchText}>
             {matchesText}

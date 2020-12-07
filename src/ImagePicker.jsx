@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
+import {
+  Link as RouterLink,
+  Route,
+  Switch,
+  useRouteMatch,
+} from 'react-router-dom';
 import PropTypes from 'prop-types';
 import Typography from '@material-ui/core/Typography';
 import Radio from '@material-ui/core/Radio';
@@ -10,9 +16,12 @@ import FormLabel from '@material-ui/core/FormLabel';
 import Select from '@material-ui/core/Select';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
+import Grid from '@material-ui/core/Grid';
+import Link from '@material-ui/core/Link';
 import { makeStyles } from '@material-ui/core/styles';
 import ByExampleResults from './ImagePicker/ByExampleResults';
 import TransferResults from './ImagePicker/TransferResults';
+import SavedSearches from './ImagePicker/SavedSearches';
 import config from './config';
 
 const initialCoordinates = []; // [24646, 15685, 17376];
@@ -44,6 +53,9 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
   const [pickMode, setPickMode] = useState(0);
   const [transferModel, setTransferModel] = useState(0);
   const [mousePosition, setMousePosition] = useState(initialCoordinates);
+  const { path, url } = useRouteMatch();
+
+  const updatedActions = { ...actions, setMousePosition };
 
   useEffect(() => {
     if (dataset) {
@@ -185,32 +197,50 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
   return (
     <div>
       <div className={classes.header}>
-        <Typography variant="h5">Image Search <span className={classes.alpha}>alpha</span></Typography>
-        {dataset && dataset.transfer && (
-          <FormControl component="fieldset">
-            <FormLabel component="legend">Pick Mode</FormLabel>
-            <RadioGroup
-              row
-              aria-label="pick_mode"
-              name="pick_mode"
-              value={pickMode}
-              onChange={handleChange}
-            >
-              <FormControlLabel
-                value={0}
-                control={<Radio color="primary" />}
-                label="Query by Example"
-              />
-              <FormControlLabel
-                value={1}
-                control={<Radio color="primary" />}
-                label="Apply Transfer Network"
-              />
-            </RadioGroup>
-          </FormControl>
-        )}
-        {modelSelect}
+        <Grid container spacing={3}>
+          <Grid item sm={10}>
+            <Typography variant="h5">
+              Image Search <span className={classes.alpha}>alpha</span>
+            </Typography>
+          </Grid>
+          <Grid item sm={2}>
+            <Link component={RouterLink} to={`${url}/saved_searches`}>Saved Searches</Link>
+          </Grid>
+        </Grid>
       </div>
+      <Switch>
+        <Route exact path={path}>
+          {dataset && dataset.transfer && (
+            <FormControl component="fieldset">
+              <FormLabel component="legend">Pick Mode</FormLabel>
+              <RadioGroup
+                row
+                aria-label="pick_mode"
+                name="pick_mode"
+                value={pickMode}
+                onChange={handleChange}
+              >
+                <FormControlLabel
+                  value={0}
+                  control={<Radio color="primary" />}
+                  label="Query by Example"
+                />
+                <FormControlLabel
+                  value={1}
+                  control={<Radio color="primary" />}
+                  label="Apply Transfer Network"
+                />
+              </RadioGroup>
+            </FormControl>
+          )}
+          {modelSelect}
+        </Route>
+        <Route path={`${path}/saved_searches`}>
+          {dataset && (
+            <SavedSearches dataset={dataset} actions={updatedActions} />
+          )}
+        </Route>
+      </Switch>
       <div className={classes.window}>{childrenWithMoreProps}</div>
       <div className={classes.matches}>{results}</div>
     </div>
