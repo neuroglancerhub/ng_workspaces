@@ -37,11 +37,25 @@ export default function SavedSearches({ dataset, actions }) {
     );
   }
 
+  const removeFromList = (point) => {
+    const updatedSearches = savedSearches.filter((search) => {
+      const locationKey = `${point[0]}_${point[1]}_${point[2]}`;
+      return search.locationkey !== locationKey;
+    });
+    setSavedSearches(updatedSearches);
+  };
+
   // - display them as a list of thumbnail cards with a link to show the
   // coordinates in the main view with the attached results.
   const formattedSearches = savedSearches.map((search) => (
     <Grid key={search.location} item sm={3}>
-      <SearchCard search={search} imageRootUrl={imageRootUrl} actions={actions} />
+      <SearchCard
+        search={search}
+        imageRootUrl={imageRootUrl}
+        actions={actions}
+        dataset={dataset}
+        onDelete={removeFromList}
+      />
     </Grid>
   ));
   return (

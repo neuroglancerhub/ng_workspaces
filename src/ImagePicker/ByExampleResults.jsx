@@ -95,8 +95,26 @@ export default function ByExampleResults({
       body: JSON.stringify(body),
     };
     fetch(savedSearchUrl, options)
-      .then((response) => response.text())
-      .then((res) => console.log(res))
+      .then((response) => {
+        if (response.status === 200) {
+          // alert message to say it is all good
+          dispatch(
+            addAlert({
+              message: 'Search saved',
+              severity: 'success',
+              duration: 2000,
+            }),
+          );
+        } else {
+          // alert message to say save failed.
+          dispatch(
+            addAlert({
+              message: 'Search save failed',
+              duration: 3000,
+            }),
+          );
+        }
+      })
       .catch((error) => console.log(error));
   };
 
