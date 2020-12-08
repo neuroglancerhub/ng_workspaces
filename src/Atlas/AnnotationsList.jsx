@@ -28,6 +28,7 @@ export default function AnnotationsList({
   selected,
   onChange,
   filterBy,
+  filterType,
   datasets,
   datasetFilter,
   loading,
@@ -57,38 +58,22 @@ export default function AnnotationsList({
   }
 
   if (filterBy) {
-    // TODO: improve the regex creation so that people can use the filter
-    // box in the same way they would expect it to work. This could generate
-    // a lot of errors, so need to wrap in an ErrorBoundary.
-
     let category = null;
-    let searchTerm = filterBy;
-    // check to see if there is a : in the string. If there is split the string
-    // and use the first part to determine the category and the second part as
-    // the search term.
-    const split = filterBy.match(/([^:]*):?(.*)/);
-    if (split[2] !== '') {
-      [, category, searchTerm] = split;
-    } else {
-      [, searchTerm] = split;
+    if (filterType !== 'Title or description') {
+      category = filterType.toLowerCase();
     }
 
-    const re = new RegExp(searchTerm, 'i');
+    const re = new RegExp(filterBy, 'i');
 
     if (category) {
-      const categories = ['title', 'description', 'dataset'];
+      const categories = ['title', 'description'];
       if (categories.includes(category)) {
-        if (category === 'dataset') {
-          /* eslint-disable-next-line max-len */
-          filteredAnnotations = annotations.filter((annotation) => re.test(datasets[annotation.dataset].description));
-        } else {
-          filteredAnnotations = annotations.filter((annotation) => re.test(annotation[category]));
-        }
+        filteredAnnotations = filteredAnnotations.filter((annot) => re.test(annot[category]));
       }
     } else {
-      filteredAnnotations = annotations.filter(
+      filteredAnnotations = filteredAnnotations.filter(
         /* eslint-disable-next-line max-len */
-        (annotation) => re.test(annotation.title) || re.test(annotation.description) || re.test(datasets[annotation.dataset].description),
+        (annot) => re.test(annot.title) || re.test(annot.description) || re.test(datasets[annot.dataset].description),
       );
     }
   }
@@ -170,6 +155,7 @@ AnnotationsList.propTypes = {
   selected: PropTypes.object.isRequired,
   onChange: PropTypes.func.isRequired,
   filterBy: PropTypes.string,
+  filterType: PropTypes.arrayOf(PropTypes.string).isRequired,
   datasetFilter: PropTypes.arrayOf(PropTypes.string).isRequired,
   datasets: PropTypes.object.isRequired,
   annotations: PropTypes.arrayOf(PropTypes.object).isRequired,
