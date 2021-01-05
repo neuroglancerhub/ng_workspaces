@@ -95,6 +95,9 @@ export class DvidManager {
   // Returns a promise, whose value is accessible with `.then((data) => { ... })`.
   getSparseVolSize = (bodyId, onError = this.defaultOnError) => {
     const url = `${this.segmentationApiURL()}/sparsevol-size/${bodyId}`;
+    if (!url.startsWith('http')) {
+      return new Promise((resolve) => { resolve(undefined); });
+    }
     return (fetch(url)
       .then((response) => {
         if (response.ok) {
@@ -112,7 +115,7 @@ export class DvidManager {
 
   // Returns a promise, whose value is accessible with `.then((id) => { ... })`.
   getBodyId = (bodyPt, onError = this.defaultOnError) => {
-    if (bodyPt.length !== 3) {
+    if ((bodyPt.length !== 3) || !this.segmentationApiURL().startsWith('http')) {
       return new Promise((resolve) => { resolve(undefined); });
     }
     const key = `${bodyPt[0]}_${bodyPt[1]}_${bodyPt[2]}`;
@@ -168,6 +171,9 @@ export class DvidManager {
   // Returns a promise, whose value is accessible with `.then((data) => { ... })`.
   getKeyValue = (instance, key, onError = this.defaultOnError) => {
     const url = `${this.dvidApiURL(instance)}/key/${key}`;
+    if (!url.startsWith('http')) {
+      return new Promise((resolve) => { resolve(undefined); });
+    }
     return (fetch(url)
       .then((response) => {
         if (response.ok) {
